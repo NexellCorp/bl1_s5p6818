@@ -1,0 +1,17 @@
+B::
+
+sys.res
+sys.cpu.cortexa53
+
+;sys.config.CoreNumber 8.
+;core.NUMber 8.
+
+sys.config.corebase 0x80010000 
+sys.config.ctibase 0x80020000
+
+sys.o.enreset off
+
+sys.u
+
+data.list
+enddo

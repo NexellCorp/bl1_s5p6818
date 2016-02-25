@@ -1,0 +1,38 @@
+;**************************************************
+;* Peridot CortexA53MPCORE
+;* Init Script for TRACE32
+;**************************************************
+
+B::
+
+sys.res
+SYStem.CPU CORTEXA53
+
+sys.CONFIG.CORENUMBER 8.
+CORE.NUM 8.
+
+;SYStem.JtagClock 10Mhz
+;SYStem.Option ResBreak OFF
+;SYStem.Option waitreset on
+SYStem.Option EnReset off
+
+sys.config.COREBASE 0x80010000 0x80110000 0x80210000 0x80310000 0xA4010000 0xA4110000 0xA4210000 0xA4310000
+
+sys.CONFIG.CTIBASE 0x80020000 0x80120000 0x80220000 0x80320000 0xA4020000 0xA4120000 0xA4220000 0xA4320000
+
+sys.u
+;sys.mode.a
+
+term.reset
+if !window.name("Term")
+(
+	TERM.SCROLL ON
+	TERM.SIZE 80 120
+;	TERM.GATE
+)
+
+if run()
+	break
+data.list
+
+enddo
