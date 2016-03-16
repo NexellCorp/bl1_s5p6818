@@ -25,9 +25,9 @@ LDFLAGS		=	-Bstatic							\
 			-nostdlib
 
 SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o secondboot.o subcpu.o sleep.o	\
-			resetcon.o GPIO.o CRC32.o	SecureManager.o		\
-			clockinit.o debug.o lib2ndboot.o buildinfo.o		\
-			printf.o
+				resetcon.o GPIO.o CRC32.o	SecureManager.o															\
+				clockinit.o debug.o lib2ndboot.o buildinfo.o														\
+				printf.o
 SYS_OBJS	+=	sysbus.o
 
 ifeq ($(MEMTYPE),DDR3)
@@ -70,6 +70,10 @@ SYS_OBJS	+=	iSPIBOOT.o
 SYS_OBJS	+=	iSDHCBOOT.o diskio.o fatfs.o iSDHCFSBOOT.o
 #SYS_OBJS	+=	iNANDBOOTEC.o
 #SYS_OBJS	+=	iUARTBOOT.o
+endif
+
+ifeq ($(MEMTEST),y)
+SYS_OBJS	+=	memtester.o
 endif
 
 

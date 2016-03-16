@@ -1,17 +1,18 @@
-/*                                                                              
- *      Copyright (C) 2012 Nexell Co., All Rights Reserved                      
- *      Nexell Co. Proprietary & Confidential                                   
- *                                                                              
- *      NEXELL INFORMS THAT THIS CODE AND INFORMATION IS PROVIDED "AS IS" BASE  
+/*
+ *      Copyright (C) 2012 Nexell Co., All Rights Reserved
+ *      Nexell Co. Proprietary & Confidential
+ *
+ *      NEXELL INFORMS THAT THIS CODE AND INFORMATION IS PROVIDED "AS IS" BASE
  *      AND WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING
- *      BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS
- *      FOR A PARTICULAR PURPOSE.                                               
- *                                                                              
- *      Module          : 
- *      File            : 
- *      Description     : 
+ *      BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR
+ *FITNESS
+ *      FOR A PARTICULAR PURPOSE.
+ *
+ *      Module          :
+ *      File            :
+ *      Description     :
  *      Author          : Hans
- *      History         : 
+ *      History         :
  */
 #ifndef __K_PRINTF__
 #define __K_PRINTF__
@@ -22,6 +23,5 @@
 
 int printf(const char *format, ...);
 
-#define UartPrintf  printf
+#define UartPrintf printf
 #endif
-

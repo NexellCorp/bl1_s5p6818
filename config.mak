@@ -23,12 +23,12 @@ VERINFO				= V036
 ###########################################################################
 DEBUG				= n
 
-OPMODE				= aarch64
-#OPMODE				= aarch32
-
+#OPMODE				= aarch64
+OPMODE				= aarch32
 
 MEMTYPE				= DDR3
 #MEMTYPE			= LPDDR3
+MEMTEST				= y
 
 BUILTINALL			= y
 INITPMIC			= YES
@@ -49,9 +49,10 @@ endif
 
 #BOARD				= SVT
 #BOARD				= ASB
-BOARD				= DRONE
+#BOARD				= DRONE
 #BOARD				= AVN
 #BOARD				= BF700
+BOARD				?= RAPTOR
 
 # cross-tool pre-header
 ifeq ($(OPMODE), aarch32)
@@ -80,12 +81,7 @@ endif
 ###########################################################################
 PROJECT_NAME			= $(CHIPNAME)_2ndboot_$(OPMODE)_$(MEMTYPE)_$(VERINFO)
 
-ifeq ($(INITPMIC), YES)
-TARGET_NAME			= $(PROJECT_NAME)_$(BOARD)_$(BOOTFROM)
-endif
-ifeq ($(INITPMIC), NO)
-TARGET_NAME			= $(PROJECT_NAME)_$(BOOTFROM)
-endif
+TARGET_NAME			= bl1-$(shell echo $(BOARD) | tr A-Z a-z)
 
 LDS_NAME			= peridot_2ndboot_$(OPMODE)
 
@@ -96,11 +92,7 @@ LDS_NAME			= peridot_2ndboot_$(OPMODE)
 DIR_PROJECT_TOP			=
 
 DIR_OBJOUTPUT			= obj
-ifeq ($(BUILTINALL),n)
-DIR_TARGETOUTPUT		= build_$(BOARD)_$(BOOTFROM)_$(OPMODE)
-else ifeq ($(BUILTINALL),y)
-DIR_TARGETOUTPUT		= build_$(BOARD)_$(OPMODE)
-endif
+DIR_TARGETOUTPUT		= out
 
 CODE_MAIN_INCLUDE		=
 
@@ -108,11 +100,11 @@ CODE_MAIN_INCLUDE		=
 # Build Environment
 ###########################################################################
 ifeq ($(OPMODE) , aarch32)
-ARCH				= armv7-a
+ARCH			= armv7-a
 CPU				= cortex-a15
 endif
 ifeq ($(OPMODE) , aarch64)
-ARCH				= armv8-a
+ARCH			= armv8-a
 CPU				= cortex-a53
 endif
 
@@ -121,17 +113,17 @@ CC				= $(CROSS_TOOL)gcc
 LD 				= $(CROSS_TOOL)ld
 AS 				= $(CROSS_TOOL)as
 AR 				= $(CROSS_TOOL)ar
-MAKEBIN				= $(CROSS_TOOL)objcopy
-OBJCOPY				= $(CROSS_TOOL)objcopy
-RANLIB 				= $(CROSS_TOOL)ranlib
+MAKEBIN			= $(CROSS_TOOL)objcopy
+OBJCOPY			= $(CROSS_TOOL)objcopy
+RANLIB 			= $(CROSS_TOOL)ranlib
 
-GCC_LIB				= $(shell $(CC) -print-libgcc-file-name)
+GCC_LIB			= $(shell $(CC) -print-libgcc-file-name)
 
 ifeq ($(DEBUG), y)
-CFLAGS				= -DNX_DEBUG -O0
+CFLAGS			= -DNX_DEBUG -O0
 Q				=
 else
-CFLAGS				= -DNX_RELEASE -Os
+CFLAGS			= -DNX_RELEASE -Os
 Q				= @
 endif
 
@@ -139,15 +131,15 @@ endif
 # MISC tools for MS-DOS
 ###########################################################################
 ifeq ($(OS),Windows_NT)
-MKDIR				= mkdir
+MKDIR			= mkdir
 RM				= del /q /F
 MV				= move
 CD				= cd
 CP				= copy
-ECHO				= echo
-RMDIR				= rmdir /S /Q
+ECHO			= echo
+RMDIR			= rmdir /S /Q
 else
-MKDIR				= mkdir
+MKDIR			= mkdir
 RM				= rm -f
 MV				= mv
 CD				= cd
@@ -190,4 +182,6 @@ endif
 ifeq ($(INITPMIC), YES)
 CFLAGS				+=	-D$(BOARD)_PMIC_INIT
 endif
-
+ifeq ($(MEMTEST), y)
+CFLAGS				+=	-D$SIMPLE_MEMTEST
+endif

@@ -1,17 +1,18 @@
-/*                                                                              
- *      Copyright (C) 2012 Nexell Co., All Rights Reserved                      
- *      Nexell Co. Proprietary & Confidential                                   
- *                                                                              
- *      NEXELL INFORMS THAT THIS CODE AND INFORMATION IS PROVIDED "AS IS" BASE  
+/*
+ *      Copyright (C) 2012 Nexell Co., All Rights Reserved
+ *      Nexell Co. Proprietary & Confidential
+ *
+ *      NEXELL INFORMS THAT THIS CODE AND INFORMATION IS PROVIDED "AS IS" BASE
  *      AND WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING
- *      BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS
- *      FOR A PARTICULAR PURPOSE.                                               
- *                                                                              
+ *      BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR
+ *FITNESS
+ *      FOR A PARTICULAR PURPOSE.
+ *
  *      Module          : SDMMC File System
  *      File            : diskio.c
- *      Description     : 
+ *      Description     :
  *      Author          : Hans
- *      History         : 
+ *      History         :
  */
 
 /*-----------------------------------------------------------------------*/
@@ -28,7 +29,7 @@
 #include <iSDHCBOOT.h>
 
 #ifdef DEBUG
-#define dprintf(x, ...)	printf(x, ...)
+#define dprintf(x, ...) printf(x, ...)
 #else
 #define dprintf(x, ...)
 #endif
@@ -36,51 +37,45 @@
 /*-----------------------------------------------------------------------*/
 /* Correspondence between physical drive number and physical drive.      */
 
-#define MMC		0
-#define USB		1
-#define ATA		2
-
-
+#define MMC 0
+#define USB 1
+#define ATA 2
 
 /*-----------------------------------------------------------------------*/
 /* Inidialize a Drive                                                    */
 
-DSTATUS disk_initialize (
-	U8 drv				/* Physical drive nmuber (0..) */
-)
+DSTATUS disk_initialize(U8 drv /* Physical drive nmuber (0..) */
+			)
 {
-//	DSTATUS stat = RES_OK;
-//	int result;
+	//	DSTATUS stat = RES_OK;
+	//	int result;
 
 	switch (drv) {
-	case MMC :
-//		result = MMC_disk_initialize();
+	case MMC:
+		//		result = MMC_disk_initialize();
 		// translate the reslut code here
 
-		return RES_OK;//stat;
+		return RES_OK; // stat;
 	}
 	return STA_NOINIT;
 }
 
-
-
 /*-----------------------------------------------------------------------*/
 /* Return Disk Status                                                    */
 
-DSTATUS disk_status (
-	U8 drv		/* Physical drive nmuber (0..) */
-)
+DSTATUS disk_status(U8 drv /* Physical drive nmuber (0..) */
+		    )
 {
-//	DSTATUS stat;
-//	int result;
+	//	DSTATUS stat;
+	//	int result;
 
 	switch (drv) {
-	case MMC :
-//		result = MMC_disk_status();
+	case MMC:
+		//		result = MMC_disk_status();
 		// translate the reslut code here
 
-		return RES_OK;//stat;
-//		return STA_NOINIT;//stat;
+		return RES_OK; // stat;
+		//		return STA_NOINIT;//stat;
 	}
 	return STA_NOINIT;
 }
@@ -88,22 +83,21 @@ DSTATUS disk_status (
 /*-----------------------------------------------------------------------*/
 /* Read Sector(s)                                                        */
 
-DRESULT disk_read (
-	U8 drv,			/* Physical drive nmuber (0..) */
-	U8 *buff,		/* Data buffer to store read data */
-	U32 sector,		/* Sector address (LBA) */
-	U8 count,		/* Number of sectors to read (1..255) */
-	U32 *diskhandle
-)
+DRESULT disk_read(U8 drv,     /* Physical drive nmuber (0..) */
+		  U8 *buff,   /* Data buffer to store read data */
+		  U32 sector, /* Sector address (LBA) */
+		  U8 count,   /* Number of sectors to read (1..255) */
+		  U32 *diskhandle)
 {
-	SDXCBOOTSTATUS * pSDXCBootStatus = (SDXCBOOTSTATUS *)((MPTRS)diskhandle);
-	dprintf( "disk_read: sector: %d count: %d\r\n", sector, count );
+	SDXCBOOTSTATUS *pSDXCBootStatus = (SDXCBOOTSTATUS *)((MPTRS)diskhandle);
+	dprintf("disk_read: sector: %d count: %d\r\n", sector, count);
 
 	switch (drv) {
-	case MMC :
-//		result = MMC_disk_read(buff, sector, count);
+	case MMC:
+		//		result = MMC_disk_read(buff, sector, count);
 		// translate the reslut code here
-		NX_SDMMC_ReadSectors( pSDXCBootStatus, sector, count, (U32*)buff );
+		NX_SDMMC_ReadSectors(pSDXCBootStatus, sector, count,
+				     (U32 *)buff);
 #if 0
 {
 	U32 k;
@@ -141,4 +135,3 @@ DRESULT disk_read (
 	}
 	return RES_PARERR;
 }
-

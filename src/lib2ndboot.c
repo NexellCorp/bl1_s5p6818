@@ -1,15 +1,16 @@
-/*                                                                             
- *      Copyright (C) 2012 Nexell Co., All Rights Reserved                      
- *      Nexell Co. Proprietary & Confidential                                   
- *                                                                             
- *      NEXELL INFORMS THAT THIS CODE AND INFORMATION IS PROVIDED "AS IS" BASE  
+/*
+ *      Copyright (C) 2012 Nexell Co., All Rights Reserved
+ *      Nexell Co. Proprietary & Confidential
+ *
+ *      NEXELL INFORMS THAT THIS CODE AND INFORMATION IS PROVIDED "AS IS" BASE
  *      AND WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING
- *      BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS
- *      FOR A PARTICULAR PURPOSE.                                               
- *                                                                             
+ *      BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR
+ *FITNESS
+ *      FOR A PARTICULAR PURPOSE.
+ *
  *      Module          : Base
  *      File            : libdiv.c
- *      Description     : 
+ *      Description     :
  *      Author          : Hans
  *      History         : 2014.08.20 Hans create
  */
@@ -21,7 +22,7 @@ U32 getquotient(U32 dividend, U32 divisor)
 {
 	U32 quotient, remainder;
 	U32 t, num_bits;
-	U32 q, bit, d=0;
+	U32 q, bit, d = 0;
 	U32 i;
 
 	remainder = 0;
@@ -70,7 +71,7 @@ U32 getremainder(U32 dividend, U32 divisor)
 {
 	U32 quotient, remainder;
 	U32 t, num_bits;
-	U32 q, bit, d=0;
+	U32 q, bit, d = 0;
 	U32 i;
 
 	remainder = 0;
@@ -117,23 +118,15 @@ U32 getremainder(U32 dividend, U32 divisor)
 #endif
 
 #ifdef aarch64
-U32 getquotient(U32 dividend, U32 divisor)
-{
-	return dividend/divisor;
-}
-U32 getremainder(U32 dividend, U32 divisor)
-{
-	return dividend%divisor;
-}
+U32 getquotient(U32 dividend, U32 divisor) { return dividend / divisor; }
+U32 getremainder(U32 dividend, U32 divisor) { return dividend % divisor; }
 #endif
 
 inline void DMC_Delay(int milisecond)
 {
-	register volatile int   count, temp;
+	register volatile int count, temp;
 
-	for (count = 0; count < milisecond; count++)
-	{
+	for (count = 0; count < milisecond; count++) {
 		temp ^= count;
 	}
 }
-
