@@ -16,7 +16,7 @@
 ###########################################################################
 # Build Version info
 ###########################################################################
-VERINFO				= V036
+VERINFO				= V110
 
 ###########################################################################
 # Build Environment
@@ -28,7 +28,7 @@ OPMODE				= aarch32
 
 MEMTYPE				= DDR3
 #MEMTYPE			= LPDDR3
-MEMTEST				= y
+MEMTEST				= n
 
 BUILTINALL			= y
 INITPMIC			= YES
@@ -79,7 +79,7 @@ endif
 ###########################################################################
 # Top Names
 ###########################################################################
-PROJECT_NAME			= $(CHIPNAME)_2ndboot_$(OPMODE)_$(MEMTYPE)_$(VERINFO)
+PROJECT_NAME		= $(CHIPNAME)_2ndboot_$(OPMODE)_$(MEMTYPE)_$(VERINFO)
 
 TARGET_NAME			= bl1-$(shell echo $(BOARD) | tr A-Z a-z)
 
@@ -107,7 +107,6 @@ ifeq ($(OPMODE) , aarch64)
 ARCH			= armv8-a
 CPU				= cortex-a53
 endif
-
 
 CC				= $(CROSS_TOOL)gcc
 LD 				= $(CROSS_TOOL)ld
@@ -156,26 +155,26 @@ ARLIBFLAGS			= -v -s
 
 ASFLAG				= -D__ASSEMBLY__ -D$(OPMODE)
 
-CFLAGS				+=	-g -Wall				\
+CFLAGS				+=	-g -Wall						\
 					-Wextra -ffreestanding -fno-builtin	\
-					-mlittle-endian				\
-					-mcpu=$(CPU)				\
-					$(CODE_MAIN_INCLUDE)			\
+					-mlittle-endian						\
+					-mcpu=$(CPU)						\
+					$(CODE_MAIN_INCLUDE)				\
 					-D__arm -DLOAD_FROM_$(BOOTFROM)		\
-					-DMEMTYPE_$(MEMTYPE)			\
-					-DINITPMIC_$(INITPMIC)			\
+					-DMEMTYPE_$(MEMTYPE)				\
+					-DINITPMIC_$(INITPMIC)				\
 					-D$(OPMODE) -D$(BOARD)
 
 
 ifeq ($(OPMODE) , aarch32)
-CFLAGS				+=	-msoft-float				\
+CFLAGS				+=	-msoft-float					\
 					-mstructure-size-boundary=32
 endif
 
 ifeq ($(OPMODE) , aarch64)
 ASFLAG				+=	-march=$(ARCH) -mcpu=$(CPU)
 
-CFLAGS				+=	-mcmodel=small				\
+CFLAGS				+=	-mcmodel=small					\
 					-march=$(ARCH)
 endif
 
@@ -183,5 +182,6 @@ ifeq ($(INITPMIC), YES)
 CFLAGS				+=	-D$(BOARD)_PMIC_INIT
 endif
 ifeq ($(MEMTEST), y)
-CFLAGS				+=	-D$SIMPLE_MEMTEST
+MEMTEST_TYPE		+=	SIMPLE
+CFLAGS				+=	-D$(MEMTEST_TYPE)_MEMTEST
 endif

@@ -19,7 +19,7 @@
 #define __SET_GLOBAL_VARIABLES
 #include "sysheader.h"
 
-//#define SIMPLE_MEMTEST (0)
+//#define SIMPLE_MEMTEST 			(1)
 
 #define EMA_VALUE (1) // Manual setting - 1: 1.1V, 3: 1.0V, 4: 0.95V
 
@@ -328,8 +328,8 @@ void BootMain(U32 CPUID)
 	if (pSBI->SIGNATURE != HEADER_ID)
 		printf("2nd Boot Header is invalid, Please check it out!\r\n");
 
-#ifdef SIMPLE_METEST
-	simple_memtest((U32 *)0x40000000UL, (U32 *)0xBFFFFFFFUL);
+#ifdef SIMPLE_MEMTEST
+	simple_memtest((U32 *)0x40000000UL, (U32 *)0xBFFF0000);
 #endif
 
 #if defined(LOAD_FROM_USB)
@@ -403,8 +403,7 @@ void BootMain(U32 CPUID)
 
 	printf(" Image Loading Failure Try to USB boot\r\n");
 	temp = 0x10000000;
-	while (!DebugIsUartTxDone() && temp--)
-		;
+	while (!DebugIsUartTxDone() && temp--);
 	RomUSBBoot((U32)0x0000009C);
 	while (1)
 		;
