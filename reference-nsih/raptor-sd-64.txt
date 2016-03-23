@@ -43,7 +43,7 @@ EAFFFFFE	// 0x03C : B .
 //------------------------------------------------------------------------------
 // Main Bootloader Load Info
 //------------------------------------------------------------------------------
-00010000	// 0x040 : Device Read Address from 2ndboot Device.
+00010200	// 0x040 : Device Read Address from 2ndboot Device.
 00040000	// 0x044 : Load Size for 2ndboot.
 FFFF0000	// 0x048 : Load Address for 2ndboot.
 FFFF0000	// 0x04C : Launch Address for 2ndboot.
