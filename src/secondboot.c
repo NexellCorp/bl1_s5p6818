@@ -106,6 +106,11 @@ void BootMain(U32 CPUID)
 	CBOOL Result = CFALSE;
 	register volatile U32 temp;
 	U32 sign, isResume = 0;
+	U32 debugCH = 0;
+
+#ifdef RAPTOR_PMIC_INIT
+	debugCH = 3;
+#endif
 
 	//--------------------------------------------------------------------------
 	// Set EMA
@@ -141,7 +146,7 @@ void BootMain(U32 CPUID)
 	//--------------------------------------------------------------------------
 	// Init debug
 	//--------------------------------------------------------------------------
-	DebugInit(3);
+	DebugInit(debugCH);
 
 	WriteIO32(&pReg_Alive->ALIVEPWRGATEREG, 1);
 
@@ -261,7 +266,7 @@ void BootMain(U32 CPUID)
 	//--------------------------------------------------------------------------
 	// Debug Console
 	//--------------------------------------------------------------------------
-	DebugInit(3);
+	DebugInit(debugCH);
 
 //--------------------------------------------------------------------------
 // build information. version, build time and date
