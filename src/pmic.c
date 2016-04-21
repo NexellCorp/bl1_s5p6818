@@ -495,8 +495,8 @@ inline void PMIC_RAPTOR(void)
 
 	// PFM -> PWM mode
 
-	/* ARM voltage change */// 1.1
-	pData[0] = nxe2000_get_dcdc_step(1100000);
+	/* ARM voltage change */// 1.25V
+	pData[0] = nxe2000_get_dcdc_step(1250000);
 	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
 	/* Core voltage change */ // 1.2V
 	pData[0] = nxe2000_get_dcdc_step(1200000);
