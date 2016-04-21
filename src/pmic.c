@@ -486,12 +486,26 @@ inline void PMIC_ASB(void)
 #endif // ASB
 
 #ifdef RAPTOR_PMIC_INIT
+
+extern unsigned int raptor_check_hw_revision(void);
+
 inline void PMIC_RAPTOR(void)
 {
 	U8 pData[4];
+	U32 board_rev = 0;
 
-	/* I2C init for CORE & NXE2000 power. */
-	I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA);
+	/* Raptor Board Revision Check */
+	board_rev = raptor_check_hw_revision();
+	if (board_rev >= 0x2) {
+		/* I2C init for CORE & NXE2000 power. */
+		/* GPIOC, SCL:15, SDA:16 */
+		I2C_Init(2, 15, 16);
+	} else {
+		/* I2C init for CORE & NXE2000 power. */
+		/* GPIOD, SCL:6, SDA:7 */
+		I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL,
+			NXE2000_I2C_SDA);
+	}
 
 	// PFM -> PWM mode
 

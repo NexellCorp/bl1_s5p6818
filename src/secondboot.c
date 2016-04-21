@@ -61,6 +61,27 @@ extern int memtester_main(unsigned int start, unsigned int end);
 
 void simple_memtest(U32 *pStart, U32 *pEnd);
 
+#if defined(RAPTOR)
+/*
+ * Raptor board - revision check. (H/W: GPIOE 4,5,6)
+ * GPIOE4 (Least Bit), GPIOE6(Most Bit)
+ */
+unsigned int raptor_check_hw_revision(void)
+{
+	volatile unsigned int *reg = 0;
+	unsigned int val = 0;
+
+	/*
+	 * Check to GPIOE PORT
+	 * Read to GPIOPAD Status Register
+	 */
+	reg = (volatile unsigned int*)(0xC001E000 + 0x18);
+	val = (*reg & (0x7 << 4)) >> 4;
+
+        return val;
+}
+#endif
+
 //------------------------------------------------------------------------------
 #if (CCI400_COHERENCY_ENABLE == 1)
 void initCCI400(void)
