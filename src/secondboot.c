@@ -80,6 +80,18 @@ unsigned int raptor_check_hw_revision(void)
 
         return val;
 }
+
+/*
+ * Raptor board - PWM Module Reset
+ * This function is temporary code.
+ */
+void pwm_reset(void)
+{
+	int reset_number = RESETINDEX_OF_PWM_MODULE_PRESETn;
+
+	ResetCon(reset_number, CTRUE);	// reset on
+	ResetCon(reset_number, CFALSE); // reset negate
+}
 #endif
 
 //------------------------------------------------------------------------------
@@ -330,6 +342,8 @@ void BootMain(U32 CPUID)
 
 	set_bus_config();
 	set_drex_qos();
+	/* Temporary Code - PWM Reset */
+	pwm_reset();
 
 #if (CCI400_COHERENCY_ENABLE == 1)
 	printf("CCI Init!\r\n");
