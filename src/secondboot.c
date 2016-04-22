@@ -80,11 +80,13 @@ unsigned int raptor_check_hw_revision(void)
 
         return val;
 }
+#endif
 
 /*
- * Raptor board - PWM Module Reset
+ * PWM Module Reset
  * This function is temporary code.
  */
+
 void pwm_reset(void)
 {
 	int reset_number = RESETINDEX_OF_PWM_MODULE_PRESETn;
@@ -92,7 +94,6 @@ void pwm_reset(void)
 	ResetCon(reset_number, CTRUE);	// reset on
 	ResetCon(reset_number, CFALSE); // reset negate
 }
-#endif
 
 //------------------------------------------------------------------------------
 #if (CCI400_COHERENCY_ENABLE == 1)
