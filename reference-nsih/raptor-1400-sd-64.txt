@@ -102,7 +102,7 @@ FFFF0000	// 0x04C : Launch Address for 2ndboot.
                 // ODT 80 ST 48
 
 // Leveling & Training.
-0000001F	// 0x0D0	[4] WR_CAL, [3] RD_CAL, [2] GT_LVL, [1] CA_CAL, [0] WR_LVL
+00000004	// 0x0D0	[4] WR_CAL, [3] RD_CAL, [2] GT_LVL, [1] CA_CAL, [0] WR_LVL
 
 //------------------------------------------------------------------------------
 // STUB
