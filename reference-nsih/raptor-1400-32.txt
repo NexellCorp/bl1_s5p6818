@@ -93,13 +93,13 @@ FFFF0000	// 0x04C : Launch Address for 2ndboot.
 41000A26	// 0x0BC	/tFAW:16	/tXSR:256	/tXP:10	/tCKE:2
 
 // DDR3 device - Drive strength value.
-00010002	// 0x0C0	[23:16] MR1_RTT_Nom - 001: RZQ/4, 010: RZQ/2, 011: RZQ/6, 100: RZQ/12, 101: RZQ/8, [15:8] MR1_ODS - 0: RZQ/6, 1 : RZQ/7, [7:0] MR2_RTT_WR - 0: ODT disable, 1: RZQ/4, 2: RZQ/2
-                // ODT 60 ST 40
+00020001	// 0x0C0	[23:16] MR1_RTT_Nom - 001: RZQ/4, 010: RZQ/2, 011: RZQ/6, 100: RZQ/12, 101: RZQ/8, [15:8] MR1_ODS - 0: RZQ/6, 1 : RZQ/7, [7:0] MR2_RTT_WR - 0: ODT disable, 1: RZQ/4, 2: RZQ/2
+                // ODT 60 ST 40 (RTT_WR:120ohm)
 
 // DDR PHY Controller - Drive strength value.
 06060606	// 0x0C4	[31:24] Byte3, [23:16] Byte2, [15:8] Byte1, [7:0] Byte0 - 240ohm / (n + 1), n = (1 ~ 7)
 06060606	// 0x0C8	[31:24] CA, [23:16] CS, [15:8] CKE, [7:0] CK - 240ohm / (n + 1), n = (1 ~ 7)
-00000204	// 0x0CC	[15:8] ZQ_ODT, [7:0] ZQ_DDS - 240ohm / (n + 1), n = (1 ~ 7)
+00000105	// 0x0CC	[15:8] ZQ_ODT, [7:0] ZQ_DDS - 240ohm / (n + 1), n = (1 ~ 7)
                 // ODT 80 ST 48
 
 // Leveling & Training.
