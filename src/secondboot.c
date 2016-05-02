@@ -95,6 +95,20 @@ void pwm_reset(void)
 	ResetCon(reset_number, CFALSE); // reset negate
 }
 
+/*
+ * TIMER Module Reset
+ * This function is temporary code.
+ */
+
+void timer_reset(void)
+{
+	int reset_number = RESETINDEX_OF_TIMER_MODULE_PRESETn;
+
+	ResetCon(reset_number, CTRUE);	// reset on
+	ResetCon(reset_number, CFALSE); // reset negate
+}
+
+
 //------------------------------------------------------------------------------
 #if (CCI400_COHERENCY_ENABLE == 1)
 void initCCI400(void)
@@ -345,6 +359,8 @@ void BootMain(U32 CPUID)
 	set_drex_qos();
 	/* Temporary Code - PWM Reset */
 	pwm_reset();
+	/* Temporary Code - Timer Reset */
+	timer_reset();
 
 #if (CCI400_COHERENCY_ENABLE == 1)
 	printf("CCI Init!\r\n");
