@@ -122,7 +122,7 @@ ifeq ($(DEBUG), y)
 CFLAGS			= -DNX_DEBUG -O0
 Q				=
 else
-CFLAGS			= -DNX_RELEASE -Os
+CFLAGS			= -DNX_RELEASE -O0
 Q				= @
 endif
 
