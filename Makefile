@@ -44,32 +44,34 @@ ifeq ($(INITPMIC),YES)
 SYS_OBJS	+=	i2c_gpio.o pmic.o
 endif
 
-ifeq ($(BUILTINALL),n)
-ifeq ($(BOOTFROM),USB)
+ifeq ($(SUPPORT_USB_BOOT),y)
+CFLAGS		+= -DSUPPORT_USB_BOOT
 SYS_OBJS	+=	iUSBBOOT.o
-endif
-ifeq ($(BOOTFROM),SPI)
-SYS_OBJS	+=	iSPIBOOT.o
-endif
-ifeq ($(BOOTFROM),SDMMC)
-SYS_OBJS	+=	iSDHCBOOT.o
-endif
-ifeq ($(BOOTFROM),SDFS)
-SYS_OBJS	+=	iSDHCBOOT.o diskio.o fatfs.o iSDHCFSBOOT.o
-endif
-ifeq ($(BOOTFROM),NAND)
-SYS_OBJS	+=	iNANDBOOTEC.o
-endif
-ifeq ($(BOOTFROM),UART)
-SYS_OBJS	+=	iUARTBOOT.o
 endif
 
-else ifeq ($(BUILTINALL),y)
-SYS_OBJS	+=	iUSBBOOT.o
+ifeq ($(SUPPORT_SPI_BOOT),y)
+CFLAGS		+= -DSUPPORT_SPI_BOOT
 SYS_OBJS	+=	iSPIBOOT.o
-SYS_OBJS	+=	iSDHCBOOT.o diskio.o fatfs.o iSDHCFSBOOT.o
-#SYS_OBJS	+=	iNANDBOOTEC.o
-#SYS_OBJS	+=	iUARTBOOT.o
+endif
+
+ifeq ($(SUPPORT_SDMMC_BOOT),y)
+CFLAGS		+= -DSUPPORT_SDMMC_BOOT
+SYS_OBJS	+=	iSDHCBOOT.o
+endif
+
+ifeq ($(SUPPORT_SDFS_BOOT),y)
+CFLAGS		+= -DSUPPORT_SDFS_BOOT
+SYS_OBJS	+=	diskio.o fatfs.o iSDHCFSBOOT.o
+endif
+
+ifeq ($(SUPPORT_NAND_BOOT),y)
+CFLAGS		+= -DSUPPORT_NAND_BOOT
+SYS_OBJS	+=	iNANDBOOTEC.o
+endif
+
+ifeq ($(SUPPORT_UART_BOOT),y)
+CFLAGS		+= -DSUPPORT_UART_BOOT
+SYS_OBJS	+=	iUARTBOOT.o
 endif
 
 ifeq ($(MEMTEST),y)

@@ -30,22 +30,19 @@ MEMTYPE				= DDR3
 #MEMTYPE			= LPDDR3
 MEMTEST				= n
 
-BUILTINALL			= y
 INITPMIC			= YES
 #INITPMIC			= NO
 
 CHIPNAME			= S5P6818
 
-ifeq ($(BUILTINALL),n)
-BOOTFROM			= USB
-#BOOTFROM			= SPI
-#BOOTFROM			= SDMMC
-#BOOTFROM			= SDFS
-#BOOTFROM			= NAND
-#BOOTFROM			= UART
-else ifeq ($(BUILTINALL),y)
-BOOTFROM			= ALL
-endif
+CFLAGS				:=
+
+SUPPORT_USB_BOOT		= y
+SUPPORT_SPI_BOOT		= n
+SUPPORT_SDMMC_BOOT		= y
+SUPPORT_SDFS_BOOT		= n
+SUPPORT_NAND_BOOT		= n
+SUPPORT_UART_BOOT		= n
 
 #BOARD				= SVT
 #BOARD				= ASB
@@ -119,10 +116,10 @@ RANLIB 			= $(CROSS_TOOL)ranlib
 GCC_LIB			= $(shell $(CC) -print-libgcc-file-name)
 
 ifeq ($(DEBUG), y)
-CFLAGS			= -DNX_DEBUG -O0
+CFLAGS			+= -DNX_DEBUG -O0
 Q				=
 else
-CFLAGS			= -DNX_RELEASE -O0
+CFLAGS			+= -DNX_RELEASE -O0
 Q				= @
 endif
 
@@ -160,7 +157,7 @@ CFLAGS				+=	-g -Wall						\
 					-mlittle-endian						\
 					-mcpu=$(CPU)						\
 					$(CODE_MAIN_INCLUDE)				\
-					-D__arm -DLOAD_FROM_$(BOOTFROM)		\
+					-D__arm						\
 					-DMEMTYPE_$(MEMTYPE)				\
 					-DINITPMIC_$(INITPMIC)				\
 					-D$(OPMODE) -D$(BOARD)
