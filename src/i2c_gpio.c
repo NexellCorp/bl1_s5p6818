@@ -77,7 +77,7 @@ static CBOOL SCL_READ(void)
 	    1);
 }
 
-void I2C_Init(U8 gpioGRP, U8 gpioSCL, U8 gpioSDA)
+void I2C_Init(U8 gpioGRP, U8 gpioSCL, U8 gpioSDA, U32 gpioSCLAlt, U32 gpioSDAAlt)
 {
 	started = CFALSE;
 
@@ -101,12 +101,12 @@ void I2C_Init(U8 gpioGRP, U8 gpioSCL, U8 gpioSDA)
 	ClearIO32(&pReg_GPIO[g_I2C_GPIO_GRP]->GPIOxALTFN[g_I2C_GPIO_SCL >> 4],
 		  NX_GPIO_PADFUNC_3 << ((g_I2C_GPIO_SCL & 0xF) << 1));
 	SetIO32(&pReg_GPIO[g_I2C_GPIO_GRP]->GPIOxALTFN[g_I2C_GPIO_SCL >> 4],
-		NX_GPIO_PADFUNC_0 << ((g_I2C_GPIO_SCL & 0xF) << 1));
+		gpioSCLAlt << ((g_I2C_GPIO_SCL & 0xF) << 1));
 
 	ClearIO32(&pReg_GPIO[g_I2C_GPIO_GRP]->GPIOxALTFN[g_I2C_GPIO_SDA >> 4],
 		  NX_GPIO_PADFUNC_3 << ((g_I2C_GPIO_SDA & 0xF) << 1));
 	SetIO32(&pReg_GPIO[g_I2C_GPIO_GRP]->GPIOxALTFN[g_I2C_GPIO_SDA >> 4],
-		NX_GPIO_PADFUNC_0 << ((g_I2C_GPIO_SDA & 0xF) << 1));
+		gpioSDAAlt << ((g_I2C_GPIO_SDA & 0xF) << 1));
 #endif
 	SetIO32(&pReg_GPIO[g_I2C_GPIO_GRP]->GPIOx_PULLSEL,
 		(1 << g_I2C_GPIO_SDA)); // pullup

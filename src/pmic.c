@@ -36,72 +36,94 @@ void DMC_Delay(int milisecond);
 
 #ifdef DRONE_PMIC_INIT
 #undef AXP_I2C_GPIO_GRP
-#define AXP_I2C_GPIO_GRP 3 // D group
-#define AXP_I2C_SCL 20
-#define AXP_I2C_SDA 16
+#define AXP_I2C_GPIO_GRP 		3  // D group
+#define AXP_I2C_SCL 			20
+#define AXP_I2C_SDA 			16
+#define AXP_I2C_SCL_ALT			0
+#define AXP_I2C_SDA_ALT			0
 #endif
 
 #ifdef BF700_PMIC_INIT
-#define MP8845_CORE_I2C_GPIO_GRP 4 // E group, FineDigital VDDA_1.2V (core)
-#define MP8845_CORE_I2C_SCL 9
-#define MP8845_CORE_I2C_SDA 8
+#define MP8845_CORE_I2C_GPIO_GRP	4 // E group, FineDigital VDDA_1.2V (core)
+#define MP8845_CORE_I2C_SCL 		9
+#define MP8845_CORE_I2C_SDA 		8
+#define MP8845_CORE_I2C_SCL_ALT 	0
+#define MP8845_CORE_I2C_SDA_ALT		0
 
-#define MP8845_ARM_I2C_GPIO_GRP 4 // E group, FineDigital VDDB_1.2V (arm)
-#define MP8845_ARM_I2C_SCL 11
-#define MP8845_ARM_I2C_SDA 10
+#define MP8845_ARM_I2C_GPIO_GRP 	4 // E group, FineDigital VDDB_1.2V (arm)
+#define MP8845_ARM_I2C_SCL		11
+#define MP8845_ARM_I2C_SDA		10
+#define MP8845_ARM_I2C_SCL_ALT		0	
+#define MP8845_ARM_I2C_SDA_ALT 		0
 
 #define MP8845_PMIC_INIT (1)
 #endif
 
 #ifdef AVN_PMIC_INIT
-#define MP8845_CORE_I2C_GPIO_GRP 4 // E group, FineDigital VDDA_1.2V (core)
-#define MP8845_CORE_I2C_SCL 11
-#define MP8845_CORE_I2C_SDA 10
+#define MP8845_CORE_I2C_GPIO_GRP	4 // E group, FineDigital VDDA_1.2V (core)
+#define MP8845_CORE_I2C_SCL 		11
+#define MP8845_CORE_I2C_SDA 		10
+#define MP8845_CORE_I2C_SCL_ALT		0
+#define MP8845_CORE_I2C_SDA_ALT		0
 
-#define MP8845_ARM_I2C_GPIO_GRP 4 // E group, FineDigital VDDB_1.2V (arm)
-#define MP8845_ARM_I2C_SCL 9
-#define MP8845_ARM_I2C_SDA 8
+#define MP8845_ARM_I2C_GPIO_GRP 	4 // E group, FineDigital VDDB_1.2V (arm)
+#define MP8845_ARM_I2C_SCL 		9
+#define MP8845_ARM_I2C_SDA 		8
+#define MP8845_ARM_I2C_SCL_ALT 		0
+#define MP8845_ARM_I2C_SDA_ALT 		0
 
-#define MP8845_PMIC_INIT (1)
+#define MP8845_PMIC_INIT 		(1)
 #endif
 
 #ifdef SVT_PMIC_INIT
 #undef NXE2000_I2C_GPIO_GRP
-#define NXE2000_I2C_GPIO_GRP 3 // D group, VCC1P0_CORE, NXE2000, MP8845
-#define NXE2000_I2C_SCL 6
-#define NXE2000_I2C_SDA 7
+#define NXE2000_I2C_GPIO_GRP 		3 // D group, VCC1P0_CORE, NXE2000, MP8845
+#define NXE2000_I2C_SCL 		6
+#define NXE2000_I2C_SDA 		7
+#define NXE2000_I2C_SCL_ALT 		0
+#define NXE2000_I2C_SDA_ALT		0
 
-#define MP8845_I2C_GPIO_GRP 3 // D group , VCC1P0_ARM, MP8845
-#define MP8845_I2C_SCL 2
-#define MP8845_I2C_SDA 3
+#define MP8845_I2C_GPIO_GRP 		3 // D group , VCC1P0_ARM, MP8845
+#define MP8845_I2C_SCL 			2
+#define MP8845_I2C_SDA 			3
+#define MP8845_I2C_SCL_ALT		0
+#define MP8845_I2C_SDA_ALT		0
 
-#define MP8845_PMIC_INIT (1)
+#define MP8845_PMIC_INIT 	(1)
 #endif
 
 #ifdef ASB_PMIC_INIT
 #undef NXE2000_I2C_GPIO_GRP
-#define NXE2000_I2C_GPIO_GRP 3 // D group, VCC1P0_ARM, NXE2000, MP8845
-#define NXE2000_I2C_SCL 2
-#define NXE2000_I2C_SDA 3
+#define NXE2000_I2C_GPIO_GRP 		3 // D group, VCC1P0_ARM, NXE2000, MP8845
+#define NXE2000_I2C_SCL 		2
+#define NXE2000_I2C_SDA 		3
+#define NXE2000_I2C_SCL_ALT 		0
+#define NXE2000_I2C_SDA_ALT 		0
 
-#define MP8845_I2C_GPIO_GRP 3 // D group , VCC1P0_CORE, MP8845
-#define MP8845_I2C_SCL 6
-#define MP8845_I2C_SDA 7
+#define MP8845_I2C_GPIO_GRP 		3 // D group , VCC1P0_CORE, MP8845
+#define MP8845_I2C_SCL 			6
+#define MP8845_I2C_SDA 			7
+#define MP8845_I2C_SCL_ALT		0
+#define MP8845_I2C_SDA_ALT		0		
 
-#define MP8845_PMIC_INIT (1)
+#define MP8845_PMIC_INIT 		(1)
 #endif
 
 #ifdef RAPTOR_PMIC_INIT
 #undef NXE2000_I2C_GPIO_GRP
-#define NXE2000_I2C_GPIO_GRP 3 // D group, VCC1P0_CORE, NXE2000, MP8845
-#define NXE2000_I2C_SCL 6
-#define NXE2000_I2C_SDA 7
+#define NXE2000_I2C_GPIO_GRP 		3 // D group, VCC1P0_CORE, NXE2000, MP8845
+#define NXE2000_I2C_SCL 		6
+#define NXE2000_I2C_SDA 		7
+#define NXE2000_I2C_SCL_ALT 		0
+#define NXE2000_I2C_SDA_ALT 		0
 
-#define MP8845_I2C_GPIO_GRP 3 // D group , VCC1P0_ARM, MP8845
-#define MP8845_I2C_SCL 2
-#define MP8845_I2C_SDA 3
+#define MP8845_I2C_GPIO_GRP 		3 // D group , VCC1P0_ARM, MP8845
+#define MP8845_I2C_SCL 			2
+#define MP8845_I2C_SDA 			3
+#define MP8845_I2C_SCL_ALT		0
+#define MP8845_I2C_SDA_ALT		0
 
-#define MP8845_PMIC_INIT (1)
+#define MP8845_PMIC_INIT 		(1)
 #endif
 
 #if (AXP_I2C_GPIO_GRP > -1)
@@ -114,7 +136,7 @@ void DMC_Delay(int milisecond);
 #include "pmic_mp8845.h"
 #endif
 
-extern void I2C_Init(U8 gpioGRP, U8 gpioSCL, U8 gpioSDA);
+extern void I2C_Init(U8 gpioGRP, U8 gpioSCL, U8 gpioSDA, U32 gpioSCLAlt, U32 gpioSDAAlt);
 // extern void	I2C_Deinit( void );
 extern CBOOL I2C_Read(U8 DeviceAddress, U8 RegisterAddress, U8 *pData,
 		      U32 Length);
@@ -240,7 +262,8 @@ inline void PMIC_Drone(void)
 {
 	U8 pData[4];
 
-	I2C_Init(AXP_I2C_GPIO_GRP, AXP_I2C_SCL, AXP_I2C_SDA);
+	I2C_Init(AXP_I2C_GPIO_GRP, AXP_I2C_SCL, AXP_I2C_SDA,
+			AXP_I2C_SCL_ALT, AXP_I2C_SDA_ALT);
 
 	I2C_Read(I2C_ADDR_AXP228, 0x80, pData, 1);
 	pData[0] = (pData[0] & 0x1F) | DCDC_SYS | DCDC_DDR;
@@ -283,8 +306,8 @@ inline void PMIC_AVN(void)
 	//
 	// I2C init for CORE power.
 	//
-	I2C_Init(MP8845_CORE_I2C_GPIO_GRP, MP8845_CORE_I2C_SCL,
-		 MP8845_CORE_I2C_SDA);
+	I2C_Init(MP8845_CORE_I2C_GPIO_GRP, MP8845_CORE_I2C_SCL, MP8845_CORE_I2C_SDA,
+			 MP8845_CORE_I2C_SCL_ALT, MP8845_CORE_I2C_SDA_ALT);
 
 	// PFM -> PWM mode
 	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
@@ -326,8 +349,8 @@ inline void PMIC_AVN(void)
 	//
 	// I2C init for ARM power.
 	//
-	I2C_Init(MP8845_ARM_I2C_GPIO_GRP, MP8845_ARM_I2C_SCL,
-		 MP8845_ARM_I2C_SDA);
+	I2C_Init(MP8845_ARM_I2C_GPIO_GRP, MP8845_ARM_I2C_SCL, MP8845_ARM_I2C_SDA,
+			MP8845_ARM_I2C_SCL_ALT, MP8845_ARM_I2C_SDA_ALT);
 
 	// PFM -> PWM mode
 	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
@@ -363,7 +386,8 @@ inline void PMIC_SVT(void)
 	//
 	// I2C init for CORE & NXE2000 power.
 	//
-	I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA);
+	I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
+			NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
 
 	// PFM -> PWM mode
 	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
@@ -417,7 +441,8 @@ inline void PMIC_ASB(void)
 	//
 	// I2C init for Core power.
 	//
-	I2C_Init(MP8845_I2C_GPIO_GRP, MP8845_I2C_SCL, MP8845_I2C_SDA);
+	I2C_Init(MP8845_I2C_GPIO_GRP, MP8845_I2C_SCL, MP8845_I2C_SDA,
+			MP8845_I2C_SCL_ALT, MP8845_I2C_SDA_ALT);
 
 	// PFM -> PWM mode
 	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
@@ -489,7 +514,7 @@ inline void PMIC_ASB(void)
 
 extern unsigned int raptor_check_hw_revision(void);
 
-inline void PMIC_RAPTOR(void)
+void PMIC_RAPTOR(void)
 {
 	U8 pData[4];
 	U32 board_rev = 0;
@@ -498,13 +523,13 @@ inline void PMIC_RAPTOR(void)
 	board_rev = raptor_check_hw_revision();
 	if (board_rev >= 0x2) {
 		/* I2C init for CORE & NXE2000 power. */
-		/* GPIOC, SCL:15, SDA:16 */
-		I2C_Init(2, 15, 16);
+		/* GPIOC, SCL:15(ALT1), SDA:16(ALT1) */
+		I2C_Init(2, 15, 16, 1, 1);
 	} else {
 		/* I2C init for CORE & NXE2000 power. */
 		/* GPIOD, SCL:6, SDA:7 */
-		I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL,
-			NXE2000_I2C_SDA);
+		I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
+				NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
 	}
 
 	// PFM -> PWM mode
