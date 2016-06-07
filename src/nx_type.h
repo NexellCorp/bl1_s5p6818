@@ -31,15 +31,23 @@
 //------------------------------------------------------------------------------
 /// @{
 ///
-typedef char S8;	    ///< 8bit signed integer(s.7) value
-typedef short S16;	  ///< 16bit signed integer(s.15) value
-typedef int S32;	    ///< 32bit signed integer(s.31) value
-typedef long S64;	   ///< 64bit signed integer(s.63) value
-typedef unsigned char U8;   ///< 8bit unsigned integer value
-typedef unsigned short U16; ///< 16bit unsigned integer value
-typedef unsigned int U32;   ///< 32bit unsigned integer value
-typedef unsigned long U64;  ///< 64bit unsigned integer vlaue
+typedef char		S8;	///< 8bit signed integer(s.7) value
+typedef short		S16;	///< 16bit signed integer(s.15) value
+typedef int		S32;	///< 32bit signed integer(s.31) value
+typedef long long	S64;	///< 64bit signed integer(s.63) value
+typedef unsigned char	U8;	///< 8bit unsigned integer value
+typedef unsigned short	U16;	///< 16bit unsigned integer value
+typedef unsigned int	U32;	///< 32bit unsigned integer value
+typedef unsigned long long	U64;	///< 64bit unsigned integer vlaue
 
+typedef char		int8_t;		///< 8bit signed integer(s.7) value
+typedef short		int16_t;	///< 16bit signed integer(s.15) value
+typedef int		int32_t;	///< 32bit signed integer(s.31) value
+typedef long long	int64_t;	///< 64bit signed integer(s.63) value
+typedef unsigned char	uint8_t;	///< 8bit unsigned integer value
+typedef unsigned short	uint16_t;	///< 16bit unsigned integer value
+typedef unsigned int	uint32_t;	///< 32bit unsigned integer value
+typedef unsigned long long	uint64_t;	///< 64bit unsigned integer vlaue
 #define S8_MIN -128		     ///< signed char min value
 #define S8_MAX 127		     ///< signed char max value
 #define S16_MIN -32768		     ///< signed short min value

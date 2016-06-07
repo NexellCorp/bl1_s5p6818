@@ -418,10 +418,10 @@ void BootMain(U32 CPUID)
 #endif
 
 #if defined(SUPPORT_NAND_BOOT)
-		case BOOT_FROM_NAND:
-			printf( "Loading from nand...\r\n" );
-			Result = iNANDBOOTEC(pTBI);     // for NAND boot
-			break;
+	case BOOT_FROM_NAND:
+		printf( "Loading from nand...\r\n" );
+		Result = iNANDBOOTEC(pTBI);     // for NAND boot
+		break;
 #endif
 
 #if defined(SUPPORT_SDMMC_BOOT)
@@ -439,10 +439,10 @@ void BootMain(U32 CPUID)
 #endif
 
 #if defined(SUPPORT_UART_BOOT)
-		case BOOT_FROM_UART:
-			printf( "Loading from uart...\r\n" );
-			Result = iUARTBOOT(pTBI);       // for UART boot
-			break;
+	case BOOT_FROM_UART:
+		printf( "Loading from uart...\r\n" );
+		Result = iUARTBOOT(pTBI);       // for UART boot
+		break;
 #endif
 	}
 

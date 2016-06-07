@@ -37,7 +37,7 @@ ifeq ($(MEMTYPE),LPDDR3)
 SYS_OBJS	+=	init_LPDDR3.o
 endif
 
-#SYS_OBJS	+=	CRYPTO.o
+SYS_OBJS	+=	CRYPTO.o
 #SYS_OBJS	+=	nx_tieoff.o
 
 ifeq ($(INITPMIC),YES)

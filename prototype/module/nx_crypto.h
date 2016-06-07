@@ -103,7 +103,7 @@ typedef struct
 ///	@name	Basic Interface
 //------------------------------------------------------------------------------
 //@{
-CBOO	NX_CRYPTO_Initialize( void );
+CBOOL	NX_CRYPTO_Initialize( void );
 U32	NX_CRYPTO_GetNumberOfModule( void );
 
 U32	NX_CRYPTO_GetSizeOfRegisterSet( void );
