@@ -23,8 +23,8 @@ VERINFO				= V110
 ###########################################################################
 DEBUG				= n
 
-#OPMODE				= aarch64
-OPMODE				= aarch32
+OPMODE				= aarch64
+#OPMODE				= aarch32
 
 MEMTYPE				= DDR3
 #MEMTYPE			= LPDDR3
