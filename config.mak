@@ -33,6 +33,8 @@ MEMTEST				= n
 INITPMIC			= YES
 #INITPMIC			= NO
 
+CRC_CHECK			= n
+
 CHIPNAME			= S5P6818
 
 CFLAGS				:=
@@ -178,7 +180,13 @@ endif
 ifeq ($(INITPMIC), YES)
 CFLAGS				+=	-D$(BOARD)_PMIC_INIT
 endif
+
 ifeq ($(MEMTEST), y)
 MEMTEST_TYPE		+=	SIMPLE
 CFLAGS				+=	-D$(MEMTEST_TYPE)_MEMTEST
+endif
+
+ifeq ($(CRC_CHECK), y)
+CHECKSUM			+=	CRC_CHECK
+CFLAGS				+=	-D$(CHECKSUM)_ON
 endif

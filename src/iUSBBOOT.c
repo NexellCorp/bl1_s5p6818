@@ -13,6 +13,7 @@
  *      Description     :
  *      Author          : Hans
  *      History         : 2010.08.03 Hans Create
+ *			  2016.06.09 Deoks Modify (CRC Check)
  */
 #include "sysheader.h"
 
@@ -24,6 +25,8 @@
 #else
 #define dprintf(x, ...)
 #endif
+
+extern U32 iget_fcs(U32 fcs, U32 data);
 
 void ResetCon(U32 devicenum, CBOOL en);
 
@@ -182,12 +185,27 @@ static void nx_usb_write_in_fifo(U32 ep, U8 *buf, S32 num)
 		pUOReg->EPFifo[ep][0] = dwbuf[i];
 }
 
+/*
+ * CRC Check for modifications.
+ * A global variable for a CRC check.
+ * */
+static struct NX_SecondBootInfo *g_TBI;
+static USBBOOTSTATUS *g_USBBootStatus;
+static unsigned int g_fcs = 0;
+
 static void nx_usb_read_out_fifo(U32 ep, U8 *buf, S32 num)
 {
 	S32 i;
 	U32 *dwbuf = (U32 *)buf;
-	for (i = 0; i < (num + 3) / 4; i++)
+
+	for (i = 0; i < (num + 3) / 4; i++) {
 		dwbuf[i] = pUOReg->EPFifo[ep][0];
+		/* Data other than the HEADER. */
+		if (CTRUE == g_USBBootStatus->bHeaderReceived)
+			g_fcs = iget_fcs(g_fcs, dwbuf[i]);
+	}
+	/* Save the CRC Check Value  */
+	g_TBI->DBI.SDMMCBI.CRC32 = g_fcs;
 }
 
 static void nx_usb_ep0_int_hndlr(USBBOOTSTATUS *pUSBBootStatus)
@@ -441,17 +459,14 @@ static void nx_usb_int_bulkin(USBBOOTSTATUS *pUSBBootStatus)
 	}
 }
 static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
-			       struct NX_SecondBootInfo *pTBI,
-			       U32 fifo_cnt_byte)
+			       struct NX_SecondBootInfo *pTBI, U32 fifo_cnt_byte)
 {
 	U32 *pdwBuffer;
 
 	if (CTRUE != pUSBBootStatus->bHeaderReceived) {
 		pdwBuffer = (U32 *)pTBI;
-		nx_usb_read_out_fifo(
-		    BULK_OUT_EP,
-		    (U8 *)&pdwBuffer[pUSBBootStatus->iRxHeaderSize / 4],
-		    fifo_cnt_byte);
+		nx_usb_read_out_fifo(BULK_OUT_EP,
+			(U8 *)&pdwBuffer[pUSBBootStatus->iRxHeaderSize / 4], fifo_cnt_byte);
 
 		if ((fifo_cnt_byte & 3) == 0) {
 			pUSBBootStatus->iRxHeaderSize += fifo_cnt_byte;
@@ -482,10 +497,8 @@ static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
 	} else {
 		NX_ASSERT((pUSBBootStatus->iRxSize) > 0);
 		NX_ASSERT(0 == ((MPTRS)pUSBBootStatus->RxBuffAddr & 3));
-		nx_usb_read_out_fifo(BULK_OUT_EP,
-				     (U8 *)pUSBBootStatus->RxBuffAddr,
+		nx_usb_read_out_fifo(BULK_OUT_EP, (U8 *)pUSBBootStatus->RxBuffAddr,
 				     fifo_cnt_byte);
-
 #if (0)
 		dprintf("Bin Packet Size = %d => 0x%08X, %d\r\n", iRxSize,
 			pUSBBootStatus->RxBuffAddr, pUSBBootStatus->iRxSize);
@@ -651,6 +664,8 @@ static void nx_usb_pkt_receive(USBBOOTSTATUS *pUSBBootStatus,
 	U32 fifo_cnt_byte;
 
 	rx_status = pUOReg->GCSR.GRXSTSP;
+	/* CRC Check for Global Boot Status */
+	g_USBBootStatus = pUSBBootStatus;
 
 	if ((rx_status & (0xf << 17)) == SETUP_PKT_RECEIVED) {
 		dprintf("SETUP_PKT_RECEIVED\r\n");
@@ -795,6 +810,9 @@ CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
 	ResetCon(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CTRUE);  // reset on
 	ResetCon(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CFALSE); // reset negate
 
+	/* CRC Check for variables */
+	g_TBI = pTBI;
+
 	pReg_Tieoff->TIEOFFREG[12] &=
 	    ~0x3; // scale mode ( 0: real silicon, 1: test simul, 2, 3)
 	pReg_Tieoff->TIEOFFREG[14] |=
@@ -866,8 +884,7 @@ CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
 	}
 	/* usb core soft reset */
 	pUOReg->GCSR.GRSTCTL = CORE_SOFT_RESET;
-	while (!(pUOReg->GCSR.GRSTCTL & AHB_MASTER_IDLE))
-		;
+	while (!(pUOReg->GCSR.GRSTCTL & AHB_MASTER_IDLE));
 
 	pReg_Tieoff->TIEOFFREG[13] &= ~(1 << 3); // nUtmiResetSync = 0
 	pReg_Tieoff->TIEOFFREG[13] &= ~(1 << 2); // nResetSync = 0
@@ -876,9 +893,8 @@ CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
 
 	printf("\r\n\nusb image download is done!\r\n\n");
 
-	printf("USB Load Address = 0x%08X Launch Address = 0x%08X, size = %d "
-	       "bytes\r\n",
-	       pTBI->LOADADDR, pTBI->LAUNCHADDR, pTBI->LOADSIZE);
+	printf("USB Load Address = 0x%08X Launch Address = 0x%08X, size = %d bytes\r\n",
+		pTBI->LOADADDR, pTBI->LAUNCHADDR, pTBI->LOADSIZE);
 
 	return CTRUE;
 }
