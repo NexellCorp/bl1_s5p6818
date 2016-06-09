@@ -221,10 +221,10 @@ struct nx_tbbinfo {
 
 	struct nx_ddrphy_drvdsinfo phy_dsinfo;	/* 0x1a8 ~ 0x1b8 */
 
-	uint16_t lvltr_mode;			/* 0x1bc ~ 0x1bd */
-	uint16_t flyby_mode;			/* 0x1be ~ 0x1bf */
+	uint16_t lvltr_mode;			/* 0x1b8 ~ 0x1bd */
+	uint16_t flyby_mode;			/* 0x1ba ~ 0x1bf */
 
-	uint8_t _reserved3[14*4];		/* 0x1c0 ~ 0x1f7 */
+	uint8_t _reserved3[15*4];		/* 0x1bc ~ 0x1f7 */
 
 	uint32_t buildinfo;			/* 0x1f8 */
 

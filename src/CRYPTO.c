@@ -332,54 +332,64 @@ static NX_CRYPTO_RegisterSet *const pCrypto =
 
 void Decrypt(U32 *SrcAddr, U32 *DestAddr, U32 Size)
 {
-	register U32 i = 0;
-	ResetCon(RESETINDEX_OF_ECID_MODULE_i_nRST, CTRUE);  // reset on
-	ResetCon(RESETINDEX_OF_ECID_MODULE_i_nRST, CFALSE); // reset negate
+	register U32 i=0, DataSize = ((Size+15) & 0xFFFFFFF0);
+	ResetCon(RESETINDEX_OF_ECID_MODULE_i_nRST, CTRUE);	// reset on
+	ResetCon(RESETINDEX_OF_ECID_MODULE_i_nRST, CFALSE);	// reset negate
 
-	while (!(pECIDReg->EC[2] & 0x1 << 15))
-		; // wait for ecid ready
+	while(!(pECIDReg->EC[2] & 0x1<<15));    // wait for ecid ready
 
-	ResetCon(RESETINDEX_OF_CRYPTO_MODULE_i_nRST, CTRUE);  // reset on
-	ResetCon(RESETINDEX_OF_CRYPTO_MODULE_i_nRST, CFALSE); // reset negate
+	ResetCon(RESETINDEX_OF_CRYPTO_MODULE_i_nRST, CTRUE);	// reset on
+	ResetCon(RESETINDEX_OF_CRYPTO_MODULE_i_nRST, CFALSE);	// reset negate
 
-	pCryptoClkGenReg->CLKENB = 1 << 3; // pclk always mode.
+	pCryptoClkGenReg->CLKENB = 1<<3;    // pclk always mode.
 
-	while (i < (Size >> 2)) // 128bits == 4bytes x 4
+	while(i < (DataSize>>2))            // 128bits == 4bytes x 4
 	{
+		U32 j, temp[4];
+		U8 *LittleEndian, *BigEndian;
 		pCrypto->CRYPTO_AES_CTRL0 =
-		    0x1 << 15 | // 0: Enable, 1: Disable  Use Fuse Key
-		    0x1 << 9 |  // 0: Big Endian, 1: Little Endian output swap
-		    0x1 << 8 |  // 0: Big Endian, 1: Little Endian input swap
-		    0x0 << 6 |  // 0: ECB, 1: CBC, 2: CTR mode
-		    0x1 << 3 |  // 64bit counter
-		    0x0 << 2 |  // 0: FIFO Mode, 1: DMA Mode
-		    0x0 << 1 |  // 0: Decoder, 1: Encoder
-		    0x0 << 0;   // 0: Disable, 1: Enable AES Enable?
+			0x1<<15 |                    // 0: Enable, 1: Disable  Use Fuse Key
+			0x1<< 9 |                    // 0: Big Endian, 1: Little Endian output swap
+			0x1<< 8 |                    // 0: Big Endian, 1: Little Endian input swap
+			0x0<< 6 |                    // 0: ECB, 1: CBC, 2: CTR mode
+			0x1<< 3 |                    // 64bit counter
+			0x0<< 2 |                    // 0: FIFO Mode, 1: DMA Mode
+			0x0<< 1 |                    // 0: Decoder, 1: Encoder
+			0x0<< 0;                     // 0: Disable, 1: Enable AES Enable?
 
-		pCrypto->CRYPTO_AES_TIN0 = SrcAddr[i + 0];
-		pCrypto->CRYPTO_AES_TIN1 = SrcAddr[i + 1];
-		pCrypto->CRYPTO_AES_TIN2 = SrcAddr[i + 2];
-		pCrypto->CRYPTO_AES_TIN3 = SrcAddr[i + 3];
+		LittleEndian = (U8*)&SrcAddr[i];
+		BigEndian = (U8*)temp;
+		for(j=0; j<16; j++)
+			BigEndian[j] = LittleEndian[15-j];
+
+		pCrypto->CRYPTO_AES_TIN0 = temp[3];
+		pCrypto->CRYPTO_AES_TIN1 = temp[2];
+		pCrypto->CRYPTO_AES_TIN2 = temp[1];
+		pCrypto->CRYPTO_AES_TIN3 = temp[0];
 
 		pCrypto->CRYPTO_AES_CTRL0 =
-		    0x1 << 15 | // 0: Enable, 1: Disable  Use Fuse Key
-		    0x1 << 9 |  // 0: Big Endian, 1: Little Endian output swap
-		    0x1 << 8 |  // 0: Big Endian, 1: Little Endian input swap
-		    0x0 << 6 |  // 0: ECB, 1: CBC, 2: CTR mode
-		    0x1 << 3 |  // 64bit counter
-		    0x0 << 2 |  // 0: FIFO Mode, 1: DMA Mode
-		    0x0 << 1 |  // 0: Decoder, 1: Encoder
-		    0x1 << 0;   // 0: Disable, 1: Enable AES Enable?
+			0x1<<15 |                    // 0: Enable, 1: Disable  Use Fuse Key
+			0x1<< 9 |                    // 0: Big Endian, 1: Little Endian output swap
+			0x1<< 8 |                    // 0: Big Endian, 1: Little Endian input swap
+			0x0<< 6 |                    // 0: ECB, 1: CBC, 2: CTR mode
+			0x1<< 3 |                    // 64bit counter
+			0x0<< 2 |                    // 0: FIFO Mode, 1: DMA Mode
+			0x0<< 1 |                    // 0: Decoder, 1: Encoder
+			0x1<< 0;                     // 0: Disable, 1: Enable AES Enable?
 
-		pCrypto->CRYPTO_CRT_CTRL0 |= 0x1 << 0; // Decryption run
+		pCrypto->CRYPTO_CRT_CTRL0 |= 0x1<<0;    // Decryption run
 
-		while (!(pCrypto->CRYPTO_CRT_CTRL0 & 0x1 << 1))
-			;
+		while( !(pCrypto->CRYPTO_CRT_CTRL0 & 0x1<<0) );
 
-		DestAddr[i + 0] = pCrypto->CRYPTO_AES_TOUT0;
-		DestAddr[i + 1] = pCrypto->CRYPTO_AES_TOUT1;
-		DestAddr[i + 2] = pCrypto->CRYPTO_AES_TOUT2;
-		DestAddr[i + 3] = pCrypto->CRYPTO_AES_TOUT3;
+		temp[3] = pCrypto->CRYPTO_AES_TOUT0;
+		temp[2] = pCrypto->CRYPTO_AES_TOUT1;
+		temp[1] = pCrypto->CRYPTO_AES_TOUT2;
+		temp[0] = pCrypto->CRYPTO_AES_TOUT3;
+
+		LittleEndian = (U8*)&DestAddr[i];
+		BigEndian = (U8*)temp;
+		for(j=0; j<16; j++)
+			LittleEndian[j] = BigEndian[15-j];
 
 		i += 4;
 	}

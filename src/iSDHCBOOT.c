@@ -1059,7 +1059,7 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 	result = NX_SDMMC_ReadSectors(pSDXCBootStatus,
 			pSBI->DEVICEADDR/BLOCK_LENGTH, 1, (U32 *)pTBI );
 #if 0
-	{
+	do {
 	U32 i;
 	U32 *buff = (U32 *)pTBI;
 	U8 *bbuff = (U8 *)buff;
@@ -1082,34 +1082,42 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 		DebugPutch('\n');
 		i+= 4;
 	}
-	}
+	} while(0);
 #endif
 	if (pReg_ClkPwr->SYSRSTCONFIG & 1<<14)
-#ifdef SECURE_ON
-		Decrypt((U32 *)ptbh, (U32 *)ptbh, sizeof(struct nx_bootheader));
-#else
+		/* NSIH header only */
 		Decrypt((U32 *)pTBI, (U32 *)pTBI, sizeof(struct NX_SecondBootInfo));
-#endif
+
 	if (result == CFALSE) {
 		printf("cannot read boot header! SDMMC boot failure\r\n");
 		return result;
 	}
+
 	if (pTBI->SIGNATURE != HEADER_ID ) {
 		printf("0x%08X\r\n3rd boot Sinature is wrong! SDMMC boot failure\r\n",
 				pTBI->SIGNATURE);
 		return CFALSE;
 	}
 #ifdef SECURE_ON
-	printf("Load Addr :0x%08X,  Load Size :0x%08X,  Launch Addr :0x%08X\r\n",
-			(uint32_t)ptbh->tbbi.loadaddr,
-			(uint32_t)ptbh->tbbi.loadsize,
-			(uint32_t)ptbh->tbbi.startaddr);
+        do {
+                U32 i;
+                U32 *src = (U32*)pTBI, *dst = (U32*)ptbh->tbbi.loadaddr;
+                for (i = 0; i< 512/4; i++)
+                        *dst++ = *src++;
+        } while(0);
+        ptbh = (struct nx_bootheader *)ptbh->tbbi.loadaddr;
 
-	result = NX_SDMMC_ReadSectors(pSDXCBootStatus,
-			pSBI->DEVICEADDR / BLOCK_LENGTH + 2,
-			(ptbh->tbbi.loadsize + BLOCK_LENGTH - 1) / BLOCK_LENGTH,
-			(U32 *)((MPTRS)ptbh->tbbi.loadaddr));
-	pTBI->LAUNCHADDR = ptbh->tbbi.startaddr;
+	ptbh->tbbi.loadsize += 1024;
+        printf("Load Addr :0x%08X,  Load Size :0x%08X,  Launch Addr :0x%08X\r\n",
+                        (uint32_t)ptbh->tbbi.loadaddr,
+                        (uint32_t)ptbh->tbbi.loadsize,
+                        (uint32_t)ptbh->tbbi.startaddr);
+
+        result = NX_SDMMC_ReadSectors(pSDXCBootStatus,
+                        pSBI->DEVICEADDR / BLOCK_LENGTH + 2,
+                        (ptbh->tbbi.loadsize + BLOCK_LENGTH - 1) / BLOCK_LENGTH,
+                        (U32 *)((MPTRS)(ptbh->tbbi.loadaddr + BLOCK_LENGTH * 2)));
+        pTBI->LAUNCHADDR = ptbh->tbbi.startaddr;
 #else
 	dprintf("Load Addr :0x%08X,  Load Size :0x%08X,  Launch Addr :0x%08X\r\n",
 			pTBI->LOADADDR, pTBI->LOADSIZE, pTBI->LAUNCHADDR);
@@ -1121,8 +1129,8 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 #endif
 	if (pReg_ClkPwr->SYSRSTCONFIG & 1<<14)
 #ifdef SECURE_ON
-		Decrypt((U32 *)ptbh->tbbi.loadaddr,
-			(U32 *)ptbh->tbbi.loadaddr,
+		Decrypt((U32 *)(ptbh->tbbi.loadaddr + 1024),
+			(U32 *)(ptbh->tbbi.loadaddr + 1024),
 			ptbh->tbbi.loadsize);
 #else
 		Decrypt(pTBI->LOADADDR,
