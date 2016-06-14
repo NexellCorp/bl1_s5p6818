@@ -17,6 +17,23 @@
 #include "nx_peridot.h"
 	.align 3
 
+         .global xget_fcs
+xget_fcs:
+         crc32x  w0, w0, x1
+         ret
+         .global iget_fcs
+iget_fcs:
+         crc32w  w0, w0, w1
+         ret
+         .global sget_fcs
+sget_fcs:
+         crc32h  w0, w0, w1
+         ret
+         .global get_fcs
+get_fcs:
+         crc32b  w0, w0, w1
+         ret
+
 	.global GetCurrentSMode
 //; unsigned int GetCurrentSMode(void);
 GetCurrentSMode:
@@ -31,7 +48,7 @@ GetCPUID:
 	and     x1, x0, #0x3			//; cpu id
 	lsr     x0, x0, #8
 	and     x0, x0, #0x0F			//; check processor affinity
-	orr     x0, x1, x0				//; mark cpu group 0 or 1
+	orr     x0, x1, x0			//; mark cpu group 0 or 1
 	ret
 
 	.global GetSCR_EL3

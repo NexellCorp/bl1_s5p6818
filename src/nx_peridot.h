@@ -90,8 +90,8 @@
 #define GPIO_GROUP_D 3
 #define GPIO_GROUP_E 4
 
-//#define POLY 0xEDB88320L
-#define POLY 0x04C11DB7L // reverse
+#define POLY 0xEDB88320L
+//#define POLY 0x04C11DB7L		// Reverse
 
 #define SUSPEND_SIGNATURE (0x50575200) /* PWR (ASCII) */
 #define USBREBOOT_SIGNATURE (0x85836666)

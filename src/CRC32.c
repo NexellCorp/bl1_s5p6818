@@ -18,6 +18,7 @@
 #include <nx_peridot.h>
 #include <nx_type.h>
 
+#if 0 //def aarch32
 U32 get_fcs(U32 fcs, U8 data)
 {
 	int i;
@@ -25,24 +26,27 @@ U32 get_fcs(U32 fcs, U8 data)
 	fcs ^= (U32)data;
 	for (i = 0; i < 8; i++) {
 		if (fcs & 0x01)
-			fcs ^= POLY;
-		fcs >>= 1;
+			fcs = (fcs >> 1) ^ POLY;
+		else
+			fcs >>= 1;
 	}
 
 	return fcs;
 }
 
-#if 0
-U32 calc_crc (void *addr, S32 len)
+U32 sget_fcs(U32 fcs, U16 data)
 {
-	U8 *c = (U8*)addr;
-	U32 crc = 0;
-	S32 i;
-	for (i = 0; len > i; i++)
-		crc = get_fcs(crc, c[i]);
-	return crc;
+         int i;
+
+         fcs ^= data;
+         for (i = 0; i < 16; i++)
+                 if (fcs & 1)
+                         fcs = (fcs >> 1) ^ POLY;
+                 else
+                         fcs >>= 1;
+
+         return fcs;
 }
-#endif
 
 U32 iget_fcs(U32 fcs, U32 data)
 {
@@ -51,12 +55,18 @@ U32 iget_fcs(U32 fcs, U32 data)
 	fcs ^= data;
 	for (i = 0; i < 32; i++) {
 		if (fcs & 0x01)
-			fcs ^= POLY;
-		fcs >>= 1;
+			fcs = (fcs >> 1) ^ POLY;
+		else
+			fcs >>= 1;
 	}
 
 	return fcs;
 }
+#endif
+
+extern U32 get_fcs(U32 fcs, U8 data);
+extern U32 sget_fcs(U32 fcs, U16 data);
+extern U32 iget_fcs(U32 fcs, U32 data);
 
 /* CRC Calcurate Function
  * CHKSTRIDE is Data Stride.

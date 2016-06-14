@@ -15,6 +15,20 @@
  */
 #include "nx_peridot.h"
 
+         .global get_fcs
+get_fcs:
+//      .long   0xE(cond:all), 1, 0(byte), 0(Rn), 0(Rd), 0(C), 4, 1(Rd)
+         .long   0xE1000041      // CRC32B       R0, R0, R1
+         bx      lr
+         .global sget_fcs
+sget_fcs:
+         .long   0xE1200041      // CRC32H       R0, R0, R1
+         bx      lr
+         .global iget_fcs
+iget_fcs:
+         .long   0xE1400041      // CRC32W       R0, R0, R1
+         bx      lr
+
 	.global GetCurrentSMode
 //; unsigned int GetCurrentSMode(void);
 GetCurrentSMode:
@@ -25,10 +39,10 @@ GetCurrentSMode:
 	.global GetCPUID
 //; unsigned int GetCPUID(void);
 GetCPUID:
-    mrc     p15, 0, r0, c0, c0, 5              //; Get our cpu id
-    tst     r0, #0x4400                        //; check processor affinity
-    orrne   r0, r0, #4                        //; mark cpu0 or cpu1
-    ands    r0, r0, #0xF                      //; Save CPU id
+	mrc     p15, 0, r0, c0, c0, 5              //; Get our cpu id
+	tst     r0, #0x4400                        //; check processor affinity
+	orrne   r0, r0, #4                        //; mark cpu0 or cpu1
+	ands    r0, r0, #0xF                      //; Save CPU id
 	bx		lr
 
 	.global GetSCR
@@ -53,8 +67,8 @@ SetNS:
 	.global GetSMCCode
 //; unsigned int GetSMCCode(void*);
 GetSMCCode:
-	ldr		r0, [r0, #-4]				//; get smc instruction
-	and		r0, r0, #0xf					//; get imm4 [3:0]
+	ldr		r0, [r0, #-4]			//; get smc instruction
+	and		r0, r0, #0xf			//; get imm4 [3:0]
 	bx		lr
 
 	.global	EnterLowLevel
@@ -68,7 +82,7 @@ EnterLowLevel:
 
 .global RomUSBBoot
 RomUSBBoot:
-		mov		r11, #0x00000006		// boot config - usb boot
-		mov		r12, #0					// cpuid 0
-		bx		r0						// jump to rom boot
+	mov		r11, #0x00000006		// boot config - usb boot
+	mov		r12, #0				// cpuid 0
+	bx		r0				// jump to rom boot
 
