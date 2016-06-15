@@ -104,7 +104,7 @@ CPU				= cortex-a15
 endif
 ifeq ($(OPMODE) , aarch64)
 ARCH			= armv8-a
-CPU				= cortex-a53
+CPU				= cortex-a53+crc
 endif
 
 CC				= $(CROSS_TOOL)gcc
