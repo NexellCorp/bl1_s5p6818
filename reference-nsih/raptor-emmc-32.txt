@@ -31,14 +31,14 @@ E59FF018	// 0x014 : MOV PC, NotUsed
 E59FF018	// 0x018 : MOV PC, IRQV
 E59FF018	// 0x01C : MOV PC, FIQV
 
-FFFF0200	// 0x020 : SRAMBASE + Header
-FFFF0204	// 0x024 : SRAMBASE + Header
-FFFF0208	// 0x028 : SRAMBASE + Header
-FFFF020C	// 0x02C : SRAMBASE + Header
-FFFF0210	// 0x030 : SRAMBASE + Header
-FFFF0214	// 0x034 : SRAMBASE + Header
-FFFF0218	// 0x038 : SRAMBASE + Header
-FFFF021C	// 0x03C : SRAMBASE + Header
+FFFF0400	// 0x020 : SRAMBASE + Header
+FFFF0404	// 0x024 : SRAMBASE + Header
+FFFF0408	// 0x028 : SRAMBASE + Header
+FFFF040C	// 0x02C : SRAMBASE + Header
+FFFF0410	// 0x030 : SRAMBASE + Header
+FFFF0414	// 0x034 : SRAMBASE + Header
+FFFF0418	// 0x038 : SRAMBASE + Header
+FFFF041C	// 0x03C : SRAMBASE + Header
 
 //------------------------------------------------------------------------------
 // Main Bootloader Load Info

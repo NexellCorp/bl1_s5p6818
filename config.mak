@@ -53,6 +53,9 @@ SUPPORT_UART_BOOT		= n
 #BOARD				= BF700
 BOARD				?= RAPTOR
 
+# secure boot
+SECURE_ON			?= 0
+
 # cross-tool pre-header
 ifeq ($(OPMODE), aarch32)
 ifeq ($(OS),Windows_NT)
@@ -118,10 +121,10 @@ RANLIB 			= $(CROSS_TOOL)ranlib
 GCC_LIB			= $(shell $(CC) -print-libgcc-file-name)
 
 ifeq ($(DEBUG), y)
-CFLAGS			+= -DNX_DEBUG -O0
+CFLAGS			+= -DNX_DEBUG -Os
 Q				=
 else
-CFLAGS			+= -DNX_RELEASE -O0
+CFLAGS			+= -DNX_RELEASE -Os
 Q				= @
 endif
 
@@ -164,6 +167,9 @@ CFLAGS				+=	-g -Wall						\
 					-DINITPMIC_$(INITPMIC)				\
 					-D$(OPMODE) -D$(BOARD)
 
+ifeq ($(SECURE_ON), 1)
+CFLAGS				+=	-DSECURE_ON
+endif
 
 ifeq ($(OPMODE) , aarch32)
 CFLAGS				+=	-msoft-float					\

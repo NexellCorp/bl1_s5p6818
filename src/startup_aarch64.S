@@ -21,6 +21,7 @@
 #include "aarch64_Vectors.inc"
 
         .align 9, 0    // 2^9 = 512 bytes sector size
+	.skip 0x200, 0x00
 
 /*
  * entry point of main function

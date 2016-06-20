@@ -19,6 +19,7 @@
 
 
         .align 8
+	.skip 0x200, 0x00
 /*
  * start and end of BSS
  */

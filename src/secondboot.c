@@ -157,8 +157,9 @@ struct NX_CLKPWR_RegisterSet *const clkpwr;
 //------------------------------------------------------------------------------
 void BootMain(U32 CPUID)
 {
-	struct NX_SecondBootInfo TBI;
-	struct NX_SecondBootInfo *pTBI = &TBI; // third boot info
+	//struct NX_SecondBootInfo TBI;
+	unsigned int header[256];
+	struct NX_SecondBootInfo *pTBI = (struct NX_SecondBootInfo *)header;//&TBI; // third boot info
 	CBOOL Result = CFALSE;
 	register volatile U32 temp;
 	U32 sign, isResume = 0;
