@@ -122,13 +122,10 @@ void device_set_env(void)
 void initCCI400(void)
 {
 	// before set barrier instruction.
-	SetIO32(&pReg_CCI400->SCR,
-		1 << 0); // static bus disable speculative fetches
-	SetIO32(&pReg_CCI400->SCR,
-		1 << 1); // SFR bus disable speculative fetches
+	SetIO32(&pReg_CCI400->SCR, 1 << 0); // static bus disable speculative fetches
+	SetIO32(&pReg_CCI400->SCR, 1 << 1); // SFR bus disable speculative fetches
 
-	WriteIO32(&pReg_CCI400->COR,
-		  (1UL << 3)); // protect to send barrier command to drex
+	WriteIO32(&pReg_CCI400->COR, (1UL << 3)); // protect to send barrier command to drex
 
 	WriteIO32(&pReg_CCI400->CSI[BUSID_CS].SCR, 0); // snoop request disable
 	WriteIO32(&pReg_CCI400->CSI[BUSID_CODA].SCR,
@@ -138,13 +135,10 @@ void initCCI400(void)
 #if (MULTICORE_BRING_UP == 1)
 	WriteIO32(&pReg_CCI400->CSI[BUSID_CPUG0].SCR,
 		  0x3); // cpu 0~3 Snoop & DVM Req
-	while (ReadIO32(&pReg_CCI400->STSR) & 0x1)
-		;
+	while (ReadIO32(&pReg_CCI400->STSR) & 0x1);
 
-	WriteIO32(&pReg_CCI400->CSI[BUSID_CPUG1].SCR,
-		  0x3); // cpu 4~7 Snoop & DVM Req
-	while (ReadIO32(&pReg_CCI400->STSR) & 0x1)
-		;
+	WriteIO32(&pReg_CCI400->CSI[BUSID_CPUG1].SCR, 0x3); // cpu 4~7 Snoop & DVM Req
+	while (ReadIO32(&pReg_CCI400->STSR) & 0x1);
 #else
 	WriteIO32(&pReg_CCI400->CSI[BUSID_CPUG0].SCR, 0x0);
 	WriteIO32(&pReg_CCI400->CSI[BUSID_CPUG1].SCR, 0x0);
@@ -157,12 +151,11 @@ struct NX_CLKPWR_RegisterSet *const clkpwr;
 //------------------------------------------------------------------------------
 void BootMain(U32 CPUID)
 {
-	//struct NX_SecondBootInfo TBI;
-	unsigned int header[256];
-	struct NX_SecondBootInfo *pTBI = (struct NX_SecondBootInfo *)header;//&TBI; // third boot info
+	struct NX_SecondBootInfo TBI;
+	struct NX_SecondBootInfo *pTBI = &TBI; // third boot info
 	CBOOL Result = CFALSE;
 	register volatile U32 temp;
-	U32 sign, isResume = 0;
+	U32 signature, isResume = 0;
 	U32 debugCH = 0;
 
 #ifdef RAPTOR_PMIC_INIT
@@ -185,9 +178,9 @@ void BootMain(U32 CPUID)
 	temp |= ((EMA_VALUE << 23) | (EMA_VALUE << 17));
 	WriteIO32(&pReg_Tieoff->TIEOFFREG[111], temp);
 
-//--------------------------------------------------------------------------
-// Set Affinity ID
-//--------------------------------------------------------------------------
+	//--------------------------------------------------------------------------
+	// Set Affinity ID
+	//--------------------------------------------------------------------------
 #if (CONFIG_RESET_AFFINITY_ID == 1)
 	// Set Affinity level1 for CPU Cluster1
 	temp = ReadIO32(&pReg_Tieoff->TIEOFFREG[95]) & 0x00FFFFFF;
@@ -219,8 +212,7 @@ void BootMain(U32 CPUID)
 		pSBI->ResetCount = 0;
 	}
 	pSBI->BootCount++;
-	WriteIO32(&pReg_RTC->RTCSCRATCH,
-		  (pSBI->ResetCount << 24) | pSBI->BootCount);
+	WriteIO32(&pReg_RTC->RTCSCRATCH, (pSBI->ResetCount << 24) | pSBI->BootCount);
 
 	printf("Reset Count :\t%d\r\nBoot Count :\t%d\r\n", pSBI->ResetCount,
 	       pSBI->BootCount);
@@ -230,71 +222,60 @@ void BootMain(U32 CPUID)
 	if (resetcount != 0) {
 		U8 xorresetcount = ((resetcount >> 4) & 0xF) ^ 0xF;
 		resetcount &= 0xF;
-		if (resetcount == xorresetcount) // scratch register valid test,
-						 // only used LSByte
+		if (resetcount == xorresetcount) // scratch register valid test, only used LSByte
 		{
 			if (resetcount > 3) {
-				printf("scratch is not cleared, try rom usb "
-				       "boot\r\n");
+				printf("scratch is not cleared, try rom usb boot\r\n");
 				// it's watchdog reboot so try usb boot
-				WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG,
-					  0xF0); // reset reboot marker
+				WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG, 0xF0); // reset reboot marker
 				RomUSBBoot((U32)0x0000009C);
 			} else {
 				resetcount++;
-				printf("boot retry count is %d\r\n",
-				       resetcount);
+				printf("boot retry count is %d\r\n", resetcount);
 				resetcount |= ((resetcount ^ 0xF) << 4);
-				WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG,
-					  resetcount);
+				WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG, resetcount);
 #if (BOOTCOUNT == 1)
 				pSBI->ResetCount++;
 				WriteIO32(&pReg_RTC->RTCSCRATCH,
-					  (pSBI->ResetCount << 24) |
-					      pSBI->BootCount);
+					(pSBI->ResetCount << 24) | pSBI->BootCount);
 #endif
 			}
 		} else {
-			// first boot, so alive scratch register is broken.
-			// reset count
-			WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG,
-				  0xE1); // first count;
+			// first boot, so alive scratch register is broken. reset count
+			WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG, 0xE1); // first count;
 			printf("first boot, scratch is cleared\r\n");
 		}
 	} else {
 		// alive reset code is broken. reset count
-		WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG,
-			  0xE1); // first count;
+		WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG, 0xE1); // first count;
 		printf("scratch is broken, clear\r\n");
 	}
 	{
 #if !defined(LOAD_FROM_USB)
 		// set watchdog timer
 		printf("watchdog timer start\r\n");
-		SetIO32(
-		    &pReg_RstCon->REGRST[RESETINDEX_OF_WDT_MODULE_PRESETn >> 5],
-		    1 << (RESETINDEX_OF_WDT_MODULE_PRESETn & 0x1F));
-		SetIO32(
-		    &pReg_RstCon->REGRST[RESETINDEX_OF_WDT_MODULE_nPOR >> 5],
-		    1 << (RESETINDEX_OF_WDT_MODULE_nPOR & 0x1F));
+		SetIO32(&pReg_RstCon->REGRST[RESETINDEX_OF_WDT_MODULE_PRESETn >> 5], 1 << (RESETINDEX_OF_WDT_MODULE_PRESETn & 0x1F));
+		SetIO32(&pReg_RstCon->REGRST[RESETINDEX_OF_WDT_MODULE_nPOR >> 5], 1 << (RESETINDEX_OF_WDT_MODULE_nPOR & 0x1F));
 		WriteIO32(&pReg_WDT->WTCON,
-			  0xFF << 8 |		     // prescaler value
-			      0x03 << 3 |	    // division factor (3:128)
-			      0x01 << 2);	    // watchdog reset enable
-		WriteIO32(&pReg_WDT->WTCNT, 0xFFFF); // 200MHz/256/128 =
-						     // 6103.515625,
-						     // 65536/6103.5 = 10.74 sec
-//        SetIO32  ( &pReg_WDT->WTCON, 0x01<<5);          // watchdog timer
-//        enable
+				0xFF << 8 |		// prescaler value
+				0x03 << 3 |		// division factor (3:128)
+				0x01 << 2);		// watchdog reset enable
+		WriteIO32(&pReg_WDT->WTCNT, 0xFFFF);	// 200MHz/256/128 = 6103.515625, 65536/6103.5 = 10.74 sec
+//		SetIO32  ( &pReg_WDT->WTCON, 0x01<<5);          // watchdog timer enable
 #endif
 	}
 
 	//--------------------------------------------------------------------------
 	// Get resume information.
 	//--------------------------------------------------------------------------
-	sign = ReadIO32(&pReg_Alive->ALIVESCRATCHREADREG);
-	if ((SUSPEND_SIGNATURE == (sign & 0xFFFFFF00)) &&
-	    ReadIO32(&pReg_Alive->WAKEUPSTATUS)) {
+	signature = ReadIO32(&pReg_Alive->ALIVESCRATCHREADREG);
+	if ((SUSPEND_SIGNATURE == (signature & 0xFFFFFF00)) && ReadIO32(&pReg_Alive->WAKEUPSTATUS)) {
+		isResume = 1;
+	}
+
+	/* Arm Trusted Firmware */
+	signature = ReadIO32(&pReg_Alive->ALIVESCRATCHVALUE4);
+	if ((ATF_SUSPEND_SIGNATURE == (signature & 0xFFFFFF00)) && ReadIO32(&pReg_Alive->WAKEUPSTATUS)) {
 		isResume = 1;
 	}
 
@@ -311,14 +292,11 @@ void BootMain(U32 CPUID)
 		initPMIC();
 #endif
 
-	SYSMSG("EMA is %s\r\n",
-	       (EMA_VALUE == 1) ? "1.1V" : (EMA_VALUE == 3) ? "1.0V" : "0.95V");
+	SYSMSG("EMA is %s\r\n", (EMA_VALUE == 1) ? "1.1V" : (EMA_VALUE == 3) ? "1.0V" : "0.95V");
 
-	printf("\r\n\nworking to aarch%d\r\nwaiting for pll change..\r\n",
-	       sizeof(void *) * 8);
+	printf("\r\n\nworking to aarch%d\r\nwaiting for pll change..\r\n", sizeof(void *) * 8);
 
-	while (!DebugIsUartTxDone())
-		;
+	while (!DebugIsUartTxDone());
 
 	//--------------------------------------------------------------------------
 	// Change to PLL.
@@ -330,16 +308,15 @@ void BootMain(U32 CPUID)
 	//--------------------------------------------------------------------------
 	DebugInit(debugCH);
 
-//--------------------------------------------------------------------------
-// build information. version, build time and date
-//--------------------------------------------------------------------------
+	//--------------------------------------------------------------------------
+	// build information. version, build time and date
+	//--------------------------------------------------------------------------
 #if 1
 	buildinfo();
 #else
 	if (buildinfo() == CFALSE) {
 		printf("WARNING : NSIH mismatch...!!!\r\n");
-		while (1)
-			;
+		while (1);
 	}
 #endif
 
@@ -363,9 +340,8 @@ void BootMain(U32 CPUID)
 		init_LPDDR3(0);
 #endif
 
-	if (isResume) {
+	if (isResume)
 		exitSelfRefresh();
-	}
 
 	printf("DDR3 Init Done!\r\n");
 
@@ -390,8 +366,8 @@ void BootMain(U32 CPUID)
 #endif
 
 	if (isResume) {
-		printf(" DDR3 SelfRefresh exit Done!\r\n0x%08X\r\n",
-		       ReadIO32(&pReg_Alive->WAKEUPSTATUS));
+		printf(" DDR3 SelfRefresh exit Done!\r\n0x%08X\r\n", 
+			ReadIO32(&pReg_Alive->WAKEUPSTATUS));
 		dowakeup();
 	}
 	WriteIO32(&pReg_Alive->ALIVEPWRGATEREG, 0);
@@ -441,7 +417,7 @@ void BootMain(U32 CPUID)
 
 #if defined(SUPPORT_UART_BOOT)
 	case BOOT_FROM_UART:
-		printf( "Loading from uart...\r\n" );
+		printf("Loading from uart...\r\n");
 		Result = iUARTBOOT(pTBI);       // for UART boot
 		break;
 #endif
@@ -457,8 +433,7 @@ void BootMain(U32 CPUID)
 		printf(" Image Loading Done!\r\n");
 		printf("Launch to 0x%08X\r\n", (MPTRS)pLaunch);
 		temp = 0x10000000;
-		while (!DebugIsUartTxDone() && temp--)
-			;
+		while (!DebugIsUartTxDone() && temp--);
 		pLaunch(0, 4330);
 	}
 
@@ -466,6 +441,5 @@ void BootMain(U32 CPUID)
 	temp = 0x10000000;
 	while (!DebugIsUartTxDone() && temp--);
 	RomUSBBoot((U32)0x0000009C);
-	while (1)
-		;
+	while (1);
 }
