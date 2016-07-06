@@ -110,6 +110,12 @@ void timer_reset(void)
 	ResetCon(reset_number, CFALSE); // reset negate
 }
 
+void device_set_env(void)
+{
+	/* (Device Port Number) for U-BOOT  */
+	unsigned int dev_portnum = pSBI->DBI.SDMMCBI.PortNumber;
+	WriteIO32(&pReg_ClkPwr->SCRATCH[1], dev_portnum );
+}
 
 //------------------------------------------------------------------------------
 #if (CCI400_COHERENCY_ENABLE == 1)
@@ -290,6 +296,11 @@ void BootMain(U32 CPUID)
 	    ReadIO32(&pReg_Alive->WAKEUPSTATUS)) {
 		isResume = 1;
 	}
+
+	/*
+	 * SD/MMC,SPI - port number stored for u-boot.
+	 */
+	device_set_env();
 
 //--------------------------------------------------------------------------
 // Initialize PMIC device.
