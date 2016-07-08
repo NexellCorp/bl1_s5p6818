@@ -202,55 +202,6 @@ void BootMain(U32 CPUID)
 
 	if (USBREBOOT_SIGNATURE == ReadIO32(&pReg_Alive->ALIVESCRATCHVALUE5))
 		RomUSBBoot((U32)0x0000009C);
-
-#if (BOOTCOUNT == 1)
-	U32 RBCount = ReadIO32(&pReg_RTC->RTCSCRATCH);
-	pSBI->BootCount = RBCount & 0xFFFFFF;
-	pSBI->ResetCount = RBCount >> 24;
-	if (pSBI->BootCount > 0x100000) {
-		pSBI->BootCount = 0;
-		pSBI->ResetCount = 0;
-	}
-	pSBI->BootCount++;
-	WriteIO32(&pReg_RTC->RTCSCRATCH, (pSBI->ResetCount << 24) | pSBI->BootCount);
-
-	printf("Reset Count :\t%d\r\nBoot Count :\t%d\r\n", pSBI->ResetCount,
-	       pSBI->BootCount);
-#endif
-	U8 resetcount = ReadIO32(&pReg_Alive->ALIVESCRATCHREADREG) & 0xFF;
-	WriteIO32(&pReg_Alive->ALIVESCRATCHRSTREG, 0xFF); // clear reboot marker
-	if (resetcount != 0) {
-		U8 xorresetcount = ((resetcount >> 4) & 0xF) ^ 0xF;
-		resetcount &= 0xF;
-		if (resetcount == xorresetcount) // scratch register valid test, only used LSByte
-		{
-			if (resetcount > 3) {
-				printf("scratch is not cleared, try rom usb boot\r\n");
-				// it's watchdog reboot so try usb boot
-				WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG, 0xF0); // reset reboot marker
-				RomUSBBoot((U32)0x0000009C);
-			} else {
-				resetcount++;
-				printf("boot retry count is %d\r\n", resetcount);
-				resetcount |= ((resetcount ^ 0xF) << 4);
-				WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG, resetcount);
-#if (BOOTCOUNT == 1)
-				pSBI->ResetCount++;
-				WriteIO32(&pReg_RTC->RTCSCRATCH,
-					(pSBI->ResetCount << 24) | pSBI->BootCount);
-#endif
-			}
-		} else {
-			// first boot, so alive scratch register is broken. reset count
-			WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG, 0xE1); // first count;
-			printf("first boot, scratch is cleared\r\n");
-		}
-	} else {
-		// alive reset code is broken. reset count
-		WriteIO32(&pReg_Alive->ALIVESCRATCHSETREG, 0xE1); // first count;
-		printf("scratch is broken, clear\r\n");
-	}
-	{
 #if !defined(LOAD_FROM_USB)
 		// set watchdog timer
 		printf("watchdog timer start\r\n");
@@ -263,8 +214,6 @@ void BootMain(U32 CPUID)
 		WriteIO32(&pReg_WDT->WTCNT, 0xFFFF);	// 200MHz/256/128 = 6103.515625, 65536/6103.5 = 10.74 sec
 //		SetIO32  ( &pReg_WDT->WTCON, 0x01<<5);          // watchdog timer enable
 #endif
-	}
-
 	//--------------------------------------------------------------------------
 	// Get resume information.
 	//--------------------------------------------------------------------------
