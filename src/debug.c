@@ -19,8 +19,7 @@
 
 #include "sysheader.h"
 
-#define UARTSRC         1
-#define SOURCE_DIVID    (50UL)
+#define SOURCE_DIVID    (4UL)
 #define BAUD_RATE       (115200)
 
 extern U32  getquotient(int dividend, int divisor);
