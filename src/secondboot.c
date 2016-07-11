@@ -237,8 +237,7 @@ void BootMain(U32 CPUID)
 // Initialize PMIC device.
 //--------------------------------------------------------------------------
 #if defined(INITPMIC_YES)
-	if (isResume == 0)
-		initPMIC();
+	initPMIC();
 #endif
 
 	SYSMSG("EMA is %s\r\n", (EMA_VALUE == 1) ? "1.1V" : (EMA_VALUE == 3) ? "1.0V" : "0.95V");
