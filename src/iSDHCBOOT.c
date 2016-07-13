@@ -1105,6 +1105,7 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 		for (i = 0; i< sizeof(struct nx_bootheader)/sizeof(U32); i++)
 			*dst++ = *src++;
 
+#ifdef SECURE_ON
 		dst = tb_load;
 
 		/* copy rsapublickey part. */
@@ -1112,6 +1113,7 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 		dst = ((struct nx_bootheader *)dst)->rsa_public.rsapublickey;
 		for (i = 0; i< sizeof(struct nx_bootheader)/sizeof(U32)/4; i++)
 			*dst++ = *src++;
+#endif
 	} while(0);
 	ptbh = (struct nx_bootheader *)ptbh->tbbi.loadaddr;
 
@@ -1127,12 +1129,10 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 			(U32 *)((MPTRS)(ptbh->tbbi.loadaddr + BLOCK_LENGTH * 2)));
 	pTBI->LAUNCHADDR = ptbh->tbbi.startaddr;	/* for old style boot */
 
-#ifdef SECURE_ON
 	if (pReg_ClkPwr->SYSRSTCONFIG & 1<<14)
 		Decrypt((U32 *)(ptbh->tbbi.loadaddr + sizeof(struct nx_bootheader)),
 			(U32 *)(ptbh->tbbi.loadaddr + sizeof(struct nx_bootheader)),
 			ptbh->tbbi.loadsize);
-#endif
 	if (result == CFALSE) {
 		printf("Image Read Failure\r\n");
 	}
