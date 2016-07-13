@@ -18,7 +18,7 @@
 #include "SecureManager.h"
 
 const U16 TZPC_R0SIZE[NX_TZPC_MODULE_NUMBER] = {
-    NX_TZPC_R0SIZE_NONE, // size of secure mode management area of sram
+    NX_TZPC_R0SIZE_ALL, // size of secure mode management area of sram
     NX_TZPC_R0SIZE_NONE, // no connection, don't care
     NX_TZPC_R0SIZE_NONE, // no connection, don't care
     NX_TZPC_R0SIZE_NONE, // no connection, don't care
