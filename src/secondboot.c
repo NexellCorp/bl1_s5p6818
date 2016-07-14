@@ -199,6 +199,7 @@ void BootMain(U32 CPUID)
 	DebugInit(debugCH);
 
 	WriteIO32(&pReg_Alive->ALIVEPWRGATEREG, 1);
+	WriteIO32(&pReg_Alive->VDDCTRLSETREG, 0x000003FC); //; Retention off (Pad hold off)
 
 	if (USBREBOOT_SIGNATURE == ReadIO32(&pReg_Alive->ALIVESCRATCHVALUE5))
 		RomUSBBoot((U32)0x0000009C);
