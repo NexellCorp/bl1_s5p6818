@@ -20,10 +20,10 @@
 #include <nx_usb20otg.h>
 #include <iUSBBOOT.h>
 
-#ifdef DEBUG
-#define dprintf(x, ...) printf(x, ...)
+#if 0 //DEVMSG_ON
+#define dev_msg(x, ...) printf(x, ...)
 #else
-#define dprintf(x, ...)
+#define dev_msg(x, ...)
 #endif
 
 extern U32 iget_fcs(U32 fcs, U32 data);
@@ -214,14 +214,14 @@ static void nx_usb_ep0_int_hndlr(USBBOOTSTATUS *pUSBBootStatus)
 	SetupPacket *pSetupPacket = (SetupPacket *)buf;
 	U16 addr;
 
-	dprintf("Event EP0\r\n");
+	dev_msg("Event EP0\r\n");
 
 	if (pUSBBootStatus->ep0_state == EP0_STATE_INIT) {
 
 		buf[0] = pUOReg->EPFifo[CONTROL_EP][0];
 		buf[1] = pUOReg->EPFifo[CONTROL_EP][0];
 
-		dprintf("Req:%02X %02X %04X %04X %04X\r\n",
+		dev_msg("Req:%02X %02X %04X %04X %04X\r\n",
 			pSetupPacket->bmRequestType, pSetupPacket->bRequest,
 			pSetupPacket->wValue, pSetupPacket->wIndex,
 			pSetupPacket->wLength);
@@ -229,25 +229,25 @@ static void nx_usb_ep0_int_hndlr(USBBOOTSTATUS *pUSBBootStatus)
 		case STANDARD_SET_ADDRESS:
 			/* Set Address Update bit */
 			addr = (pSetupPacket->wValue & 0xFF);
-			dprintf("STANDARD_SET_ADDRESS: %02X\r\n", addr);
+			dev_msg("STANDARD_SET_ADDRESS: %02X\r\n", addr);
 			pUOReg->DCSR.DCFG =
 			    1 << 18 | addr << 4 | pUSBBootStatus->speed << 0;
 			pUSBBootStatus->ep0_state = EP0_STATE_INIT;
 			break;
 
 		case STANDARD_SET_DESCRIPTOR:
-			dprintf("STANDARD_SET_DESCRIPTOR\r\n");
+			dev_msg("STANDARD_SET_DESCRIPTOR\r\n");
 			break;
 
 		case STANDARD_SET_CONFIGURATION:
-			dprintf("STANDARD_SET_CONFIGURATION\r\n");
+			dev_msg("STANDARD_SET_CONFIGURATION\r\n");
 			/* Configuration value in configuration descriptor */
 			pUSBBootStatus->CurConfig = pSetupPacket->wValue;
 			pUSBBootStatus->ep0_state = EP0_STATE_INIT;
 			break;
 
 		case STANDARD_GET_CONFIGURATION:
-			dprintf("STANDARD_GET_CONFIGURATION\r\n");
+			dev_msg("STANDARD_GET_CONFIGURATION\r\n");
 			pUOReg->DCSR.DEPIR[CONTROL_EP].DIEPTSIZ =
 			    (1 << 19) | (1 << 0);
 			/*ep0 enable, clear nak, next ep0, 8byte */
@@ -259,7 +259,7 @@ static void nx_usb_ep0_int_hndlr(USBBOOTSTATUS *pUSBBootStatus)
 			break;
 
 		case STANDARD_GET_DESCRIPTOR:
-			dprintf("STANDARD_GET_DESCRIPTOR :");
+			dev_msg("STANDARD_GET_DESCRIPTOR :");
 			pUSBBootStatus->Remain_size =
 			    (U32)pSetupPacket->wLength;
 			switch (pSetupPacket->wValue >> 8) {
@@ -297,32 +297,32 @@ static void nx_usb_ep0_int_hndlr(USBBOOTSTATUS *pUSBBootStatus)
 			break;
 
 		case STANDARD_CLEAR_FEATURE:
-			dprintf("STANDARD_CLEAR_FEATURE :");
+			dev_msg("STANDARD_CLEAR_FEATURE :");
 			break;
 
 		case STANDARD_SET_FEATURE:
-			dprintf("STANDARD_SET_FEATURE :");
+			dev_msg("STANDARD_SET_FEATURE :");
 			break;
 
 		case STANDARD_GET_STATUS:
-			dprintf("STANDARD_GET_STATUS :");
+			dev_msg("STANDARD_GET_STATUS :");
 			pUSBBootStatus->ep0_state = EP0_STATE_GET_STATUS;
 			break;
 
 		case STANDARD_GET_INTERFACE:
-			dprintf("STANDARD_GET_INTERFACE\r\n");
+			dev_msg("STANDARD_GET_INTERFACE\r\n");
 			pUSBBootStatus->ep0_state = EP0_STATE_GET_INTERFACE;
 			break;
 
 		case STANDARD_SET_INTERFACE:
-			dprintf("STANDARD_SET_INTERFACE\r\n");
+			dev_msg("STANDARD_SET_INTERFACE\r\n");
 			pUSBBootStatus->CurInterface = pSetupPacket->wValue;
 			pUSBBootStatus->CurSetting = pSetupPacket->wValue;
 			pUSBBootStatus->ep0_state = EP0_STATE_INIT;
 			break;
 
 		case STANDARD_SYNCH_FRAME:
-			dprintf("STANDARD_SYNCH_FRAME\r\n");
+			dev_msg("STANDARD_SYNCH_FRAME\r\n");
 			pUSBBootStatus->ep0_state = EP0_STATE_INIT;
 			break;
 
@@ -352,12 +352,12 @@ static void nx_usb_transfer_ep0(USBBOOTSTATUS *pUSBBootStatus)
 		pUOReg->DCSR.DEPIR[CONTROL_EP].DIEPTSIZ = (1 << 19) | (0 << 0);
 		/*ep0 enable, clear nak, next ep0, 8byte */
 		pUOReg->DCSR.DEPIR[CONTROL_EP].DIEPCTL = EPEN_CNAK_EP0_8;
-		dprintf("EP0_STATE_INIT\r\n");
+		dev_msg("EP0_STATE_INIT\r\n");
 		break;
 
 	/* GET_DESCRIPTOR:DEVICE */
 	case EP0_STATE_GET_DSCPT:
-		dprintf("EP0_STATE_GD_DEV_0 :");
+		dev_msg("EP0_STATE_GD_DEV_0 :");
 		if (pUSBBootStatus->speed == USB_HIGH) {
 			/*ep0 enable, clear nak, next ep0, max 64byte */
 			pUOReg->DCSR.DEPIR[CONTROL_EP].DIEPCTL =
@@ -391,8 +391,8 @@ static void nx_usb_transfer_ep0(USBBOOTSTATUS *pUSBBootStatus)
 	case EP0_STATE_GET_INTERFACE:
 	case EP0_STATE_GET_CONFIG:
 	case EP0_STATE_GET_STATUS:
-		dprintf("EP0_STATE_INTERFACE_GET\r\n");
-		dprintf("EP0_STATE_GET_STATUS\r\n");
+		dev_msg("EP0_STATE_INTERFACE_GET\r\n");
+		dev_msg("EP0_STATE_GET_STATUS\r\n");
 
 		pUOReg->DCSR.DEPIR[CONTROL_EP].DIEPTSIZ = (1 << 19) | (1 << 0);
 		pUOReg->DCSR.DEPIR[CONTROL_EP].DIEPCTL = EPEN_CNAK_EP0_8;
@@ -418,7 +418,7 @@ static void nx_usb_int_bulkin(USBBOOTSTATUS *pUSBBootStatus)
 	U8 *bulkin_buf;
 	U32 remain_cnt;
 
-	dprintf("Bulk In Function\r\n");
+	dev_msg("Bulk In Function\r\n");
 
 	bulkin_buf = (U8 *)pUSBBootStatus->up_ptr;
 	remain_cnt = pUSBBootStatus->up_size -
@@ -483,7 +483,7 @@ static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
 				pUSBBootStatus->RxBuffAddr =
 				    (U8 *)((MPTRS)pTBI->LOADADDR);
 				pUSBBootStatus->iRxSize = pTBI->LOADSIZE;
-				printf("USB Load Address = 0x%016X Launch "
+				SYSMSG("USB Load Address = 0x%016X Launch "
 				       "Address = 0x%08X, size = %d bytes\r\n",
 				       (MPTRS)pUSBBootStatus->RxBuffAddr,
 				       pTBI->LAUNCHADDR,
@@ -500,7 +500,7 @@ static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
 		nx_usb_read_out_fifo(BULK_OUT_EP, (U8 *)pUSBBootStatus->RxBuffAddr,
 				     fifo_cnt_byte);
 #if (0)
-		dprintf("Bin Packet Size = %d => 0x%08X, %d\r\n", iRxSize,
+		dev_msg("Bin Packet Size = %d => 0x%08X, %d\r\n", iRxSize,
 			pUSBBootStatus->RxBuffAddr, pUSBBootStatus->iRxSize);
 #endif
 
@@ -508,7 +508,7 @@ static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
 		pUSBBootStatus->iRxSize -= fifo_cnt_byte;
 
 		if (pUSBBootStatus->iRxSize <= 0) {
-			printf("Download completed!\r\n");
+			SYSMSG("Download completed!\r\n");
 
 			pUSBBootStatus->bDownLoading = CFALSE;
 			pUSBBootStatus->bHeaderReceived = CFALSE;
@@ -569,10 +569,10 @@ static S32 nx_usb_set_init(USBBOOTSTATUS *pUSBBootStatus)
 	/* Set if Device is High speed or Full speed */
 	if (((status & 0x6) >> 1) == USB_HIGH) {
 		pUSBBootStatus->speed = USB_HIGH;
-		printf("High Speed Connected\r\n");
+		SYSMSG("High Speed Connected\r\n");
 	} else if (((status & 0x6) >> 1) == USB_FULL) {
 		pUSBBootStatus->speed = USB_FULL;
-		printf("Full Speed Connected\r\n");
+		SYSMSG("Full Speed Connected\r\n");
 	} else {
 		printf("**** Error:Neither High_Speed nor Full_Speed\r\n");
 		return CFALSE;
@@ -619,7 +619,7 @@ static S32 nx_usb_set_init(USBBOOTSTATUS *pUSBBootStatus)
 	//--------------------------------------------------------------------------
 	USBID.AID = ReadIO32(&pReg_ECID->ECID[3]);
 
-	SYSMSG("USBD VID = %04X, PID = %04X\r\n", USBID.SID[1], USBID.SID[0]);
+	dev_msg("USBD VID = %04X, PID = %04X\r\n", USBID.SID[1], USBID.SID[0]);
 
 	if ((USBID.SID[0] != 0) && (USBID.SID[1] != 0)) {
 		pUSBBootStatus->DeviceDescriptor[8] =
@@ -668,11 +668,11 @@ static void nx_usb_pkt_receive(USBBOOTSTATUS *pUSBBootStatus,
 	g_USBBootStatus = pUSBBootStatus;
 
 	if ((rx_status & (0xf << 17)) == SETUP_PKT_RECEIVED) {
-		dprintf("SETUP_PKT_RECEIVED\r\n");
+		dev_msg("SETUP_PKT_RECEIVED\r\n");
 		nx_usb_ep0_int_hndlr(pUSBBootStatus);
 	} else if ((rx_status & (0xf << 17)) == OUT_PKT_RECEIVED) {
 		fifo_cnt_byte = (rx_status & 0x7ff0) >> 4;
-		dprintf("OUT_PKT_RECEIVED\r\n");
+		dev_msg("OUT_PKT_RECEIVED\r\n");
 
 		if ((rx_status & BULK_OUT_EP) && (fifo_cnt_byte)) {
 			nx_usb_int_bulkout(pUSBBootStatus, pTBI, fifo_cnt_byte);
@@ -682,13 +682,13 @@ static void nx_usb_pkt_receive(USBBOOTSTATUS *pUSBBootStatus,
 			return;
 		}
 	} else if ((rx_status & (0xf << 17)) == GLOBAL_OUT_NAK) {
-		dprintf("GLOBAL_OUT_NAK\r\n");
+		dev_msg("GLOBAL_OUT_NAK\r\n");
 	} else if ((rx_status & (0xf << 17)) == OUT_TRNASFER_COMPLETED) {
-		dprintf("OUT_TRNASFER_COMPLETED\r\n");
+		dev_msg("OUT_TRNASFER_COMPLETED\r\n");
 	} else if ((rx_status & (0xf << 17)) == SETUP_TRANSACTION_COMPLETED) {
-		dprintf("SETUP_TRANSACTION_COMPLETED\r\n");
+		dev_msg("SETUP_TRANSACTION_COMPLETED\r\n");
 	} else {
-		dprintf("Reserved\r\n");
+		dev_msg("Reserved\r\n");
 	}
 }
 
@@ -752,13 +752,13 @@ static void nx_udc_int_hndlr(USBBOOTSTATUS *pUSBBootStatus,
 	int_status = pUOReg->GCSR.GINTSTS; /* Core Interrupt Register */
 
 	if (int_status & INT_RESET) {
-		dprintf("INT_RESET\r\n");
+		dev_msg("INT_RESET\r\n");
 
 		nx_usb_reset(pUSBBootStatus);
 	}
 
 	if (int_status & INT_ENUMDONE) {
-		dprintf("INT_ENUMDONE :");
+		dev_msg("INT_ENUMDONE :");
 
 		tmp = nx_usb_set_init(pUSBBootStatus);
 		if (tmp == CFALSE) {
@@ -768,15 +768,15 @@ static void nx_udc_int_hndlr(USBBOOTSTATUS *pUSBBootStatus,
 	}
 
 	if (int_status & INT_RESUME) {
-		dprintf("INT_RESUME\r\n");
+		dev_msg("INT_RESUME\r\n");
 	}
 
 	if (int_status & INT_SUSPEND) {
-		dprintf("INT_SUSPEND\r\n");
+		dev_msg("INT_SUSPEND\r\n");
 	}
 
 	if (int_status & INT_RX_FIFO_NOT_EMPTY) {
-		dprintf("INT_RX_FIFO_NOT_EMPTY\r\n");
+		dev_msg("INT_RX_FIFO_NOT_EMPTY\r\n");
 		/* Read only register field */
 
 		pUOReg->GCSR.GINTMSK = INT_RESUME | INT_OUT_EP | INT_IN_EP |
@@ -788,7 +788,7 @@ static void nx_udc_int_hndlr(USBBOOTSTATUS *pUSBBootStatus,
 	}
 
 	if ((int_status & INT_IN_EP) || (int_status & INT_OUT_EP)) {
-		dprintf("INT_IN or OUT_EP\r\n");
+		dev_msg("INT_IN or OUT_EP\r\n");
 		/* Read only register field */
 
 		nx_usb_transfer(pUSBBootStatus);
@@ -871,7 +871,7 @@ CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
 	pUSBBootStatus->speed = USB_HIGH;
 	pUSBBootStatus->ep0_state = EP0_STATE_INIT;
 
-	printf("usb boot ready!\r\n");
+	SYSMSG("USB Boot Ready!\r\n");
 
 	pUSBBootStatus->bDownLoading = CTRUE;
 	while (pUSBBootStatus->bDownLoading) {
@@ -891,9 +891,9 @@ CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
 	pReg_Tieoff->TIEOFFREG[13] |= 3 << 7; // POR_ENB=1, POR=1
 	ResetCon(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CTRUE); // reset on
 
-	printf("\r\n\nusb image download is done!\r\n\n");
+	SYSMSG("\r\n\nusb image download is done!\r\n\n");
 
-	printf("USB Load Address = 0x%08X Launch Address = 0x%08X, size = %d bytes\r\n",
+	SYSMSG("USB Load Address = 0x%08X Launch Address = 0x%08X, size = %d bytes\r\n",
 		pTBI->LOADADDR, pTBI->LAUNCHADDR, pTBI->LOADSIZE);
 
 	return CTRUE;

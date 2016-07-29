@@ -1188,15 +1188,15 @@ CBOOL DDR_Gate_Leveling(void)
 	gatecycle = ReadIO32(&pReg_DDRPHY->CAL_GT_CYC);
 	lockvalue = (ReadIO32(&pReg_DDRPHY->MDLL_CON[1]) >> 8) & 0x1FF;
 	
-	printf("gate leveling status : 0x%08X\r\n", failstat);
-	printf("gate level center %2d, %2d, %2d, %2d\r\n", lane.b[0], lane.b[1], lane.b[2], lane.b[3]);
-	printf("gate level cycle %d, %d, %d, %d\r\n",
+	MEMMSG("gate leveling status : 0x%08X\r\n", failstat);
+	MEMMSG("gate level center %2d, %2d, %2d, %2d\r\n", lane.b[0], lane.b[1], lane.b[2], lane.b[3]);
+	MEMMSG("gate level cycle %d, %d, %d, %d\r\n",
 		(gatecycle>>0)&0x7,
 		(gatecycle>>3)&0x7,
 		(gatecycle>>6)&0x7,
 		(gatecycle>>9)&0x7
 	);
-	printf("gate delay %d, %d, %d, %d\r\n",
+	MEMMSG("gate delay %d, %d, %d, %d\r\n",
 		((gatecycle>>0)&0x7)*lockvalue+lane.b[0],
 		((gatecycle>>3)&0x7)*lockvalue+lane.b[1],
 		((gatecycle>>6)&0x7)*lockvalue+lane.b[2],
@@ -1925,7 +1925,7 @@ CBOOL init_DDR3(U32 isResume)
 #endif // #if defined(MEM_TYPE_LPDDR23)
 #endif
 
-	printf("phy init\r\n");
+	MEMMSG("phy init\r\n");
 
 	/* Set WL, RL, BL */
 	WriteIO32(
@@ -2711,23 +2711,23 @@ CBOOL init_DDR3(U32 isResume)
 		      (0x0 << 1) | // [    1] busif_wr_cg_en
 		      (0x0 << 0)); // [    0] busif_rd_cg_en
 
-	printf("Lock value  = %d \r\n", g_Lock_Val);
+	MEMMSG("Lock value  = %d \r\n", g_Lock_Val);
 
 	MEMMSG("g_GT_cycle  = 0x%08X\r\n", g_GT_cycle);
 	MEMMSG("g_GT_code   = 0x%08X\r\n", g_GT_code);
 	MEMMSG("g_RD_vwmc   = 0x%08X\r\n", g_RD_vwmc);
 	MEMMSG("g_WR_vwmc   = 0x%08X\r\n", g_WR_vwmc);
 
-	printf("GATE CYC    = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->SHIFTC_CON));
-	printf("GATE CODE   = 0x%08X\r\n",
+	MEMMSG("GATE CYC    = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->SHIFTC_CON));
+	MEMMSG("GATE CODE   = 0x%08X\r\n",
 	       ReadIO32(&pReg_DDRPHY->OFFSETC_CON[0]));
 
-	printf("Read  DQ    = 0x%08X\r\n",
+	MEMMSG("Read  DQ    = 0x%08X\r\n",
 	       ReadIO32(&pReg_DDRPHY->OFFSETR_CON[0]));
-	printf("Write DQ    = 0x%08X\r\n",
+	MEMMSG("Write DQ    = 0x%08X\r\n",
 	       ReadIO32(&pReg_DDRPHY->OFFSETW_CON[0]));
 
-	printf("\r\n\r\n");
+	MEMMSG("\r\n\r\n");
 
 	return CTRUE;
 }

@@ -204,8 +204,6 @@ void BootMain(U32 CPUID)
 	if (USBREBOOT_SIGNATURE == ReadIO32(&pReg_Alive->ALIVESCRATCHVALUE5))
 		RomUSBBoot((U32)0x0000009C);
 #if !defined(LOAD_FROM_USB)
-		// set watchdog timer
-		printf("watchdog timer start\r\n");
 		SetIO32(&pReg_RstCon->REGRST[RESETINDEX_OF_WDT_MODULE_PRESETn >> 5], 1 << (RESETINDEX_OF_WDT_MODULE_PRESETn & 0x1F));
 		SetIO32(&pReg_RstCon->REGRST[RESETINDEX_OF_WDT_MODULE_nPOR >> 5], 1 << (RESETINDEX_OF_WDT_MODULE_nPOR & 0x1F));
 		WriteIO32(&pReg_WDT->WTCON,
@@ -242,8 +240,7 @@ void BootMain(U32 CPUID)
 #endif
 
 	SYSMSG("EMA is %s\r\n", (EMA_VALUE == 1) ? "1.1V" : (EMA_VALUE == 3) ? "1.0V" : "0.95V");
-
-	printf("\r\n\nworking to aarch%d\r\nwaiting for pll change..\r\n", sizeof(void *) * 8);
+	SYSMSG("\r\n\nWorking to aarch%d\r\nwaiting for pll change..\r\n", sizeof(void *) * 8);
 
 	while (!DebugIsUartTxDone());
 
@@ -274,7 +271,7 @@ void BootMain(U32 CPUID)
 	//--------------------------------------------------------------------------
 	printClkInfo();
 
-	printf("\r\nDDR3 POR Init Start %d\r\n", isResume);
+	SYSMSG("\r\nDDR3 POR Init Start %d\r\n", isResume);
 #ifdef MEM_TYPE_DDR3
 #if 0
 	if (init_DDR3(isResume) == CFALSE)
@@ -292,7 +289,7 @@ void BootMain(U32 CPUID)
 	if (isResume)
 		exitSelfRefresh();
 
-	printf("DDR3 Init Done!\r\n");
+	SYSMSG("DDR3 Init Done!\r\n");
 
 	set_bus_config();
 	set_drex_qos();
@@ -302,20 +299,20 @@ void BootMain(U32 CPUID)
 	timer_reset();
 
 #if (CCI400_COHERENCY_ENABLE == 1)
-	printf("CCI Init!\r\n");
+	SYSMSG("CCI Init!\r\n");
 	initCCI400();
 #endif
 
 	SetSecureState();
 
-	printf("Wakeup CPU ");
+	SYSMSG("Wakeup CPU ");
 
 #if (MULTICORE_BRING_UP == 1)
 	SubCPUBringUp(CPUID);
 #endif
 
 	if (isResume) {
-		printf(" DDR3 SelfRefresh exit Done!\r\n0x%08X\r\n", 
+		SYSMSG(" DDR3 SelfRefresh exit Done!\r\n0x%08X\r\n", 
 			ReadIO32(&pReg_Alive->WAKEUPSTATUS));
 		dowakeup();
 	}
@@ -331,42 +328,42 @@ void BootMain(U32 CPUID)
 	switch (pSBI->DBI.SPIBI.LoadDevice) {
 #if defined(SUPPORT_USB_BOOT)
 	case BOOT_FROM_USB:
-		printf("Loading from usb...\r\n");
+		SYSMSG("Loading from usb...\r\n");
 		Result = iUSBBOOT(pTBI); // for USB boot
 		break;
 #endif
 
 #if defined(SUPPORT_SPI_BOOT)
 	case BOOT_FROM_SPI:
-		printf("Loading from spi...\r\n");
+		SYSMSG("Loading from spi...\r\n");
 		Result = iSPIBOOT(pTBI); // for SPI boot
 		break;
 #endif
 
 #if defined(SUPPORT_NAND_BOOT)
 	case BOOT_FROM_NAND:
-		printf( "Loading from nand...\r\n" );
+		SYSMSG( "Loading from nand...\r\n" );
 		Result = iNANDBOOTEC(pTBI);     // for NAND boot
 		break;
 #endif
 
 #if defined(SUPPORT_SDMMC_BOOT)
 	case BOOT_FROM_SDMMC:
-		printf("Loading from sdmmc...\r\n");
+		SYSMSG("Loading from sdmmc...\r\n");
 		Result = iSDXCBOOT(pTBI); // for SD boot
 		break;
 #endif
 
 #if defined(SUPPORT_SDFS_BOOT)
 	case BOOT_FROM_SDFS:
-		printf("Loading from sd FATFS...\r\n");
+		SYSMSG("Loading from sd FATFS...\r\n");
 		Result = iSDXCFSBOOT(pTBI); // for SDFS boot
 		break;
 #endif
 
 #if defined(SUPPORT_UART_BOOT)
 	case BOOT_FROM_UART:
-		printf("Loading from uart...\r\n");
+		SYSMSG("Loading from uart...\r\n");
 		Result = iUARTBOOT(pTBI);       // for UART boot
 		break;
 #endif
@@ -379,8 +376,8 @@ void BootMain(U32 CPUID)
 	if (Result) {
 		void (*pLaunch)(U32, U32) =
 		    (void (*)(U32, U32))((MPTRS)pTBI->LAUNCHADDR);
-		printf(" Image Loading Done!\r\n");
-		printf("Launch to 0x%08X\r\n", (MPTRS)pLaunch);
+		SYSMSG(" Image Loading Done!\r\n");
+		SYSMSG("Launch to 0x%08X\r\n", (MPTRS)pLaunch);
 		temp = 0x10000000;
 		while (!DebugIsUartTxDone() && temp--);
 		pLaunch(0, 4330);

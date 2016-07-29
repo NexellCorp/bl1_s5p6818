@@ -20,10 +20,10 @@
 #include "iSDHCBOOT.h"
 #include "nx_bootheader.h"
 
-#ifdef DEBUG
-#define dprintf         printf
+#if DEVMSG_ON
+#define dev_msg         printf
 #else
-#define dprintf(x, ...) {}
+#define dev_msg(x, ...) {}
 #endif
 
 extern U32 getquotient(U32 dividend, U32 divisor);
@@ -112,7 +112,7 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
 	CBOOL ret;
 
 #if defined(VERBOSE)
-	dprintf("NX_SDMMC_SetClock : divider = %d\r\n", divider);
+	dev_msg("NX_SDMMC_SetClock : divider = %d\r\n", divider);
 #endif
 
 	//	NX_ASSERT( (1==divider) || (0==(divider&1)) );		// 1 or even number
@@ -129,10 +129,10 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
 	{
 #if defined(NX_DEBUG)
 		if( pSDXCReg->STATUS & NX_SDXC_STATUS_DATABUSY )
-			dprintf("NX_SDMMC_SetClock : ERROR - Data is busy\r\n" );
+			dev_msg("NX_SDMMC_SetClock : ERROR - Data is busy\r\n" );
 
 		if( pSDXCReg->STATUS & NX_SDXC_STATUS_FSMBUSY )
-			dprintf("NX_SDMMC_SetClock : ERROR - Data Transfer is busy\r\n" );
+			dev_msg("NX_SDMMC_SetClock : ERROR - Data Transfer is busy\r\n" );
 #endif
 		//return CFALSE;
 		timeout = NX_SDMMC_TIMEOUT;
@@ -195,7 +195,7 @@ repeat_4 :
 	{
 		if( ++timeout > NX_SDMMC_TIMEOUT )
 		{
-			dprintf("NX_SDMMC_SetClock : ERROR - Time-out to update clock.\r\n");
+			dev_msg("NX_SDMMC_SetClock : ERROR - Time-out to update clock.\r\n");
 			INFINTE_LOOP();
 			return CFALSE;
 		}
@@ -228,7 +228,7 @@ repeat_7 :
 	{
 		if( ++timeout > NX_SDMMC_TIMEOUT )
 		{
-			dprintf("NX_SDMMC_SetClock : ERROR - TIme-out to update clock2.\r\n");
+			dev_msg("NX_SDMMC_SetClock : ERROR - TIme-out to update clock2.\r\n");
 			INFINTE_LOOP();
 			return CFALSE;
 		}
@@ -255,7 +255,7 @@ static U32		NX_SDMMC_SendCommandInternal( SDXCBOOTSTATUS * pSDXCBootStatus, NX_S
 	NX_ASSERT( CNULL != pCommand );
 
 #ifdef VERBOSE
-	dprintf("NX_SDMMC_SendCommandInternal : Command(0x%08X), Argument(0x%08X)\r\n", pCommand->cmdidx, pCommand->arg);
+	dev_msg("NX_SDMMC_SendCommandInternal : Command(0x%08X), Argument(0x%08X)\r\n", pCommand->cmdidx, pCommand->arg);
 #endif
 
 	cmd	= pCommand->cmdidx & 0xFF;
@@ -275,7 +275,7 @@ static U32		NX_SDMMC_SendCommandInternal( SDXCBOOTSTATUS * pSDXCBootStatus, NX_S
 		{
 			if( ++timeout > NX_SDMMC_TIMEOUT )
 			{
-				dprintf("NX_SDMMC_SendCommandInternal : ERROR - Time-Out to send command.\r\n");
+				dev_msg("NX_SDMMC_SendCommandInternal : ERROR - Time-Out to send command.\r\n");
 				status |= NX_SDMMC_STATUS_CMDBUSY;
 				INFINTE_LOOP();
 				goto End;
@@ -293,7 +293,7 @@ static U32		NX_SDMMC_SendCommandInternal( SDXCBOOTSTATUS * pSDXCBootStatus, NX_S
 
 		if( ++timeout > NX_SDMMC_TIMEOUT )
 		{
-			dprintf("NX_SDMMC_SendCommandInternal : ERROR - Time-Out to wait command done.\r\n");
+			dev_msg("NX_SDMMC_SendCommandInternal : ERROR - Time-Out to wait command done.\r\n");
 			status |= NX_SDMMC_STATUS_CMDTOUT;
 			INFINTE_LOOP();
 			goto End;
@@ -335,7 +335,7 @@ static U32		NX_SDMMC_SendCommandInternal( SDXCBOOTSTATUS * pSDXCBootStatus, NX_S
 			{
 				if( ++timeout > NX_SDMMC_TIMEOUT )
 				{
-					dprintf("NX_SDMMC_SendCommandInternal : ERROR - Time-Out to wait card data is ready.\r\n");
+					dev_msg("NX_SDMMC_SendCommandInternal : ERROR - Time-Out to wait card data is ready.\r\n");
 					status |= NX_SDMMC_STATUS_DATABUSY;
 					INFINTE_LOOP();
 					goto End;
@@ -349,7 +349,7 @@ End:
 #if defined(NX_DEBUG)
 	if( NX_SDMMC_STATUS_NOERROR != status )
 	{
-		dprintf("NX_SDMMC_SendCommandInternal Failed : command(0x%08X), argument(0x%08X) => status(0x%08X)\r\n",
+		dev_msg("NX_SDMMC_SendCommandInternal Failed : command(0x%08X), argument(0x%08X) => status(0x%08X)\r\n",
 				pCommand->cmdidx, pCommand->arg, status);
 	}
 #endif
@@ -374,39 +374,39 @@ static U32		NX_SDMMC_SendStatus( SDXCBOOTSTATUS * pSDXCBootStatus )
 #if defined(VERBOSE) && defined(NX_DEBUG) && (1)
 	if( NX_SDMMC_STATUS_NOERROR == status )
 	{
-		dprintf("\t NX_SDMMC_SendStatus : idx:0x%08X, arg:0x%08X, resp:0x%08X\r\n",
+		dev_msg("\t NX_SDMMC_SendStatus : idx:0x%08X, arg:0x%08X, resp:0x%08X\r\n",
 				cmd.cmdidx, cmd.arg, cmd.response[0]);
 
-		if( cmd.response[0] & (1UL<<31) )	dprintf( "\t\t ERROR : OUT_OF_RANGE\r\n" );
-		if( cmd.response[0] & (1UL<<30) )	dprintf( "\t\t ERROR : ADDRESS_ERROR\r\n" );
-		if( cmd.response[0] & (1UL<<29) )	dprintf( "\t\t ERROR : BLOCK_LEN_ERROR\r\n" );
-		if( cmd.response[0] & (1UL<<28) )	dprintf( "\t\t ERROR : ERASE_SEQ_ERROR\r\n" );
-		if( cmd.response[0] & (1UL<<27) )	dprintf( "\t\t ERROR : ERASE_PARAM\r\n" );
-		if( cmd.response[0] & (1UL<<26) )	dprintf( "\t\t ERROR : WP_VIOLATION\r\n" );
-		if( cmd.response[0] & (1UL<<24) )	dprintf( "\t\t ERROR : LOCK_UNLOCK_FAILED\r\n" );
-		if( cmd.response[0] & (1UL<<23) )	dprintf( "\t\t ERROR : COM_CRC_ERROR\r\n" );
-		if( cmd.response[0] & (1UL<<22) )	dprintf( "\t\t ERROR : ILLEGAL_COMMAND\r\n" );
-		if( cmd.response[0] & (1UL<<21) )	dprintf( "\t\t ERROR : CARD_ECC_FAILED\r\n" );
-		if( cmd.response[0] & (1UL<<20) )	dprintf( "\t\t ERROR : Internal Card Controller ERROR\r\n" );
-		if( cmd.response[0] & (1UL<<19) )	dprintf( "\t\t ERROR : General Error\r\n" );
-		if( cmd.response[0] & (1UL<<17) )	dprintf( "\t\t ERROR : Deferred Response\r\n" );
-		if( cmd.response[0] & (1UL<<16) )	dprintf( "\t\t ERROR : CID/CSD_OVERWRITE_ERROR\r\n" );
-		if( cmd.response[0] & (1UL<<15) )	dprintf( "\t\t ERROR : WP_ERASE_SKIP\r\n" );
-		if( cmd.response[0] & (1UL<< 3) )	dprintf( "\t\t ERROR : AKE_SEQ_ERROR\r\n" );
+		if( cmd.response[0] & (1UL<<31) )	dev_msg( "\t\t ERROR : OUT_OF_RANGE\r\n" );
+		if( cmd.response[0] & (1UL<<30) )	dev_msg( "\t\t ERROR : ADDRESS_ERROR\r\n" );
+		if( cmd.response[0] & (1UL<<29) )	dev_msg( "\t\t ERROR : BLOCK_LEN_ERROR\r\n" );
+		if( cmd.response[0] & (1UL<<28) )	dev_msg( "\t\t ERROR : ERASE_SEQ_ERROR\r\n" );
+		if( cmd.response[0] & (1UL<<27) )	dev_msg( "\t\t ERROR : ERASE_PARAM\r\n" );
+		if( cmd.response[0] & (1UL<<26) )	dev_msg( "\t\t ERROR : WP_VIOLATION\r\n" );
+		if( cmd.response[0] & (1UL<<24) )	dev_msg( "\t\t ERROR : LOCK_UNLOCK_FAILED\r\n" );
+		if( cmd.response[0] & (1UL<<23) )	dev_msg( "\t\t ERROR : COM_CRC_ERROR\r\n" );
+		if( cmd.response[0] & (1UL<<22) )	dev_msg( "\t\t ERROR : ILLEGAL_COMMAND\r\n" );
+		if( cmd.response[0] & (1UL<<21) )	dev_msg( "\t\t ERROR : CARD_ECC_FAILED\r\n" );
+		if( cmd.response[0] & (1UL<<20) )	dev_msg( "\t\t ERROR : Internal Card Controller ERROR\r\n" );
+		if( cmd.response[0] & (1UL<<19) )	dev_msg( "\t\t ERROR : General Error\r\n" );
+		if( cmd.response[0] & (1UL<<17) )	dev_msg( "\t\t ERROR : Deferred Response\r\n" );
+		if( cmd.response[0] & (1UL<<16) )	dev_msg( "\t\t ERROR : CID/CSD_OVERWRITE_ERROR\r\n" );
+		if( cmd.response[0] & (1UL<<15) )	dev_msg( "\t\t ERROR : WP_ERASE_SKIP\r\n" );
+		if( cmd.response[0] & (1UL<< 3) )	dev_msg( "\t\t ERROR : AKE_SEQ_ERROR\r\n" );
 
 		switch( (cmd.response[0]>>9) & 0xF )
 		{
-			case 0 : dprintf( "\t\t CURRENT_STATE : Idle\r\n");				break;
-			case 1 : dprintf( "\t\t CURRENT_STATE : Ready\r\n" );			break;
-			case 2 : dprintf( "\t\t CURRENT_STATE : Identification\r\n" );	break;
-			case 3 : dprintf( "\t\t CURRENT_STATE : Standby\r\n" );			break;
-			case 4 : dprintf( "\t\t CURRENT_STATE : Transfer\r\n" );		break;
-			case 5 : dprintf( "\t\t CURRENT_STATE : Data\r\n" );			break;
-			case 6 : dprintf( "\t\t CURRENT_STATE : Receive\r\n" );			break;
-			case 7 : dprintf( "\t\t CURRENT_STATE : Programming\r\n" );		break;
-			case 8 : dprintf( "\t\t CURRENT_STATE : Disconnect\r\n" );		break;
-			case 9 : dprintf( "\t\t CURRENT_STATE : Sleep\r\n" );			break;
-			default: dprintf( "\t\t CURRENT_STATE : Reserved\r\n" );		break;
+			case 0 : dev_msg( "\t\t CURRENT_STATE : Idle\r\n");				break;
+			case 1 : dev_msg( "\t\t CURRENT_STATE : Ready\r\n" );			break;
+			case 2 : dev_msg( "\t\t CURRENT_STATE : Identification\r\n" );	break;
+			case 3 : dev_msg( "\t\t CURRENT_STATE : Standby\r\n" );			break;
+			case 4 : dev_msg( "\t\t CURRENT_STATE : Transfer\r\n" );		break;
+			case 5 : dev_msg( "\t\t CURRENT_STATE : Data\r\n" );			break;
+			case 6 : dev_msg( "\t\t CURRENT_STATE : Receive\r\n" );			break;
+			case 7 : dev_msg( "\t\t CURRENT_STATE : Programming\r\n" );		break;
+			case 8 : dev_msg( "\t\t CURRENT_STATE : Disconnect\r\n" );		break;
+			case 9 : dev_msg( "\t\t CURRENT_STATE : Sleep\r\n" );			break;
+			default: dev_msg( "\t\t CURRENT_STATE : Reserved\r\n" );		break;
 		}
 	}
 #endif
@@ -491,13 +491,13 @@ static CBOOL	NX_SDMMC_IdentifyCard( SDXCBOOTSTATUS * pSDXCBootStatus )
 		if( cmd.response[0] != ((1<<8) | 0xAA) )		return CFALSE;
 
 		HCS = 1<<30;
-		printf("Ver 2.0 or later SD Memory Card\r\n");
+		dev_msg("Ver 2.0 or later SD Memory Card\r\n");
 	}
 	else
 	{
 		// voltage mismatch or Ver 1.X SD Memory Card or not SD Memory Card
 		HCS = 0;
-		printf("voltage mismatch or Ver 1.X SD Memory Card or not SD Memory Card\r\n");
+		dev_msg("voltage mismatch or Ver 1.X SD Memory Card or not SD Memory Card\r\n");
 	}
 
 	//--------------------------------------------------------------------------
@@ -532,14 +532,14 @@ static CBOOL	NX_SDMMC_IdentifyCard( SDXCBOOTSTATUS * pSDXCBootStatus )
 
 			if( timeout-- <= 0 )
 			{
-				dprintf("NX_SDMMC_IdentifyCard : ERROR - Time-Out to wait power up for SD.\r\n");
+				dev_msg("NX_SDMMC_IdentifyCard : ERROR - Time-Out to wait power up for SD.\r\n");
 				return CFALSE;
 			}
 		}
 
 #if defined(VERBOSE)
-		printf("--> Found SD Memory Card.\r\n");
-		dprintf("--> SD_SEND_OP_COND Response = 0x%08X\r\n", cmd.response[0]);
+		dev_msg("--> Found SD Memory Card.\r\n");
+		dev_msg("--> SD_SEND_OP_COND Response = 0x%08X\r\n", cmd.response[0]);
 #endif
 
 		CardType	= NX_SDMMC_CARDTYPE_SDMEM;
@@ -567,14 +567,14 @@ static CBOOL	NX_SDMMC_IdentifyCard( SDXCBOOTSTATUS * pSDXCBootStatus )
 
 			if( timeout-- <= 0 )
 			{
-				dprintf("NX_SDMMC_IdentifyCard : ERROR - Time-Out to wait power-up for MMC.\r\n");
+				dev_msg("NX_SDMMC_IdentifyCard : ERROR - Time-Out to wait power-up for MMC.\r\n");
 				return CFALSE;
 			}
 		} while( 0==(cmd.response[0] & (1UL<<31)) );	// Wait until card has finished the power up routine
 
 #if defined(VERBOSE)
-		printf("--> Found MMC Memory Card.\r\n");
-		dprintf("--> SEND_OP_COND Response = 0x%08X\r\n", cmd.response[0]);
+		dev_msg("--> Found MMC Memory Card.\r\n");
+		dev_msg("--> SEND_OP_COND Response = 0x%08X\r\n", cmd.response[0]);
 #endif
 
 		CardType	= NX_SDMMC_CARDTYPE_MMC;
@@ -587,7 +587,7 @@ static CBOOL	NX_SDMMC_IdentifyCard( SDXCBOOTSTATUS * pSDXCBootStatus )
 
 #if defined(NX_DEBUG)
 	if( pSDXCBootStatus->bHighCapacity )
-		printf("--> High Capacity Memory Card.\r\n");
+		dev_msg("--> High Capacity Memory Card.\r\n");
 #endif
 
 	//--------------------------------------------------------------------------
@@ -612,7 +612,7 @@ static CBOOL	NX_SDMMC_IdentifyCard( SDXCBOOTSTATUS * pSDXCBootStatus )
 		pSDXCBootStatus->rca = RCA;
 
 #if defined(VERBOSE)
-	dprintf("RCA = 0x%08X\r\n", pSDXCBootStatus->rca);
+	dev_msg("RCA = 0x%08X\r\n", pSDXCBootStatus->rca);
 #endif
 
 	pSDXCBootStatus->CardType = CardType;
@@ -884,16 +884,16 @@ static CBOOL	NX_SDMMC_ReadSectorData( SDXCBOOTSTATUS * pSDXCBootStatus, U32 numb
 		if( pSDXCReg->RINTSTS & (NX_SDXC_RINTSTS_DRTO | NX_SDXC_RINTSTS_EBE | NX_SDXC_RINTSTS_SBE | NX_SDXC_RINTSTS_DCRC) )
 		{
 #if defined(NX_DEBUG)
-			dprintf("Read left = %d\r\n", count);
+			dev_msg("Read left = %d\r\n", count);
 
 			if( pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_DRTO )
-				dprintf("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_DRTO\r\n");
+				dev_msg("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_DRTO\r\n");
 			if( pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_EBE )
-				dprintf("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_EBE\r\n");
+				dev_msg("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_EBE\r\n");
 			if( pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_SBE )
-				dprintf("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_SBE\r\n");
+				dev_msg("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_SBE\r\n");
 			if( pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_DCRC )
-				dprintf("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_DCRC\r\n");
+				dev_msg("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_DCRC\r\n");
 #endif
 
 			return CFALSE;
@@ -911,7 +911,7 @@ static CBOOL	NX_SDMMC_ReadSectorData( SDXCBOOTSTATUS * pSDXCBootStatus, U32 numb
 #if defined(NX_DEBUG)
 		if( pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_HTO )
 		{
-			dprintf("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_HTO\r\n");
+			dev_msg("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_HTO\r\n");
 			pSDXCReg->RINTSTS = NX_SDXC_RINTSTS_HTO;
 		}
 #endif
@@ -997,7 +997,7 @@ CBOOL	NX_SDMMC_ReadSectors( SDXCBOOTSTATUS * pSDXCBootStatus, U32 SectorNum, U32
 			response = pSDXCReg->RESP1;
 			if( response & 0xFDF98008 )
 			{
-				dprintf("ERROR : NX_SDMMC_ReadSectors - Auto Stop Response Failed = 0x%08X\r\n", response);
+				dev_msg("ERROR : NX_SDMMC_ReadSectors - Auto Stop Response Failed = 0x%08X\r\n", response);
 				//goto End;
 			}
 #endif
@@ -1035,7 +1035,6 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 
 	struct nx_bootheader *ptbh = (struct nx_bootheader *)pTBI;
 	struct nx_bootheader *psbh = (struct nx_bootheader *)pSBI;
-	printf("read from sdmmc port %d\r\n", pSDXCBootStatus->SDPort);
 
 	if (CTRUE != NX_SDMMC_Open(pSDXCBootStatus)) {
 		printf("Cannot Detect SDMMC\r\n");
@@ -1043,15 +1042,13 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 	}
 
 	if (0 == (pSDXCReg->STATUS & NX_SDXC_STATUS_FIFOEMPTY)) {
-		dprintf( "FIFO Reset!!!\r\n" );
+		dev_msg( "FIFO Reset!!!\r\n" );
 		pSDXCReg->CTRL = NX_SDXC_CTRL_FIFORST;	// Reset the FIFO.
 
 		while( pSDXCReg->CTRL & NX_SDXC_CTRL_FIFORST )
 			;
 	}
 
-
-	printf("read sector %d\r\n", pSBI->DEVICEADDR/BLOCK_LENGTH);
 	result = NX_SDMMC_ReadSectors(pSDXCBootStatus,
 			pSBI->DEVICEADDR/BLOCK_LENGTH, 2, (U32 *)pTBI );
 #if 0
@@ -1090,7 +1087,7 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 		Decrypt((U32 *)pTBI, (U32 *)pTBI, sizeof(struct nx_bootheader));
 
 	if (pTBI->SIGNATURE != HEADER_ID ) {
-		printf("0x%08X\r\n3rd boot Sinature is wrong! SDMMC boot failure\r\n",
+		printf("SIGNATURE: 0x%08X \r\n3rd boot Sinature is wrong! SDMMC boot failure\r\n",
 				pTBI->SIGNATURE);
 		return CFALSE;
 	}
@@ -1118,7 +1115,7 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 	ptbh = (struct nx_bootheader *)ptbh->tbbi.loadaddr;
 
 	ptbh->tbbi.loadsize += sizeof(struct nx_bootheader);
-	printf("Load Addr :0x%08X,  Load Size :0x%08X,  Launch Addr :0x%08X\r\n",
+	dev_msg("Load Addr :0x%08X,  Load Size :0x%08X,  Launch Addr :0x%08X\r\n",
 			(uint32_t)ptbh->tbbi.loadaddr,
 			(uint32_t)ptbh->tbbi.loadsize,
 			(uint32_t)ptbh->tbbi.startaddr);
@@ -1304,8 +1301,7 @@ U32	iSDXCBOOT( struct NX_SecondBootInfo * pTBI )
 	NX_SDMMC_Close(pSDXCBootStatus);
 	NX_SDMMC_Terminate(pSDXCBootStatus);
 
-
-	//	NX_SDPADSetGPIO(pSDXCBootStatus->SDPort);
+//	NX_SDPADSetGPIO(pSDXCBootStatus->SDPort);
 
 	return result;
 }

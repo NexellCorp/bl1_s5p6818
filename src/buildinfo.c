@@ -27,18 +27,18 @@ CBOOL buildinfo(void)
 	// Read Build Infomation.
 	tmp = ReadIO32(p2nd_BuildInfo) & 0xFFFF;
 
-	printf("\r\n");
-	printf("---------------------------------------------------------------"
+	SYSMSG("\r\n");
+	SYSMSG("---------------------------------------------------------------"
 	       "-----------------\r\n");
-	printf(" Second Boot by Nexell Co. : Ver%d.%d.%d - Built on %s %s\r\n",
+	SYSMSG(" Second Boot by Nexell Co. : Ver%d.%d.%d - Built on %s %s\r\n",
 	       ((tmp >> 12) & 0xF), ((tmp >> 8) & 0xF), (tmp & 0xFF), __DATE__,
 	       __TIME__);
-	printf("---------------------------------------------------------------"
+	SYSMSG("---------------------------------------------------------------"
 	       "-----------------\r\n");
 
 	tmp = ReadIO32(pNsih_BuildInfo) & 0xFFFFFF00;
 	if ((ReadIO32(p2nd_BuildInfo) & 0xFFFFFF00) != tmp) {
-		printf(" NSIH : Ver%d.%d.xx\r\n", ((tmp >> 12) & 0xF),
+		SYSMSG(" NSIH : Ver%d.%d.xx\r\n", ((tmp >> 12) & 0xF),
 		       ((tmp >> 8) & 0xF));
 		ret = CFALSE;
 	}

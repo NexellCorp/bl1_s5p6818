@@ -548,6 +548,7 @@ void PLLDynamicChange(U32 Freq)
 
 void printClkInfo(void)
 {
+#if 0
 	SYSMSG(" PLL0: %d   PLL1: %d   PLL2: %d   PLL3: %d\r\n\r\n",
 	       NX_CLKPWR_GetPLLFreq(0), NX_CLKPWR_GetPLLFreq(1),
 	       NX_CLKPWR_GetPLLFreq(2), NX_CLKPWR_GetPLLFreq(3));
@@ -638,4 +639,5 @@ void printClkInfo(void)
 	SYSMSG(" Divider6 PLL: %d HDMI PCLK:%d\r\n", NX_CLKPWR_GetSrcPll(6),
 	       getquotient(NX_CLKPWR_GetPLLFreq(NX_CLKPWR_GetSrcPll(6)),
 			   ((NX_CLKPWR_GetDivideValue(6) >> 0) & 0x3F)));
+#endif	
 }

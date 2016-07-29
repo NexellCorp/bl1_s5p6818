@@ -53,7 +53,10 @@ SUPPORT_UART_BOOT		= n
 #BOARD				= BF700
 BOARD				?= RAPTOR
 
-# secure boot
+# System Log Message
+SYSLOG				?= n
+
+# Secure Boot
 SECURE_ON			?= 0
 
 # cross-tool pre-header
@@ -166,6 +169,9 @@ CFLAGS				+=	-g -Wall						\
 					-DMEMTYPE_$(MEMTYPE)				\
 					-DINITPMIC_$(INITPMIC)				\
 					-D$(OPMODE) -D$(BOARD)
+ifeq ($(SYSLOG), y)
+CFLAGS				+=	-DSYSLOG_ON
+endif
 
 ifeq ($(SECURE_ON), 1)
 CFLAGS				+=	-DSECURE_ON
