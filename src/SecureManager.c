@@ -386,6 +386,15 @@ static inline void SetTZASC(void)
 			   ));
 	}
 
+	/* Set TZASC region 1 as secure DRAM (from 0x7E000000, size 32MB) */
+	WriteIO32(&pTZC380->RS[1].REGION_SETUP_HIGH, 0);
+	WriteIO32(&pTZC380->RS[1].REGION_SETUP_LOW, 0x7E000000); // x40000000;
+	WriteIO32(&pTZC380->RS[1].REGION_ATTRIBUTES,
+		  ((0x0C << 28) | // Only secure r/w
+		   (0x200 << 4) |  // 32MB region (0x200 * 64KB)
+		   (0x01 << 0) // enable for region
+			));
+
 	WriteIO32(&pTZC380->SPECULATION_CONTROL,
 		  0); // 0: speculation is enabled. defalut
 }
