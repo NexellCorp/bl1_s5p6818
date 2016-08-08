@@ -239,6 +239,22 @@ static U8 axp228_get_dcdc_step(int want_vol, int step, int min, int max)
 #endif
 
 #if (NXE2000_I2C_GPIO_GRP > -1)
+static U8 nxe2000_get_ldo7_step(int want_vol)
+{
+    U32    vol_step = 0;
+    U32    temp = 0;
+
+    if (want_vol < NXE2000_DEF_LDOx_VOL_MIN)
+        want_vol = NXE2000_DEF_LDOx_VOL_MIN;
+    else if (want_vol > NXE2000_DEF_LDOx_VOL_MAX)
+        want_vol = NXE2000_DEF_LDOx_VOL_MAX;
+    temp = (want_vol - NXE2000_DEF_LDOx_VOL_MIN);
+
+    vol_step    = (temp / NXE2000_DEF_LDOx_VOL_STEP);
+
+    return    (U8)(vol_step & 0x7F);
+}
+
 static U8 nxe2000_get_dcdc_step(int want_vol)
 {
 	U32 vol_step = 0;
@@ -546,6 +562,15 @@ void PMIC_RAPTOR(void)
 	/* DDR3 IO voltage change */
 	pData[0] = nxe2000_get_dcdc_step(1500000);
 	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC5VOL, pData, 1);
+
+	/*
+	 * Raptor Board Rev0X
+	 * VDD33_USB0 : VCC3P3_SYS --> VCC2P8_LDO7 (Sleep Mode Power Off)
+	 * AVDD18_PLL : VCC1P8_SYS --> VCC1P8_LDO4 (Sleep Mode Power OFF)
+	 */
+	/* LDO7 IO voltage change*/ // 3.3V
+	pData[0] = nxe2000_get_ldo7_step(3300000);
+	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_LDO7VOL, pData, 1);
 }
 #endif // RAPTOR
 

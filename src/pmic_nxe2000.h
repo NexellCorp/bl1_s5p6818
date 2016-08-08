@@ -18,9 +18,13 @@
 #ifndef __PMIC_NXE2000_H__
 #define __PMIC_NXE2000_H__
 
-#define NXE2000_DEF_DDCx_VOL_MIN 600000  /* UINT = 1uV, 0.6V */
-#define NXE2000_DEF_DDCx_VOL_MAX 3500000 /* UINT = 1uV, 3.5V */
-#define NXE2000_DEF_DDCx_VOL_STEP 12500  /* UINT = 1uV, 12.5mV */
+#define NXE2000_DEF_DDCx_VOL_MIN	600000		/* UINT = 1uV, 0.6V */
+#define NXE2000_DEF_DDCx_VOL_MAX	3500000		/* UINT = 1uV, 3.5V */
+#define NXE2000_DEF_DDCx_VOL_STEP 	12500		/* UINT = 1uV, 12.5mV */
+
+#define NXE2000_DEF_LDOx_VOL_MIN	900000		/* UINT = 1uV, 0.9V */
+#define NXE2000_DEF_LDOx_VOL_MAX	3500000		/* UINT = 1uV, 3.5V */
+#define NXE2000_DEF_LDOx_VOL_STEP	25000		/* UINT = 1uV, 25mV */
 
 #define NXE2000_DEF_DDC1_VOL                                                   \
 	1250000 /* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) = 1.3V \
@@ -38,12 +42,14 @@
 	1500000 /* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) =      \
 		   1.65V */
 
-#define NXE2000_REG_DC1VOL 0x36
-#define NXE2000_REG_DC2VOL 0x37
-#define NXE2000_REG_DC3VOL 0x38
-#define NXE2000_REG_DC4VOL 0x39
-#define NXE2000_REG_DC5VOL 0x3A
+#define NXE2000_REG_DC1VOL	0x36
+#define NXE2000_REG_DC2VOL	0x37
+#define NXE2000_REG_DC3VOL	0x38
+#define NXE2000_REG_DC4VOL	0x39
+#define NXE2000_REG_DC5VOL	0x3A
 
-#define I2C_ADDR_NXE2000 (0x64 >> 1) // SVT & ASB
+#define NXE2000_REG_LDO7VOL	0x52
+
+#define I2C_ADDR_NXE2000	(0x64 >> 1) // SVT & ASB
 
 #endif // ifdef __PMIC_NXE2000_H__
