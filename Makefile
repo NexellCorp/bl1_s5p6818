@@ -50,35 +50,14 @@ CFLAGS		+= -DSUPPORT_USB_BOOT
 SYS_OBJS	+=	iUSBBOOT.o
 endif
 
-ifeq ($(SUPPORT_SPI_BOOT),y)
-CFLAGS		+= -DSUPPORT_SPI_BOOT
-SYS_OBJS	+=	iSPIBOOT.o
-endif
-
 ifeq ($(SUPPORT_SDMMC_BOOT),y)
 CFLAGS		+= -DSUPPORT_SDMMC_BOOT
 SYS_OBJS	+=	iSDHCBOOT.o
 endif
 
-ifeq ($(SUPPORT_SDFS_BOOT),y)
-CFLAGS		+= -DSUPPORT_SDFS_BOOT
-SYS_OBJS	+=	diskio.o fatfs.o iSDHCFSBOOT.o
-endif
-
-ifeq ($(SUPPORT_NAND_BOOT),y)
-CFLAGS		+= -DSUPPORT_NAND_BOOT
-SYS_OBJS	+=	iNANDBOOTEC.o
-endif
-
-ifeq ($(SUPPORT_UART_BOOT),y)
-CFLAGS		+= -DSUPPORT_UART_BOOT
-SYS_OBJS	+=	iUARTBOOT.o
-endif
-
 ifeq ($(MEMTEST),y)
 SYS_OBJS	+=	memtester.o
 endif
-
 
 SYS_OBJS_LIST	=	$(addprefix $(DIR_OBJOUTPUT)/,$(SYS_OBJS))
 
