@@ -81,7 +81,7 @@ endif
 ###########################################################################
 # Top Names
 ###########################################################################
-PROJECT_NAME			= $(CHIPNAME)_2ndboot_$(OPMODE)_$(MEMTYPE)_$(VERINFO)
+PROJECT_NAME		= $(CHIPNAME)_2ndboot_$(OPMODE)_$(MEMTYPE)_$(VERINFO)
 
 TARGET_NAME			= bl1-$(shell echo $(BOARD) | tr A-Z a-z)
 
@@ -102,11 +102,11 @@ CODE_MAIN_INCLUDE		=
 # Build Environment
 ###########################################################################
 ifeq ($(OPMODE) , aarch32)
-ARCH				= armv7-a
+ARCH			= armv7-a
 CPU				= cortex-a15
 endif
 ifeq ($(OPMODE) , aarch64)
-ARCH				= armv8-a
+ARCH			= armv8-a
 CPU				= cortex-a53+crc
 endif
 
@@ -114,17 +114,17 @@ CC				= $(CROSS_TOOL)gcc
 LD 				= $(CROSS_TOOL)ld
 AS 				= $(CROSS_TOOL)as
 AR 				= $(CROSS_TOOL)ar
-MAKEBIN				= $(CROSS_TOOL)objcopy
-OBJCOPY				= $(CROSS_TOOL)objcopy
-RANLIB				= $(CROSS_TOOL)ranlib
+MAKEBIN			= $(CROSS_TOOL)objcopy
+OBJCOPY			= $(CROSS_TOOL)objcopy
+RANLIB 			= $(CROSS_TOOL)ranlib
 
-GCC_LIB				= $(shell $(CC) -print-libgcc-file-name)
+GCC_LIB			= $(shell $(CC) -print-libgcc-file-name)
 
 ifeq ($(DEBUG), y)
-CFLAGS				+= -DNX_DEBUG -O0
+CFLAGS			+= -DNX_DEBUG -Os
 Q				=
 else
-CFLAGS				+= -DNX_RELEASE -O0
+CFLAGS			+= -DNX_RELEASE -Os
 Q				= @
 endif
 
@@ -132,15 +132,15 @@ endif
 # MISC tools for MS-DOS
 ###########################################################################
 ifeq ($(OS),Windows_NT)
-MKDIR				= mkdir
+MKDIR			= mkdir
 RM				= del /q /F
 MV				= move
 CD				= cd
 CP				= copy
-ECHO				= echo
-RMDIR				= rmdir /S /Q
+ECHO			= echo
+RMDIR			= rmdir /S /Q
 else
-MKDIR				= mkdir
+MKDIR			= mkdir
 RM				= rm -f
 MV				= mv
 CD				= cd
@@ -157,34 +157,15 @@ ARLIBFLAGS			= -v -s
 
 ASFLAG				= -D__ASSEMBLY__ -D$(OPMODE)
 
-CFLAGS				+=	-g -Wall				\
+CFLAGS				+=	-g -Wall						\
 					-Wextra -ffreestanding -fno-builtin	\
-					-mlittle-endian				\
-					-mcpu=$(CPU)				\
-					$(CODE_MAIN_INCLUDE)			\
-					-D__arm					\
-					-DMEMTYPE_$(MEMTYPE)			\
-					-DINITPMIC_$(INITPMIC)			\
+					-mlittle-endian						\
+					-mcpu=$(CPU)						\
+					$(CODE_MAIN_INCLUDE)				\
+					-D__arm						\
+					-DMEMTYPE_$(MEMTYPE)				\
+					-DINITPMIC_$(INITPMIC)				\
 					-D$(OPMODE) -D$(BOARD)
-ifeq ($(OPMODE) , aarch32)
-CFLAGS				+=	-msoft-float				\
-					-mstructure-size-boundary=32
-endif
-
-ifeq ($(OPMODE) , aarch64)
-ASFLAG				+=	-march=$(ARCH) -mcpu=$(CPU)
-
-CFLAGS				+=	-mcmodel=small				\
-					-march=$(ARCH)
-endif
-
-###########################################################################
-# USER OPTIONS
-###########################################################################
-ifeq ($(INITPMIC), YES)
-CFLAGS				+=	-D$(BOARD)_PMIC_INIT
-endif
-
 ifeq ($(SYSLOG), y)
 CFLAGS				+=	-DSYSLOG_ON
 endif
@@ -193,8 +174,24 @@ ifeq ($(SECURE_ON), 1)
 CFLAGS				+=	-DSECURE_ON
 endif
 
+ifeq ($(OPMODE) , aarch32)
+CFLAGS				+=	-msoft-float					\
+					-mstructure-size-boundary=32
+endif
+
+ifeq ($(OPMODE) , aarch64)
+ASFLAG				+=	-march=$(ARCH) -mcpu=$(CPU)
+
+CFLAGS				+=	-mcmodel=small					\
+					-march=$(ARCH)
+endif
+
+ifeq ($(INITPMIC), YES)
+CFLAGS				+=	-D$(BOARD)_PMIC_INIT
+endif
+
 ifeq ($(MEMTEST), y)
-MEMTEST_TYPE			+=	SIMPLE
+MEMTEST_TYPE		+=	SIMPLE
 CFLAGS				+=	-D$(MEMTEST_TYPE)_MEMTEST
 endif
 
