@@ -396,7 +396,9 @@ typedef struct __attribute__((aligned(4))) tag_USBBOOTSTATUS {
 	volatile CBOOL bDownLoading;
 	CBOOL bHeaderReceived;
 	U8 *RxBuffAddr;
+	U8 *RxBuffAddr_save;
 	S32 iRxSize;
+	S32 iRxSize_save;
 	S32 iRxHeaderSize;
 
 	U32 ep0_state;

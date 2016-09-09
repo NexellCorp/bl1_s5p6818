@@ -19,6 +19,7 @@
 
 #include <nx_usb20otg.h>
 #include <iUSBBOOT.h>
+#include "nx_bootheader.h"
 
 #if 0 //DEVMSG_ON
 #define dev_msg(x, ...) printf(x, ...)
@@ -27,6 +28,7 @@
 #endif
 
 extern U32 iget_fcs(U32 fcs, U32 data);
+extern void Decrypt(U32 *SrcAddr, U32 *DestAddr, U32 Size);
 
 void ResetCon(U32 devicenum, CBOOL en);
 
@@ -205,7 +207,7 @@ static void nx_usb_read_out_fifo(U32 ep, U8 *buf, S32 num)
 			g_fcs = iget_fcs(g_fcs, dwbuf[i]);
 	}
 	/* Save the CRC Check Value  */
-	g_TBI->DBI.SDMMCBI.CRC32 = g_fcs;
+	//g_TBI->DBI.SDMMCBI.CRC32 = g_fcs;
 }
 
 static void nx_usb_ep0_int_hndlr(USBBOOTSTATUS *pUSBBootStatus)
@@ -458,15 +460,50 @@ static void nx_usb_int_bulkin(USBBOOTSTATUS *pUSBBootStatus)
 		    (DEPCTL_SNAK | DEPCTL_BULK_TYPE);
 	}
 }
-static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
-			       struct NX_SecondBootInfo *pTBI, U32 fifo_cnt_byte)
-{
-	U32 *pdwBuffer;
 
+
+static void header_check(USBBOOTSTATUS *pUSBBootStatus,
+			 struct nx_bootheader *ptbh)
+{
+	struct nx_tbbinfo *tbi= &ptbh->tbbi;
+
+	/* decrypt header */
+	if (pReg_ClkPwr->SYSRSTCONFIG & 1<<14)
+		Decrypt((U32 *)tbi, (U32 *)tbi, sizeof(*tbi));
+
+	if (tbi->signature == HEADER_ID) { /* "NSIH" */
+		pUSBBootStatus->bHeaderReceived = CTRUE;
+		pUSBBootStatus->RxBuffAddr =
+			(U8 *)((U8 *)(tbi->loadaddr) + sizeof(*tbi));
+		pUSBBootStatus->RxBuffAddr_save = pUSBBootStatus->RxBuffAddr;
+		pUSBBootStatus->iRxSize = 512 +	/* rsa header */
+			tbi->loadsize +
+			tbi->dbi[0].usbbi.split_size +
+			tbi->dbi[1].usbbi.split_size;
+		pUSBBootStatus->iRxSize_save = pUSBBootStatus->iRxSize;
+		SYSMSG("USB Load Address = 0x%016X Launch "
+		       "Address = 0x%016X, size = %08X bytes\r\n",
+		       (MPTRS)tbi->loadaddr,
+		       (MPTRS)tbi->startaddr,
+		       (int32_t)pUSBBootStatus->iRxSize);
+	} else {
+		pUSBBootStatus->iRxHeaderSize = 0;
+		pUOReg->DCSR.DEPOR[BULK_OUT_EP].DOEPCTL |= DEPCTL_STALL;
+	}
+}
+
+static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
+			       struct NX_SecondBootInfo *pTBI,
+			       U32 fifo_cnt_byte)
+{
+	/* get header */
 	if (CTRUE != pUSBBootStatus->bHeaderReceived) {
-		pdwBuffer = (U32 *)pTBI;
+		struct nx_bootheader *ptbh = (struct nx_bootheader *)pTBI;
+		U32 *pdwBuffer = (U32 *)pTBI;
+
 		nx_usb_read_out_fifo(BULK_OUT_EP,
-			(U8 *)&pdwBuffer[pUSBBootStatus->iRxHeaderSize / 4], fifo_cnt_byte);
+			(U8 *)&pdwBuffer[pUSBBootStatus->iRxHeaderSize / 4],
+			fifo_cnt_byte);
 
 		if ((fifo_cnt_byte & 3) == 0) {
 			pUSBBootStatus->iRxHeaderSize += fifo_cnt_byte;
@@ -476,28 +513,15 @@ static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
 			pUOReg->DCSR.DEPOR[BULK_OUT_EP].DOEPCTL |= DEPCTL_STALL;
 		}
 
-		if (512 <= pUSBBootStatus->iRxHeaderSize) {
-			if (pTBI->SIGNATURE == HEADER_ID) // "NSIH"
-			{
-				pUSBBootStatus->bHeaderReceived = CTRUE;
-				pUSBBootStatus->RxBuffAddr =
-				    (U8 *)((MPTRS)pTBI->LOADADDR);
-				pUSBBootStatus->iRxSize = pTBI->LOADSIZE;
-				SYSMSG("USB Load Address = 0x%016X Launch "
-				       "Address = 0x%08X, size = %d bytes\r\n",
-				       (MPTRS)pUSBBootStatus->RxBuffAddr,
-				       pTBI->LAUNCHADDR,
-				       pUSBBootStatus->iRxSize);
-			} else {
-				pUSBBootStatus->iRxHeaderSize = 0;
-				pUOReg->DCSR.DEPOR[BULK_OUT_EP].DOEPCTL |=
-				    DEPCTL_STALL;
-			}
-		}
+		if (512 <= pUSBBootStatus->iRxHeaderSize) /* why 512 <= ??? */
+			/* mark header received in function */
+			header_check(pUSBBootStatus, ptbh);
+	/* get body */
 	} else {
 		NX_ASSERT((pUSBBootStatus->iRxSize) > 0);
 		NX_ASSERT(0 == ((MPTRS)pUSBBootStatus->RxBuffAddr & 3));
-		nx_usb_read_out_fifo(BULK_OUT_EP, (U8 *)pUSBBootStatus->RxBuffAddr,
+		nx_usb_read_out_fifo(BULK_OUT_EP,
+				     (U8 *)pUSBBootStatus->RxBuffAddr,
 				     fifo_cnt_byte);
 #if (0)
 		dev_msg("Bin Packet Size = %d => 0x%08X, %d\r\n", iRxSize,
@@ -523,6 +547,7 @@ static void nx_usb_int_bulkout(USBBOOTSTATUS *pUSBBootStatus,
 	    1u << 31 | 1 << 26 | 2 << 18 | 1 << 15 |
 	    pUSBBootStatus->bulkout_max_pktsize << 0;
 }
+
 
 static void nx_usb_reset(USBBOOTSTATUS *pUSBBootStatus)
 {
@@ -803,8 +828,55 @@ void udelay(U32 utime)
 			;
 }
 
+/* Copy memory to memory */
+static void memcpy(void *dst, const void *src, uint32_t cnt)
+{
+	int i = 0;
+	U32 *d = (U32 *)dst;
+	U32 *s = (U32 *)src;
+
+	for (i = 0; i < (cnt >> 2); i++)
+		*d++ = *s++;
+	for (i = 0; i < (cnt & 3); i++)
+		((U8 *)d)[i] = ((U8 *)s)[i];
+}
+
+void post_process(USBBOOTSTATUS *pUSBBootStatus,
+		  struct NX_SecondBootInfo *pTBI)
+{
+	struct nx_bootheader *psbh = (struct nx_bootheader *)pSBI;
+	struct asymmetrickey *sb_rsa = &psbh->rsa_public;
+	struct nx_bootheader *ptbh = (struct nx_bootheader *)pTBI;
+	struct nx_tbbinfo *tbi = &ptbh->tbbi;
+	U8 *tb_rsa = pUSBBootStatus->RxBuffAddr_save;
+	U8 *next = tb_rsa + sizeof(*sb_rsa);
+
+	/* Decrypt loader body */
+	if (pReg_ClkPwr->SYSRSTCONFIG & 1<<14)
+		Decrypt((U32*)next, (U32*)next, ptbh->tbbi.loadsize);
+	next += ptbh->tbbi.loadsize;
+
+	/* copy loader header */
+	memcpy(tb_rsa - sizeof(*tbi), tbi, sizeof(*tbi));
+	/* copy rsapublickey part. */
+	memcpy(((struct asymmetrickey *)tb_rsa)->rsapublickey,
+	       &sb_rsa->rsapublickey,
+	       sizeof(sb_rsa->rsapublickey));
+
+	/* split load : header + body */
+	memcpy(tbi->dbi[0].usbbi.split_loadaddr - sizeof(struct nx_bootheader),
+	       next,
+	       tbi->dbi[0].usbbi.split_size);
+	next += tbi->dbi[0].usbbi.split_size;
+	memcpy(tbi->dbi[1].usbbi.split_loadaddr - sizeof(struct nx_bootheader),
+	       next,
+	       tbi->dbi[1].usbbi.split_size);
+}
+
+
 CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
 {
+	struct nx_tbbinfo *tbi = (struct nx_tbbinfo *)pTBI;
 	USBBOOTSTATUS USBBootStatus;
 	USBBOOTSTATUS *pUSBBootStatus = &USBBootStatus;
 	ResetCon(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CTRUE);  // reset on
@@ -891,10 +963,15 @@ CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
 	pReg_Tieoff->TIEOFFREG[13] |= 3 << 7; // POR_ENB=1, POR=1
 	ResetCon(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CTRUE); // reset on
 
+	/* post process */
+	post_process(pUSBBootStatus, pTBI);
+
 	SYSMSG("\r\n\nusb image download is done!\r\n\n");
 
-	SYSMSG("USB Load Address = 0x%08X Launch Address = 0x%08X, size = %d bytes\r\n",
-		pTBI->LOADADDR, pTBI->LAUNCHADDR, pTBI->LOADSIZE);
+	SYSMSG("USB Load Address = 0x%016X Launch Address = 0x%016X, size = %08X bytes\r\n",
+	       (MPTRS)tbi->loadaddr,
+	       (MPTRS)tbi->startaddr,
+	       (int32_t)pUSBBootStatus->iRxSize_save);
 
 	return CTRUE;
 }
