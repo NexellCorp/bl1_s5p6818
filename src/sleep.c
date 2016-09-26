@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "sysheader.h"
-#include "atf_header.h"
+#include "nx_bootheader.h"
 
 #define ATF_HEADER_SIZE		(1024)
 
@@ -73,12 +73,12 @@ void dowakeup(void)
 	} else if (ATF_SUSPEND_SIGNATURE == (atf_signature & 0xFFFFFF00)) {
 		/* Arm Trusted Firmware */
 		struct nx_tbbinfo *header = (struct nx_tbbinfo*)ReadIO32(&pReg_Alive->ALIVESCRATCHVALUE2);
-		cal_crc = __calc_crc((void *)((MPTRS)(header->LoadAddr + ATF_HEADER_SIZE)), header->LoadSize - ATF_HEADER_SIZE);
-		printf("Calcurated CRC: 0x%08X, Normal CRC: 0x%08X \r\n", cal_crc, header->CRC32);
+		cal_crc = __calc_crc((void *)((MPTRS)(header->loadaddr + ATF_HEADER_SIZE)), header->loadsize - ATF_HEADER_SIZE);
+		printf("Calcurated CRC: 0x%08X, Normal CRC: 0x%08X \r\n", cal_crc, header->crc32);
 
-		if (cal_crc == header->CRC32) {
+		if (cal_crc == header->crc32) {
 			U32 timerout = 0x100000;
-			JumpNextBoot = (void (*)(void))((MPTRS)((header->StartAddr) & 0xFFFFFFFF));
+			JumpNextBoot = (void (*)(void))((MPTRS)((header->startaddr) & 0xFFFFFFFF));
 			printf("Jump to 0x%08X\r\n", JumpNextBoot);
 			printf("It's WARM BOOT\r\nJump to ATF!\r\n");
 			while (DebugIsBusy() && timerout--);

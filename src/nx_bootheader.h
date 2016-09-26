@@ -77,12 +77,15 @@ struct nx_uartbootinfo {
 };
 
 struct nx_sdmmcbootinfo {
+	/* Address of the device to find the image you want to load.*/
 	uint64_t deviceaddr;
 
 	uint8_t _reserved0[3];
+	/* port number */
 	uint8_t portnumber;
 
 	uint8_t _reserved1[3];
+	/* Boot device id */
 	uint8_t loaddevicenum;
 
 	uint8_t cryptokey[16];
@@ -107,7 +110,7 @@ struct nx_gmacbootinfo {
 	uint8_t gateway[8];
 };
 
-union nx_devicebootinfo {
+union nx_devicebootinfo {			/* size:0x20 */
 	struct nx_nandbootinfo	nandbi;
 	struct nx_spibootinfo	spibi;
 	struct nx_sdmmcbootinfo sdmmcbi;
@@ -192,41 +195,42 @@ struct nx_ddrphy_drvdsinfo {
 };
 
 struct nx_tbbinfo {
-	uint32_t vector[8];			/* 0x000 ~ 0x01c */
-	uint32_t vector_rel[8];			/* 0x020 ~ 0x03c */
+	uint32_t vector[8];			/* 0x000 ~ 0x01f */
+	uint32_t vector_rel[8];			/* 0x020 ~ 0x03f */
 
-	uint32_t _reserved0[4];			/* 0x040 ~ 0x04C */
+	uint32_t _reserved0[4];			/* 0x040 ~ 0x04f */
 
 	uint32_t loadsize;			/* 0x050 */
 	uint32_t crc32;				/* 0x054 */
-	uint64_t loadaddr;			/* 0x058 ~ 0x05c */
-	uint64_t startaddr;			/* 0x060 ~ 0x064 */
+	uint64_t loadaddr;			/* 0x058 ~ 0x05f */
+	uint64_t startaddr;			/* 0x060 ~ 0x067 */
 
-	uint32_t _reserved1[2];			/* 0x068 ~ 0x06c */
+	uint32_t _reserved1[2];			/* 0x068 ~ 0x06f */
 
 	uint8_t validslot[4];			/* 0x070 ~ 0x073 */
 	uint8_t loadorder[4];			/* 0x074 ~ 0x077 */
 
-	uint32_t _reserved2[2];			/* 0x078 ~ 0x07c */
+	uint32_t _reserved2[2];			/* 0x078 ~ 0x07f */
 
-	union nx_devicebootinfo dbi[4];		/* 0x080 ~ 0x0fc */
+	union nx_devicebootinfo dbi[4];		/* 0x080 ~ 0x0ff */
 
-	uint32_t pll[8];			/* 0x100 ~ 0x11c */
-	uint32_t pllspread[8];			/* 0x120 ~ 0x13c */
+	uint32_t pll[8];			/* 0x100 ~ 0x11f */
+	uint32_t pllspread[8];			/* 0x120 ~ 0x13f */
 
-	uint32_t dvo[12];			/* 0x140 ~ 0x16c */
+	uint32_t dvo[12];			/* 0x140 ~ 0x16f */
 
-	struct nx_ddrinitinfo dii;		/* 0x170 ~ 0x19c */
+	struct nx_ddrinitinfo dii;		/* 0x170 ~ 0x19f */
 
-	union nx_ddrdrvrsinfo sdramdrvr;	/* 0x1a0 ~ 0x1a4 */
+	union nx_ddrdrvrsinfo sdramdrvr;	/* 0x1a0 ~ 0x1a7 */
 
-	struct nx_ddrphy_drvdsinfo phy_dsinfo;	/* 0x1a8 ~ 0x1b8 */
+	struct nx_ddrphy_drvdsinfo phy_dsinfo;	/* 0x1a8 ~ 0x1b7 */
 
-	uint16_t lvltr_mode;			/* 0x1b8 ~ 0x1bd */
-	uint16_t flyby_mode;			/* 0x1ba ~ 0x1bf */
+	uint16_t lvltr_mode;			/* 0x1b8 ~ 0x1b9 */
+	uint16_t flyby_mode;			/* 0x1ba ~ 0x1bb */
 
 	uint8_t _reserved3[15*4];		/* 0x1bc ~ 0x1f7 */
 
+	/* version */
 	uint32_t buildinfo;			/* 0x1f8 */
 
 	/* "NSIH": nexell system infomation header */
