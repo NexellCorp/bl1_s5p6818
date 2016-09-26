@@ -20,9 +20,47 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
-//#include <stdio.h>
-//#include <stdarg.h>
 #include <nx_type.h>
+
+#define LOG_LEVEL			30
+
+#define LOG_LEVEL_NONE			0
+#define LOG_LEVEL_ERROR			10
+#define LOG_LEVEL_NOTICE		20
+#define LOG_LEVEL_WARNING		30
+#define LOG_LEVEL_INFO			40
+#define LOG_LEVEL_VERBOSE		50
+
+
+#if LOG_LEVEL >= LOG_LEVEL_NOTICE
+# define NOTICE(...)	printf("NOTICE:  " __VA_ARGS__)
+#else
+# define NOTICE(...)
+#endif
+
+#if LOG_LEVEL >= LOG_LEVEL_ERROR
+# define ERROR(...)	printf("ERROR:   " __VA_ARGS__)
+#else
+# define ERROR(...)
+#endif
+
+#if LOG_LEVEL >= LOG_LEVEL_WARNING
+# define WARN(...)	printf("WARNING: " __VA_ARGS__)
+#else
+# define WARN(...)
+#endif
+
+#if LOG_LEVEL >= LOG_LEVEL_INFO
+# define INFO(...)	printf("INFO:    " __VA_ARGS__)
+#else
+# define INFO(...)
+#endif
+
+#if LOG_LEVEL >= LOG_LEVEL_VERBOSE
+# define VERBOSE(...)	printf("VERBOSE: " __VA_ARGS__)
+#else
+# define VERBOSE(...)
+#endif
 
 CBOOL   DebugInit( U32 port );
 void    DebugPutch( S8 ch );
