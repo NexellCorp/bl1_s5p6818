@@ -278,8 +278,19 @@ void BootMain(U32 CPUID)
 	if (init_DDR3(isResume) == CFALSE)
 		init_DDR3(isResume);
 #else
-	if (init_DDR3(0) == CFALSE)
-		init_DDR3(0);
+	/*
+	 * DDR initialization fails, a temporary code
+	 * code for the defense.
+	 */
+	int ddr_retry = 0;
+	while (init_DDR3(0) == CFALSE) {
+		ddr_retry++;
+		if (ddr_retry > 3) {
+			printf("Memory Initialize Retry : %d \r\n", ddr_retry);
+			printf("Memory Initializa or Calibration Failed! \r\n");
+			break;
+		}
+	}
 #endif
 #endif
 #ifdef MEM_TYPE_LPDDR23
