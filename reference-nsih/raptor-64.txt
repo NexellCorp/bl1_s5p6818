@@ -22,23 +22,23 @@
 // Nexell System Infomation Header
 //------------------------------------------------------------------------------
 
-// Vector Code Area 										
-E3A00103	// 0x000 : MOV R0, #0xC0000000									
-E3800A11	// 0x004 : ORR R0, R0, #0x11000									
-E590113C	// 0x008 : LDR R1, [R0, #0x13C]		// tieoff reg select AArch mode							
-E3811A0F	// 0x00C : ORR R1, R1, #0xF000		// all group 0 cpu AArch64 mode							
-E580113C	// 0x010 : STR R1, [R0, #0x13C]									
-E3A025FF	// 0x014 : MOV R2, #0x3FC00000									
-E38229FF	// 0x018 : ORR R2, R2, #0x3FC000									
-E3822080	// 0x01C : ORR R2, R2, #0x80		// 0xFFFF0200>>2							
-E5802140	// 0x020 : STR R2, [R0, #0x140]		// Set AArch64 Reset Vector							
-E3A08103	// 0x024 : MOV R8, #0xC0000000									
-E3888801	// 0x028 : ORR R8, R8, #0x10000									
-E59892AC	// 0x02C : LDR R9, [R8, #0x2AC]		// system control reset req							
-E3899001	// 0x030 : ORR R9, R9, #0x1									
-E58892AC	// 0x034 : STR R9, [R8, #0x2AC]									
-E320F003	// 0x038 : WFI		// core 0 will be reset when wfi							
-EAFFFFFE	// 0x03C : B .	
+// Vector Code Area
+E3A00103	// 0x000 : MOV R0, #0xC0000000
+E3800A11	// 0x004 : ORR R0, R0, #0x11000
+E590113C	// 0x008 : LDR R1, [R0, #0x13C]		// tieoff reg select AArch mode
+E3811A0F	// 0x00C : ORR R1, R1, #0xF000		// all group 0 cpu AArch64 mode
+E580113C	// 0x010 : STR R1, [R0, #0x13C]
+E3A025FF	// 0x014 : MOV R2, #0x3FC00000
+E38229FF	// 0x018 : ORR R2, R2, #0x3FC000
+E3822080	// 0x01C : ORR R2, R2, #0x80		// 0xFFFF0200>>2
+E5802140	// 0x020 : STR R2, [R0, #0x140]		// Set AArch64 Reset Vector
+E3A08103	// 0x024 : MOV R8, #0xC0000000
+E3888801	// 0x028 : ORR R8, R8, #0x10000
+E59892AC	// 0x02C : LDR R9, [R8, #0x2AC]		// system control reset req
+E3899001	// 0x030 : ORR R9, R9, #0x1
+E58892AC	// 0x034 : STR R9, [R8, #0x2AC]
+E320F003	// 0x038 : WFI		// core 0 will be reset when wfi
+EAFFFFFE	// 0x03C : B .
 
 //------------------------------------------------------------------------------
 // Main Bootloader Load Info

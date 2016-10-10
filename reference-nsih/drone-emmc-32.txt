@@ -38,7 +38,7 @@ FFFF020C	// 0x02C : SRAMBASE + Header
 FFFF0210	// 0x030 : SRAMBASE + Header
 FFFF0214	// 0x034 : SRAMBASE + Header
 FFFF0218	// 0x038 : SRAMBASE + Header
-FFFF021C	// 0x03C : SRAMBASE + Headereset when wfi							
+FFFF021C	// 0x03C : SRAMBASE + Headereset when wfi
 
 //------------------------------------------------------------------------------
 // Main Bootloader Load Info
