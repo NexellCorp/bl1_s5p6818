@@ -1,24 +1,4 @@
 //------------------------------------------------------------------------------
-//	Copyright (C) 2012 Nexell Co., All Rights Reserved
-//	Nexell Co. Proprietary < Confidential
-//
-//	NEXELL INFORMS THAT THIS CODE AND INFORMATION IS PROVIDED "AS IS" BASE
-//	AND WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING
-//	BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS
-//	FOR A PARTICULAR PURPOSE.
-//
-//	Module		: Boot Header
-//	File		: NSIH.txt
-//	Description	: system initialize info
-//	Author		: Firmware Team
-//	History		:
-//				Hans 2014.01.13 Excel Generator
-//				Hans 2013.06.23 Create
-//------------------------------------------------------------------------------
-// Excel sheet version - 0.3.00
-//------------------------------------------------------------------------------
-// This must be synchronized with SecondBoot.h
-//------------------------------------------------------------------------------
 // Nexell System Infomation Header
 //------------------------------------------------------------------------------
 // Vector Code Area
@@ -48,7 +28,7 @@ FFFF021C	// 0x03C : SRAMBASE + Header
 FFFF0000	// 0x048 : Load Address for 2ndboot.
 FFFF0000	// 0x04C : Launch Address for 2ndboot.
 
-00000002	// 0x050	[7:0] - Channel number
+00000000	// 0x050	[7:0] - Channel number
 00000000	// 0x054	Boot From SDMMC	[31:24] - 0: USB, 1: SPI, 2: NAND, 3: SDMMC, 4: SDFS
 00000000	// 0x058
 
@@ -71,7 +51,7 @@ FFFF0000	// 0x04C : Launch Address for 2ndboot.
 00000208	// 0x088 : DISP		PLL0	/DISPBCLK:400	/DISPPCLK:200
 00000038	// 0x08C : HDMI		PLL0	/HDMIPCLK:100
 00000601	// 0x090 : CPU G1	PLL1	/FCLK:800	/HCLK:200(FCLK/4)
-00000208	// 0x094 : CCI4		PLL0	/CCI4BCLK:400	/CCI4PCLK:200
+0000020B	// 0x094 : CCI4		PLL3	/CCI4BCLK:400	/CCI4PCLK:200
 
 //------------------------------------------------------------------------------
 // MCU-D registers

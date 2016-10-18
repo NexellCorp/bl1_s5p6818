@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "sysheader.h"
 
 #include <nx_sdmmc.h>
@@ -1125,7 +1126,7 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 			pSBI->DEVICEADDR / BLOCK_LENGTH + 2,
 			(ptbh->tbbi.loadsize + BLOCK_LENGTH - 1) / BLOCK_LENGTH,
 			(U32 *)((MPTRS)(ptbh->tbbi.loadaddr + BLOCK_LENGTH * 2)));
-	pTBI->LAUNCHADDR = ptbh->tbbi.startaddr;	/* for old style boot */
+	//pTBI->LAUNCHADDR = ptbh->tbbi.startaddr;	/* for old style boot */
 
 	if (pReg_ClkPwr->SYSRSTCONFIG & 1<<14)
 		Decrypt((U32 *)(ptbh->tbbi.loadaddr + sizeof(struct nx_bootheader)),

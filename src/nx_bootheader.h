@@ -91,6 +91,19 @@ struct nx_sdmmcbootinfo {
 	uint8_t cryptokey[16];
 };
 
+struct nx_usbbootinfo {
+	/* Address of the memory to load this split image */
+	uint64_t split_loadaddr;
+
+	/* Offset of this split image */
+	uint32_t split_offset;
+
+	/* Size of this split image */
+	uint32_t split_size;
+
+	uint8_t cryptokey[16];
+};
+
 struct nx_sdfsbootinfo {
 	char bootfileheadername[8];		/* 8.3 format ex)"nxdata.bh" */
 
@@ -114,6 +127,7 @@ union nx_devicebootinfo {			/* size:0x20 */
 	struct nx_nandbootinfo	nandbi;
 	struct nx_spibootinfo	spibi;
 	struct nx_sdmmcbootinfo sdmmcbi;
+	struct nx_usbbootinfo	usbbi;
 	struct nx_sdfsbootinfo	sdfsbi;
 	struct nx_uartbootinfo	uartbi;
 	struct nx_gmacbootinfo	gmaci;
@@ -205,7 +219,9 @@ struct nx_tbbinfo {
 	uint64_t loadaddr;			/* 0x058 ~ 0x05f */
 	uint64_t startaddr;			/* 0x060 ~ 0x067 */
 
-	uint32_t _reserved1[2];			/* 0x068 ~ 0x06f */
+	uint8_t unified;			/* 0x068 */
+	uint8_t bootdev;			/* 0x069 */
+	uint8_t _reserved1[6];			/* 0x06a ~ 0x06f */
 
 	uint8_t validslot[4];			/* 0x070 ~ 0x073 */
 	uint8_t loadorder[4];			/* 0x074 ~ 0x077 */

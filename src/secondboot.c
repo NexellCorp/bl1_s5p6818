@@ -19,6 +19,7 @@
 
 #define __SET_GLOBAL_VARIABLES
 #include "sysheader.h"
+#include "nx_bootheader.h"
 
 //#define SIMPLE_MEMTEST 			(1)
 
@@ -278,8 +279,19 @@ void BootMain(U32 CPUID)
 	if (init_DDR3(isResume) == CFALSE)
 		init_DDR3(isResume);
 #else
-	if (init_DDR3(0) == CFALSE)
-		init_DDR3(0);
+	/*
+	 * DDR initialization fails, a temporary code
+	 * code for the defense.
+	 */
+	int ddr_retry = 0;
+	while (init_DDR3(0) == CFALSE) {
+		ddr_retry++;
+		if (ddr_retry > 3) {
+			printf("Memory Initialize Retry : %d \r\n", ddr_retry);
+			printf("Memory Initializa or Calibration Failed! \r\n");
+			break;
+		}
+	}
 #endif
 #endif
 #ifdef MEM_TYPE_LPDDR23
@@ -371,15 +383,17 @@ void BootMain(U32 CPUID)
 	}
 
 #ifdef CRC_CHECK_ON
-	Result = CRC_Check((void*)pTBI->LOADADDR, (unsigned int)pTBI->LOADSIZE
-				,(unsigned int)pTBI->DBI.SDMMCBI.CRC32);
+	//Result = CRC_Check((void*)pTBI->LOADADDR, (unsigned int)pTBI->LOADSIZE,
+	//		   (unsigned int)pTBI->DBI.SDMMCBI.CRC32);
 #endif
 	if (Result) {
-		void (*pLaunch)(U32, U32) =
-		    (void (*)(U32, U32))((MPTRS)pTBI->LAUNCHADDR);
+		struct nx_tbbinfo *tbi = (struct nx_tbbinfo *)&TBI;
+		void (*pLaunch)() = (void (*)())(tbi->startaddr);
+
 		SYSMSG(" Image Loading Done!\r\n");
 		SYSMSG("Launch to 0x%08X\r\n", (MPTRS)pLaunch);
 		temp = 0x10000000;
+
 		while (!DebugIsUartTxDone() && temp--);
 		pLaunch(0, 4330);
 	}
