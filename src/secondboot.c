@@ -160,7 +160,7 @@ void BootMain(U32 CPUID)
 	U32 signature, isResume = 0;
 	U32 debugCH = 0;
 
-#ifdef RAPTOR_PMIC_INIT
+#if defined(RAPTOR_PMIC_INIT) || defined(AVN_PMIC_INIT)
 	debugCH = 3;
 #endif
 
