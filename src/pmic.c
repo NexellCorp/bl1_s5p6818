@@ -60,37 +60,22 @@ void DMC_Delay(int milisecond);
 #define MP8845_PMIC_INIT (1)
 #endif
 
-#ifdef AVN_PMIC_INIT
-#define MP8845_CORE_I2C_GPIO_GRP	4 // E group, FineDigital VDDA_1.2V (core)
-#define MP8845_CORE_I2C_SCL 		11
-#define MP8845_CORE_I2C_SDA 		10
-#define MP8845_CORE_I2C_SCL_ALT		0
-#define MP8845_CORE_I2C_SDA_ALT		0
-
-#define MP8845_ARM_I2C_GPIO_GRP 	4 // E group, FineDigital VDDB_1.2V (arm)
-#define MP8845_ARM_I2C_SCL 		9
-#define MP8845_ARM_I2C_SDA 		8
-#define MP8845_ARM_I2C_SCL_ALT 		0
-#define MP8845_ARM_I2C_SDA_ALT 		0
-
-#define MP8845_PMIC_INIT 		(1)
+#if defined(AVN_PMIC_INIT)
+#undef  NXE2000_I2C_GPIO_GRP
+#define NXE2000_I2C_GPIO_GRP 		4 // E group, VCC1P0_CORE, NXE2000
+#define NXE2000_I2C_SCL 		9
+#define NXE2000_I2C_SDA 		8
+#define NXE2000_I2C_SCL_ALT 		0
+#define NXE2000_I2C_SDA_ALT		0
 #endif
 
 #ifdef SVT_PMIC_INIT
-#undef NXE2000_I2C_GPIO_GRP
-#define NXE2000_I2C_GPIO_GRP 		3 // D group, VCC1P0_CORE, NXE2000, MP8845
-#define NXE2000_I2C_SCL 		6
-#define NXE2000_I2C_SDA 		7
+#undef  NXE2000_I2C_GPIO_GRP
+#define NXE2000_I2C_GPIO_GRP 		4 // E group, VCC1P0_CORE, NXE2000, MP8845
+#define NXE2000_I2C_SCL 		9
+#define NXE2000_I2C_SDA 		8
 #define NXE2000_I2C_SCL_ALT 		0
 #define NXE2000_I2C_SDA_ALT		0
-
-#define MP8845_I2C_GPIO_GRP 		3 // D group , VCC1P0_ARM, MP8845
-#define MP8845_I2C_SCL 			2
-#define MP8845_I2C_SDA 			3
-#define MP8845_I2C_SCL_ALT		0
-#define MP8845_I2C_SDA_ALT		0
-
-#define MP8845_PMIC_INIT 	(1)
 #endif
 
 #ifdef ASB_PMIC_INIT
@@ -313,8 +298,35 @@ inline void PMIC_Drone(void)
 }
 #endif // DRONE
 
-#if defined(BF700_PMIC_INIT) || defined(AVN_PMIC_INIT)
+#if defined(AVN_PMIC_INIT)
 inline void PMIC_AVN(void)
+{
+	U8 pData[4];
+	U32 board_rev = 0;
+
+	/* I2C init for CORE & NXE2000 power. */
+	/* GPIOD, SCL:6, SDA:7 */
+	I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
+			NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
+
+	/* ARM voltage change */// 1.25V
+	pData[0] = nxe2000_get_dcdc_step(1250000);
+	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
+	/* Core voltage change */ // 1.2V
+	pData[0] = nxe2000_get_dcdc_step(1200000);
+	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData, 1);
+	/* DDR3 voltage change */ // 1.5V
+	pData[0] = nxe2000_get_dcdc_step(1500000);
+	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC4VOL, pData, 1);
+	/* DDR3 IO voltage change */ // 1.5V
+	pData[0] = nxe2000_get_dcdc_step(1500000);
+	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC5VOL, pData, 1);
+
+}
+#endif // AVN
+
+#if defined(BF700_PMIC_INIT)
+inline void PMIC_BF700(void)
 {
 	U8 pData[4];
 	U32 ecid_1 = ReadIO32(PHY_BASEADDR_ECID_MODULE + (1 << 2));
@@ -354,12 +366,7 @@ inline void PMIC_AVN(void)
 		}
 	}
 #else
-#if defined(BF700_PMIC_INIT)
 	pData[0] = 90 | 1 << 7; // 1.2V
-#endif
-#if defined(AVN_PMIC_INIT)
-	pData[0] = 75 | 1 << 7; // 1.1V
-#endif
 	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 #endif
 
@@ -382,18 +389,11 @@ inline void PMIC_AVN(void)
 	pData[0] |= 1 << 5;
 	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 
-#if defined(BF700_PMIC_INIT)
 	pData[0] = 90 | 1 << 7; // 1.2V
-#endif
-#if defined(AVN_PMIC_INIT)
-	//    pData[0] = 90 | 1<<7;   // 90: 1.2V
-	//    pData[0] = 80 | 1<<7;   // 80: 1.135V
-	pData[0] = 75 | 1 << 7; // 75: 1.1V
-#endif
 	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 #endif
 }
-#endif // BF700
+#endif	// BF700
 
 #ifdef SVT_PMIC_INIT
 inline void PMIC_SVT(void)
@@ -581,9 +581,13 @@ void initPMIC(void)
 	PMIC_Drone();
 #endif // DRONE
 
-#if defined(BF700_PMIC_INIT) || defined(AVN_PMIC_INIT)
-	PMIC_AVN();
+#if defined(BF700_PMIC_INIT)
+	PMIC_BF700();
 #endif // BF700
+
+#if defined(AVN_PMIC_INIT)
+	PMIC_AVN();
+#endif // AVN
 
 #ifdef SVT_PMIC_INIT
 	PMIC_SVT();
@@ -595,7 +599,7 @@ void initPMIC(void)
 
 #ifdef RAPTOR_PMIC_INIT
 	PMIC_RAPTOR();
-#endif
+#endif // RAPTOR
 	DMC_Delay(100 * 1000);
 }
 #endif // #if defined( INITPMIC_YES )
