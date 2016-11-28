@@ -1323,79 +1323,134 @@ rd_err_ret:
 }
 #endif // #if (DDR_READ_DQ_CALIB_EN == 1)
 
-CBOOL DDR_Write_Latency_Calibration(void)
+#if ((DDR_WRITE_LEVELING_EN == 1) && (MEM_CALIBRATION_INFO == 1))
+void write_latency_information(void)
 {
-	volatile U32 cal_count = 0;
-	U32 temp;
-	CBOOL ret = CTRUE;
+	unsigned int latency, latency_plus;
+	unsigned int status;
+
+	unsigned int max_slice = 4, slice;
+
+	status = mmio_read_32(&pReg_DDRPHY->CAL_WL_STAT) & 0xF;
+	if (status != 0) {
+		latency = (mmio_read_32(&pReg_DDRPHY->PHY_CON[4]) >> 16) & 0x1F;
+		latency_plus = (mmio_read_32(&pReg_DDRPHY->PHY_CON[5]) >> 0) & 0x7;
+
+		for (slice = 0; slice < max_slice; slice++)
+			MEMMSG("[SLICE%02d] Write Latency Cycle : %d\r\n",
+				slice, latency_plus >> (slice*3) & 0x7);
+		MEMMSG("0: Half Cycle, 1: One Cycle, 2: Two Cycle \r\n");
+	}
+
+	MEMMSG("Write Latency Calibration %s(ret=0x%08X)!! \r\n",
+			(status == 0xF) ? "Success" : "Failed", status);
+}
+#endif // #if ((DDR_WRITE_LEVELING_EN == 1) && (MEM_CALIBRATION_INFO == 1))
+
+#if (DDR_WRITE_LEVELING_EN == 1)
+/*************************************************************
+ * Must be S5P6818
+ * Write Latency Calibration sequence in S5P6818
+ * must go through the following steps:
+ *
+ * Step 01. Set Write Latency(=ctrl_wrlat) before Write Latency Calibration.
+ * Step 02. Set issue Active command.
+ * Step 03. Set the colum address.
+ * Step 04. Set the Write Latency Calibration Mode & Start
+ *	     - Set the "wl_cal_mode=1 (=PHY_CON3[20])"
+ *	     - Set the "wl_cal_start=1 (=PHY_CON3[21])"
+ * Step 05.  Start Write Leveling.
+ *	     - Set the "wrlvel_start = 1'b1" (=PHY_CON3[16])
+ * Step 06. Wait until the for Write Latency Calibtion complete.
+ *	     - Wait until "wl_cal_resp" (=PHY_CON3[27])
+ * Step 07. Check the success or not.
+ * Step 08. Check the success or not.
+ *	     -> Read Status (=CAL_WL_STAT)
+ *************************************************************/
+int ddr_write_latency_calibration(void)
+{
+	volatile int bank = 0, row = 0, column = 0;
+	volatile int cal_count;
+	volatile int response, done_status = 0;
+	int ret = 0;
 
 	MEMMSG("\r\n########## Write Latency Calibration - Start ##########\r\n");
 
 #if (CFG_8BIT_DESKEW == 1)
-	SetIO32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 13)); // byte_rdlvl_en[13]=1
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[0], (0x1 << 13));			// byte_rdlvl_en[13]=1
 #endif
 
-	// Set issue active command.
-	WriteIO32(&pReg_Drex->WRTRA_CONFIG,
-		  (0x0 << 16) |    // [31:16] row_addr
-		      (0x0 << 1) | // [ 3: 1] bank_addr
-		      (0x1 << 0)); // [    0] write_training_en
+#if 0	/* Step 01. Set Write Latency(=ctrl_wrlat) before Write Latency Calibration.*/
+	int DDR_AL = 0, DDR_WL, DDR_RL;
+#if (CFG_NSIH_EN == 0)
+	if (MR1_nAL > 0)
+		DDR_AL = nCL - MR1_nAL;
 
-	ClearIO32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 14)); // p0_cmd_en[14] = 0
-	SetIO32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 14));   // p0_cmd_en[14] = 1
+	DDR_WL = (DDR_AL + nCWL);
+	DDR_RL = (DDR_AL + nCL);
+#else
+	if (pSBI->DII.MR1_AL > 0)
+		DDR_AL = pSBI->DII.CL - pSBI->DII.MR1_AL;
 
-	SetIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 20)); // wl_cal_mode[20] = 1
-	SetIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 21)); // wl_cal_start[21] = 1
+	DDR_WL = (DDR_AL + pSBI->DII.CWL);
+	DDR_RL = (DDR_AL + pSBI->DII.CL);
+#endif
+	DDR_RL = DDR_RL;
+	mmio_set_32(&pReg_DDRPHY->PHY_CON[4], (DDR_WL << 16));
+#endif // Step 00.
 
+	/* Step 02. Set issue Active command. */
+	mmio_write_32(&pReg_Drex->WRTRA_CONFIG,
+			(row    << 16) |					// [31:16] row_addr
+			(0x0    <<  1) |					// [ 3: 1] bank_addr
+			(0x1    <<  0));					// [    0] write_training_en
+	mmio_clear_32(&pReg_Drex->WRTRA_CONFIG, (0x1 <<  0));			// [   0]write_training_en[0] = 0
+
+	/* Step 03. Set the colum address*/
+	mmio_set_32  (&pReg_DDRPHY->LP_DDR_CON[2], (column <<  1));		// [15: 1] ddr3_address
+
+	/* Step 04. Set the Write Latency Calibration Mode & Start */
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[3], (0x1 << 20));			// wl_cal_mode[20] = 1
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[3], (0x1 << 21));			// wl_cal_start[21] = 1
+
+	/* Step 05. Wait until the for Write Latency Calibtion complete. */
 	for (cal_count = 0; cal_count < 100; cal_count++) {
-		temp = ReadIO32(&pReg_DDRPHY->PHY_CON[3]);
-		if (temp & (0x1 << 27)) // wl_cal_resp[27] : Wating until WRITE
-					// LATENCY calibration is complete
-		{
+		response = mmio_read_32( &pReg_DDRPHY->PHY_CON[3] );
+		if ( response & (0x1 << 27) )					// wl_cal_resp[27] : Wating until WRITE LATENCY calibration is complete
 			break;
-		}
-
 		DMC_Delay(0x100);
 	}
 
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3],
-		  (0x1 << 21)); // wl_cal_start[21] = 0
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 20)); // wl_cal_mode[20] = 0
-	//    ClearIO32( &pReg_DDRPHY->PHY_CON[3],        (0x3    <<  20) );
-	//    // wl_cal_start[21] = 0, wl_cal_mode[20] = 0
+	/* Step 06. After the completion Write Latency Calibration and clear. */
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 21));			// wl_cal_start[21] = 0
 
-	ClearIO32(&pReg_Drex->WRTRA_CONFIG,
-		  (0x1 << 0)); // write_training_en[0] = 0
-
-	//------------------------------------------------------------------------------------------------------------------------
-
-	if (cal_count == 100) // Failure Case
-	{
+	/* Step 07. Check the success or not. */
+	if (cal_count == 100) {                                                 // Failure Case
 		MEMMSG("WR Latency CAL Status Checking error\r\n");
-
-		ret = CFALSE;
+		ret = -1;
 	}
 
-	//------------------------------------------------------------------------------------------------------------------------
+	/* Step XX.  Check the Write Latency Information. */
+	mmio_set_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 0));	   		// reg_mode[7:0]=0x1
+
+#if (MEM_CALIBRATION_INFO == 1)
+	write_latency_information();
+#endif
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3], (0xFF << 0));			// reg_mode[7:0]=0x0
+
+	/* Step 08. Check the success or not. (=CAL_WL_STAT) */
+	done_status = mmio_read_32(&pReg_DDRPHY->CAL_WL_STAT) & 0xF;
+	if (done_status != 0xF) {
+		MEMMSG("Write Latency Calibration Not Complete!! (ret=%08X) \r\n",
+			done_status);
+		ret = -1;
+	}
 
 	MEMMSG("\r\n########## Write Latency Calibration - End ##########\r\n");
-#if MEM_CALIBRAION_INFO
-	volatile U32 wrlatstatus;
-	wrlatstatus = pReg_DDRPHY->PHY_CON[5];
-
-	SendDirectCommand(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-
-	printf("write latency status : 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->CAL_WL_STAT));
-	printf("0:%d, 1:%d, 2:%d, 3:%d\r\n",
-		((wrlatstatus>>0)&0x7),
-		((wrlatstatus>>3)&0x7),
-		((wrlatstatus>>6)&0x7),
-		((wrlatstatus>>9)&0x7));
-#endif
-
 
 	return ret;
 }
+#endif	// #if (DDR_WRITE_LEVELING_EN == 1)
 
 #if ((DDR_WRITE_DQ_CALIB_EN == 1) && (MEM_CALIBRATION_INFO == 1))
 void write_dq_calibration_information(void)
@@ -2525,8 +2580,11 @@ CBOOL init_DDR3(U32 isResume)
 				return -1;
 		}
 
-	if (pSBI->LvlTr_Mode & LVLTR_WR_LVL)
-		DDR_Write_Latency_Calibration();
+		/* Step 32-5. Write DQ Calibration */
+		if (pSBI->LvlTr_Mode & LVLTR_WR_CAL) {
+			if (ddr_write_dq_calibration() < 0)
+				return -1;
+		}
 
 		/* Step 32-5. Write DQ Calibration */
 		if (pSBI->LvlTr_Mode & LVLTR_WR_CAL) {
