@@ -30,8 +30,8 @@ extern void DMC_Delay(int milisecond);
 // extern void     flushICache(void);
 // extern void     enableICache(CBOOL enable);
 
-extern void enterSelfRefresh(void);
-extern void exitSelfRefresh(void);
+extern void enter_self_refresh(void);
+extern void exit_self_refresh(void);
 extern void set_bus_config(void);
 extern void set_drex_qos(void);
 
@@ -284,7 +284,7 @@ void BootMain(U32 CPUID)
 	 * code for the defense.
 	 */
 	int ddr_retry = 0;
-	while (init_DDR3(0) == CFALSE) {
+	while (ddr3_initialize(isResume) < 0) {
 		ddr_retry++;
 		if (ddr_retry > 3) {
 			printf("Memory Initialize Retry : %d \r\n", ddr_retry);
@@ -300,7 +300,7 @@ void BootMain(U32 CPUID)
 #endif
 
 	if (isResume)
-		exitSelfRefresh();
+		exit_self_refresh();
 
 	SYSMSG("DDR3 Init Done!\r\n");
 
