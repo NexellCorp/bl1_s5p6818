@@ -31,8 +31,6 @@
 //#define USE_HEADER
 #define DDR_RW_CAL 			(0)
 
-#define DDR_CA_SWAP_MODE 		(0) 	// for LPDDR3
-
 /* Hardware Memory Calibration */
 #define DDR_WRITE_LEVELING_EN 		(1)	// for fly-by
 #define DDR_GATE_LEVELING_EN 		(1)	// for DDR3, great then 800MHz
@@ -221,23 +219,11 @@ void DUMP_PHY_REG(void)
 }
 #endif
 
-#if defined(MEM_TYPE_DDR3)
-// inline
-void send_directcmd(SDRAM_CMD cmd, U8 chipnum, SDRAM_MODE_REG mrx, U16 value)
-{
-	WriteIO32(
-	    &pReg_Drex->DIRECTCMD,
-	    (U32)((cmd << 24) | ((chipnum & 1) << 20) | (mrx << 16) | value));
-}
-#endif
-#if defined(MEM_TYPE_LPDDR23)
-// inline
 void send_directcmd(SDRAM_CMD cmd, U8 chipnum, SDRAM_MODE_REG mrx, unsigned short value)
 {
 	mmio_write_32(&pReg_Drex->DIRECTCMD, (unsigned int)((cmd<<24) |
 		((chipnum & 1)<<20) | (mrx<<16) | value));
 }
-#endif
 
 void enter_self_refresh(void)
 {
@@ -595,7 +581,7 @@ int ddr_hw_write_leveling(void)
 	hw_write_leveling_information();
 #endif
 	/* Step 12-0. Leveling Information Register Mode Off (Not Must) */
-//	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3],  (0xFF << 0));			// reg_mode[7:0]=0x0
+//	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3],  (0xFF << 0));		// reg_mode[7:0]=0x0
 
 	/* Step 12-1. It adjust the duration cycle of "ctrl_read" on a clock cycle base. (subtract delay) */
 	mmio_set_32  (&pReg_DDRPHY->RODT_CON,    (0x1  << 28));		// ctrl_readduradj [31:28]
@@ -1475,7 +1461,7 @@ int ddr3_initialize(unsigned int is_resume)
 	MEMMSG("\r\nDDR3 POR Init Start\r\n");
 
 	/* Nexell Step XX. Get DRAM Information. */
-//	get_dram_information((struct dram_device_info*)&g_ddr3_info);
+	get_dram_information((struct dram_device_info*)&g_ddr3_info);
 
 	/* Step 01. Reset (DPHY, DREX, DRAM)  (Min: 10ns, Typ: 200us) */
 	if (resetgen_sequence() < 0) {
@@ -2006,40 +1992,58 @@ int ddr3_initialize(unsigned int is_resume)
 	/* Step 31-2. Update "ctrl_force[8:0]" in MDLL_CON0[15:7] by the value of "ctrl_lock_value[8:0] */
 	temp = mmio_read_32(&pReg_DDRPHY->MDLL_CON[0]) & ~(0x1FF << 7);
 	temp |= (g_Lock_Val << 7);
-	mmio_write_32(&pReg_DDRPHY->MDLL_CON[0], temp); // ctrl_force[16:8]
+	mmio_write_32(&pReg_DDRPHY->MDLL_CON[0], temp);				// ctrl_force[16:8]
+
+//	mmio_set_32  (&pReg_DDRPHY->RODT_CON, (0x1  << 28));		// ctrl_readduradj [31:28]
 
 #if (SKIP_LEVELING_TRAINING == 0)
-	if (is_resume == 0) {
+	/* Step 32. DDR Controller Calibration*/
 
-#if (DDR_WRITE_LEVELING_EN == 1)
-		if (pSBI->LvlTr_Mode & LVLTR_WR_LVL)
-			ddr_hw_write_leveling();
-#endif
+	/* temporary code according to suspend/resume policy. */
+//	if (is_resume == 0) {
+	{
+	#if (DDR_WRITE_LEVELING_EN == 1)
+		/* Step 32-1. Write Leveling (for Fly-by) */
+		if (pSBI->LvlTr_Mode & LVLTR_WR_LVL) {
+			if (ddr_hw_write_leveling() < 0)
+				return -1;
+		}
+	#endif
 
-#if 0
-        if (pSBI->LvlTr_Mode & LVLTR_CA_CAL)
-            DDR_CA_Calibration();
-#endif
+	#if (DDR_GATE_LEVELING_EN == 1)
+		/* 
+		  * Step 32-2. Gate Leveling
+		  * (It should be used only for DDR3 (800Mhz))
+		  */
+		if (pSBI->LvlTr_Mode & LVLTR_GT_LVL) {
+			if (ddr_gate_leveling() < 0)
+				return -1;
+		}
+	#endif
 
-	/* DDR Controller Calibration*/
-	if (pSBI->LvlTr_Mode & LVLTR_GT_LVL) {
-		if (ddr_gate_leveling() == CFALSE)
-			return CFALSE;
-	}
-	
-	if (pSBI->LvlTr_Mode & LVLTR_RD_CAL)
-		ddr_read_dq_calibration();
+	#if (DDR_READ_DQ_CALIB_EN == 1)
+		/* Step 32-3. Read DQ Calibration */
+		if (pSBI->LvlTr_Mode & LVLTR_RD_CAL) {
+			if (ddr_read_dq_calibration() < 0)
+				return -1;
+		}
+	#endif
 
+	#if (DDR_WRITE_LEVELING_EN == 1)
+		/* Step 32-4. Write Latenty Calibration */
+		if (pSBI->LvlTr_Mode & LVLTR_WR_LVL) {
+			if (ddr_write_latency_calibration() < 0)
+				return -1;
+		}
+	#endif
 
-#if (DDR_WRITE_LEVELING_EN == 1)
-	if (pSBI->LvlTr_Mode & LVLTR_WR_LVL)
-		ddr_write_latency_calibration();
-#endif
-
-	if (pSBI->LvlTr_Mode & LVLTR_WR_CAL)
-		ddr_write_dq_calibration();
-//----------------------------------
-// Save leveling & training values.
+	#if (DDR_WRITE_LEVELING_EN == 1)
+		/* Step 32-5. Write DQ Calibration */
+		if (pSBI->LvlTr_Mode & LVLTR_WR_CAL) {
+			if (ddr_write_dq_calibration() < 0)
+				return -1;
+		}
+	#endif
 #if 0
 		/* Nexell Step XX. Save leveling & training values. */
 	        mmio_write_32(&pReg_Alive->ALIVEPWRGATEREG,     1);		// open alive power gate
@@ -2172,5 +2176,5 @@ int ddr3_initialize(unsigned int is_resume)
 
 	MEMMSG("\r\n\r\n");
 
-	return CTRUE;
+	return 0;
 }

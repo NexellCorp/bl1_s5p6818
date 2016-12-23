@@ -26,13 +26,14 @@ LDFLAGS		=	-Bstatic							\
 			-nostdlib
 
 SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o secondboot.o subcpu.o sleep.o	\
-				resetcon.o GPIO.o crc.o	SecureManager.o							\
-				clockinit.o serial.o lib2ndboot.o buildinfo.o							\
-				printf.o ema.o
+			resetcon.o GPIO.o crc.o	SecureManager.o									\
+			clockinit.o serial.o lib2ndboot.o buildinfo.o								\
+			printf.o ema.o
+			
 SYS_OBJS	+=	sysbus.o
 
 ifeq ($(MEMTYPE),DDR3)
-SYS_OBJS	+=	init_DDR3.o
+SYS_OBJS	+=	ddr3_sdram.o
 endif
 ifeq ($(MEMTYPE),LPDDR3)
 SYS_OBJS	+=	init_LPDDR3.o
@@ -61,8 +62,12 @@ endif
 
 SYS_OBJS_LIST	=	$(addprefix $(DIR_OBJOUTPUT)/,$(SYS_OBJS))
 
-SYS_INCLUDES	=	-I src				\
-			-I prototype/base 		\
+SYS_INCLUDES	=	-I src								\
+			-I src/boot							\
+			-I src/memory							\
+			-I src/pmic							\
+			-I src/test							\
+			-I prototype/base 						\
 			-I prototype/module
 
 ###################################################################################################
@@ -74,25 +79,40 @@ $(DIR_OBJOUTPUT)/%.o: src/%.S
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(ASFLAG) $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-
+$(DIR_OBJOUTPUT)/%.o: src/boot/%.c
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
+$(DIR_OBJOUTPUT)/%.o: src/memory/%.c
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
+$(DIR_OBJOUTPUT)/%.o: src/pmic/%.c
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
+$(DIR_OBJOUTPUT)/%.o: src/test/%.c
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
 
 all: mkobjdir $(SYS_OBJS_LIST) link bin
 
 mkobjdir:
 ifeq ($(OS),Windows_NT)
-	@if not exist $(DIR_OBJOUTPUT)			\
+	@if not exist $(DIR_OBJOUTPUT)				\
 		@$(MKDIR) $(DIR_OBJOUTPUT)
-	@if not exist $(DIR_TARGETOUTPUT)		\
+	@if not exist $(DIR_TARGETOUTPUT)			\
 		@$(MKDIR) $(DIR_TARGETOUTPUT)
 else
-#	@if [ ! -L prototype ] ; then			\
-#		ln -s ../../../prototype/s5p6818/ prototype ; \
+#	@if [ ! -L prototype ] ; then				\
+#		ln -s ../../../prototype/s5p6818/ prototype ; 	\
 	fi
-	@if	[ ! -e $(DIR_OBJOUTPUT) ]; then 	\
-		$(MKDIR) $(DIR_OBJOUTPUT);		\
+	@if	[ ! -e $(DIR_OBJOUTPUT) ]; then 		\
+		$(MKDIR) $(DIR_OBJOUTPUT);			\
 	fi;
-	@if	[ ! -e $(DIR_TARGETOUTPUT) ]; then 	\
-		$(MKDIR) $(DIR_TARGETOUTPUT);		\
+	@if	[ ! -e $(DIR_TARGETOUTPUT) ]; then 		\
+		$(MKDIR) $(DIR_TARGETOUTPUT);			\
 	fi;
 endif
 
@@ -105,32 +125,31 @@ bin:
 	@echo [binary.... $(DIR_TARGETOUTPUT)/$(TARGET_NAME).bin]
 	$(Q)$(MAKEBIN) -O binary $(DIR_TARGETOUTPUT)/$(TARGET_NAME).elf $(DIR_TARGETOUTPUT)/$(TARGET_NAME).bin
 ifeq ($(OS),Windows_NT)
-	@if exist $(DIR_OBJOUTPUT)			\
+	@if exist $(DIR_OBJOUTPUT)				\
 		@$(RM) $(DIR_OBJOUTPUT)\buildinfo.o
 else
-	@if	[ -e $(DIR_OBJOUTPUT) ]; then 		\
-		$(RM) $(DIR_OBJOUTPUT)/buildinfo.o;	\
+	@if	[ -e $(DIR_OBJOUTPUT) ]; then 			\
+		$(RM) $(DIR_OBJOUTPUT)/buildinfo.o;		\
 	fi;
 endif
 
 ###################################################################################################
 clean:
 ifeq ($(OS),Windows_NT)
-	@if exist $(DIR_OBJOUTPUT)			\
+	@if exist $(DIR_OBJOUTPUT)				\
 		@$(RMDIR) $(DIR_OBJOUTPUT)
-	@if exist $(DIR_TARGETOUTPUT)			\
+	@if exist $(DIR_TARGETOUTPUT)				\
 		@$(RMDIR) $(DIR_TARGETOUTPUT)
 else
-	@if [ -L prototype ] ; then			\
-		$(RM) prototype ;			\
+	@if [ -L prototype ] ; then				\
+		$(RM) prototype ;				\
 	fi
-	@if	[ -e $(DIR_OBJOUTPUT) ]; then 		\
-		$(RMDIR) $(DIR_OBJOUTPUT);		\
+	@if	[ -e $(DIR_OBJOUTPUT) ]; then 			\
+		$(RMDIR) $(DIR_OBJOUTPUT);			\
 	fi;
-	@if	[ -e $(DIR_TARGETOUTPUT) ]; then 	\
-		$(RMDIR) $(DIR_TARGETOUTPUT);		\
+	@if	[ -e $(DIR_TARGETOUTPUT) ]; then 		\
+		$(RMDIR) $(DIR_TARGETOUTPUT);			\
 	fi;
 endif
 
 -include $(SYS_OBJS_LIST:.o=.d)
-
