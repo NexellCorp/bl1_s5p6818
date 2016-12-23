@@ -1134,185 +1134,212 @@ gate_err_ret:
 }
 #endif // #if (DDR_GATE_LEVELING_EN == 1)
 
-#if (DDR_READ_DQ_CALIB_EN == 1)
-CBOOL DDR_Read_DQ_Calibration(void)
+#if ((DDR_READ_DQ_CALIB_EN == 1) && (MEM_CALIBRATION_INFO == 1))
+void read_dq_calibration_information(void)
 {
-#if defined(MEM_TYPE_DDR3)
-	union SDRAM_MR MR;
+	unsigned int dq_fail_status, dq_calibration;
+	unsigned int vwml[4], vwmr[4];
+	unsigned int vwmc[4];
+//	unsiged int Deskew[4];
+#if (MEM_CALIBRATION_BITINFO == 1)
+	unsigned char bit_vwml[32], bit_vwmr[32];
+	unsigned char bit_vwmc[32], bit_deskew[32];
+	unsigned int max_bit_line = 8, bit_line;
 #endif
-	volatile U32 cal_count = 0;
-	U32 temp;
-	CBOOL ret = CTRUE;
+
+#if (DM_CALIBRATION_INFO == 1)
+	unsigned int DM_VWML[4], DM_VWMR[4], DM_VWMC[4];
+#endif
+	unsigned int max_slice = 4, slice;
+
+	/* Check whether each slice by failure. */
+	for(slice = 0; slice < max_slice; slice++) {
+		dq_fail_status = (mmio_read_32(&pReg_DDRPHY->CAL_FAIL_STAT[0]) >> (slice*8)) & 0xF;
+		if (dq_fail_status == 1)
+			break;
+	}
+
+	if (dq_fail_status == 0) {
+		/* Vaile Window Margin Left */
+		dq_calibration = mmio_read_32(&pReg_DDRPHY->CAL_RD_VWML[0]);
+		for(slice = 0; slice < max_slice; slice++)
+			vwml[slice] = (dq_calibration >> (slice*8)) & 0xFF;
+
+		/* Vaile Window Margin Right */
+		dq_calibration = mmio_read_32(&pReg_DDRPHY->CAL_RD_VWMR[0]);
+		for(slice = 0; slice < max_slice; slice++)
+			vwmr[slice] = (dq_calibration >> (slice*8)) & 0xFF;
+
+		/* Vaile Window Margin Center */
+		dq_calibration = mmio_read_32(&pReg_DDRPHY->CAL_RD_VWMC[0]);
+		for(slice = 0; slice < max_slice; slice++)
+			vwmc[slice] = (dq_calibration >> (slice*8)) & 0xFF;
+#if (MEM_CALIBRATION_BITINFO == 1)
+		/* Check correction value for each slice for each bit line. */
+		for(slice = 0; slice < max_slice; slice++) {
+			/*  */
+			for(bit_line = 0; bit_line < max_bit_line; bit_line++) {
+				bit_deskew[bit_line] = (mmio_read_32(&pReg_DDRPHY->RD_DESKEW_CON[slice*3]) >> (8*0)) & 0xFF;
+				bit_vwmc[bit_line] = (mmio_read_32(&pReg_DDRPHY->VWMC_STAT[slice*3]) >> (8*1)) & 0xFF;
+				bit_vwml[bit_line] = (mmio_read_32(&pReg_DDRPHY->VWML_STAT[slice*3]) >> (8*2)) & 0xFF;
+				bit_vwmr[bit_line] = (mmio_read_32(&pReg_DDRPHY->VWMR_STAT[slice*3]) >> (8*3)) & 0xFF;
+
+				bit_deskew[bit_line+4] = (mmio_read_32(&pReg_DDRPHY->RD_DESKEW_CON[slice*3+1]) >> (8*0)) & 0xFF;
+				bit_vwmc[bit_line+4] = (mmio_read_32(&pReg_DDRPHY->VWMC_STAT[slice*3+1]) >> (8*1)) & 0xFF;
+				bit_vwml[bit_line+4] = (mmio_read_32(&pReg_DDRPHY->VWML_STAT[slice*3+1]) >> (8*2)) & 0xFF;
+				bit_vwmr[bit_line+4] = (mmio_read_32(&pReg_DDRPHY->VWMR_STAT[slice*3+1]) >> (8*3)) & 0xFF;
+			}
+		}
+#endif
+
+#if (DM_CALIBRATION_INFO == 1)
+		/* DM Vaile Window Margin Left */
+		DM_VWML[slice] = mmio_read_32(&pReg_DDRPHY->CAL_DM_VWML[0]);
+		for(slice = 0; slice < max_slice; slice++)
+			DM_VWML[slice] = (dq_calibration >> (slice*8)) & 0xFF;
+		/* DM Vaile Window Margin Right */
+		DM_VWMR[slice] = mmio_read_32(&pReg_DDRPHY->CAL_DM_VWMR[0]);
+		for(slice = 0; slice < max_slice; slice++)
+			DM_VWMR[slice] = (dq_calibration >> (slice*8)) & 0xFF;
+		/* DM Vaile Window Margin Center */
+		DM_VWMC[slice] = mmio_read_32(&pReg_DDRPHY->CAL_DM_VWMC[0]);
+		for(slice = 0; slice < max_slice; slice++)
+			DM_VWMC[slice] = (dq_calibration >> (slice*8)) & 0xFF;
+#endif
+	}
+
+	MEMMSG("\r\n#### Read DQ Calibration - Information ####\r\n");
+
+	MEMMSG("Read DQ Calibration %s!! \r\n",
+			(dq_fail_status == 0) ? "Success" : "Failed" );
+	if (dq_fail_status == 0) {
+		unsigned int range;
+		for(slice = 0; slice < max_slice; slice++) {
+			range = vwmr[slice] - vwml[slice];
+			MEMMSG("SLICE%02d: %02d ~ %02d ~ %02d (range: %d) \r\n",
+					slice, vwml[slice], vwmc[slice], vwmr[slice], range);
+		}
+#if (MEM_CALIBRATION_BITINFO == 1)
+		MEMMSG("     \tLeft\tCenter\tRight\tDeSknew \r\n");
+		for(slice = 0; slice < max_slice; slice++) {
+			for(bit_line = 0; bit_line < max_bit_line; bit_line++) {
+				unsigned int line_num = (slice*max_bit_line) + bit_line;
+				MEMMSG("DQ%02d: \t%02d\t\t%02d\t%02d\t%02d\r\n",
+						line_num, bit_vwml[line_num], bit_vwmc[line_num],
+						bit_vwmr[line_num], bit_deskew[line_num]);
+			}
+		}
+#endif
+
+#if (DM_CALIBRATION_INFO == 1)
+		MEMMSG("[DM] \tLeft\tCenter\tRight\tDeSknew \r\n");
+		for(slice = 0; slice < max_slice; slice++) {
+			MEMMSG("SLICE%02d: %d ~ %d ~ %d (range: %d) \r\n",
+					slice, (DM_VWML[slice]>>(8*slice))&0xFF,
+					(DM_VWMC[slice]>>(8*slice))&0xFF, (DM_VWMR[slice]>>(8*slice))&0xFF);
+		}
+#endif
+		MEMMSG("###########################################\r\n");
+	} // if (dq_fail_status == 0)
+}
+#endif
+
+#if (DDR_READ_DQ_CALIB_EN == 1)
+/*************************************************************
+ * Must be S5P6818
+ * Read DQ Calibration sequence in S5P6818
+ * must go through the following steps:
+ *
+ * Step 01. Send Precharge ALL Command
+ * Step 02. Set the Memory in MPR Mode (MR3:A2=1)
+ * Step 03. Set Read Leveling Mode.
+ * 	     -> Enable "rd_cal_mode" in PHY_CON2[25]
+ * Step 04. Start the Read DQ Calibration
+ *	     -> Enable "rd_cal_start"(=PHY_CON3[19]) to do rad leveling.
+ * Step 05. Wait for Response.
+ *	     -> Wait until "rd_wr_cal_resp"(=PHY_CON3[26]) is set.
+ * Step 06. End the Read DQ Calibration
+ *	     -> Set "rd_cal_start=0"(=PHY_CON3[19]) after
+ 	          "rd_wr_cal_resp"(=PHY_CON3[26]) is enabled.
+ * Step 07. Disable the Memory in MPR Mode (MR3:A2=0)
+ *************************************************************/
+int ddr_read_dq_calibration(void)
+{
+	union SDRAM_MR MR;
+
+	volatile int cal_count = 0;
+	volatile int status, response;
+	int ret = 0;
 
 	MEMMSG("\r\n########## Read DQ Calibration - Start ##########\r\n");
 
 #if (CFG_8BIT_DESKEW == 1)
-	ClearIO32(&pReg_DDRPHY->PHY_CON[0],
-		  (0x1 << 13)); // byte_rdlvl_en[13]=0, for Deskewing
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 13));			// byte_rdlvl_en[13]=0, for Deskewing
 #endif
 
-#if 1
-	SendDirectCommand(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
+	/* Step 01. Send Precharge ALL Command */
+	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
 #if (CFG_NSIH_EN == 0)
 #if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
+	send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
 #endif
 #else
 	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
+		send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
 				  CNULL);
 #endif
-#endif
 
-#if defined(MEM_TYPE_DDR3)
-	temp = ReadIO32(&pReg_DDRPHY->PHY_CON[1]) & 0xFFFF0000;
-	temp |= 0xFF00; // rdlvl_rddata_adj[15:0]
-	//    temp |= 0x0100; // rdlvl_rddata_adj[15:0]
-	WriteIO32(&pReg_DDRPHY->PHY_CON[1], temp);
-
-	/* Set MPR mode enable */
+	/* Step 02. Set the Memory in MPR Mode (MR3:A2=1) */
 	MR.Reg = 0;
 	MR.MR3.MPR = 1;
+	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR.Reg);
 
-	SendDirectCommand(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR.Reg);
-#endif
-#else
-	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR.Reg);
-#endif
+	/* Step 03. Set Read Leveling Mode. */
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[2], (0x1 << 25));			// rd_cal_mode[25]=1
 
-	WriteIO32(&pReg_DDRPHY->LP_DDR_CON[2],
-		  (0x0 << 16) |    // [31:16] ddr3_default
-		      (0x0 << 1) | // [15: 1] ddr3_address
-		      (0x0 << 0)); // [    0] ca_swap_mode
-#endif				   // #if defined(MEM_TYPE_DDR3)
+	/* Step 04. Statr the Read DQ Calibration */
+	mmio_write_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 19));			// rd_cal_start[19]=1 : Starting READ calibration
 
-	SetIO32(&pReg_DDRPHY->PHY_CON[2], (0x1 << 25)); // rd_cal_mode[25]=1
-
-	WriteIO32(
-	    &pReg_DDRPHY->PHY_CON[3],
-	    (0x1 << 19)); // rd_cal_start[19]=1 : Starting READ calibration
-	//    SetIO32  ( &pReg_DDRPHY->PHY_CON[3],        (0x1    <<  19) );
-	//    // rd_cal_start[19]=1 : Starting READ calibration
-
+	/* Step 05. Wait for Response. (check value : 1) */
 	for (cal_count = 0; cal_count < 100; cal_count++) {
-		temp = ReadIO32(&pReg_DDRPHY->PHY_CON[3]);
-		if (temp & (0x1 << 26)) // rd_wr_cal_resp[26] : Wating until
-					// READ calibration is complete
-		{
+		response = mmio_read_32(&pReg_DDRPHY->PHY_CON[3]);
+		if (response & (0x1 << 26))
 			break;
-		}
-
 		DMC_Delay(100);
 	}
-	//    ClearIO32( &pReg_DDRPHY->PHY_CON[3],        (0x1    <<  26) );
 
-	//    WriteIO32( &pReg_DDRPHY->PHY_CON[3],        0x0 );
-	//    // rd_cal_start[19]=0 : Stopping it after completion of Read
-	//    calibration.
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 19)); // rd_cal_start[19]=0
-							  // : Stopping it after
-							  // completion of Read
-							  // calibration.
+	/* Step 06. End the Read DQ Calibration */
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 19));			// rd_cal_start[19]=0
 
-	//------------------------------------------------------------------------------------------------------------------------
-
-	if (cal_count == 100) // Failure Case
-	{
+	/* Step XX-0. check to success or failed (timeout) */
+	if (cal_count == 100) { // Failure Case
 		MEMMSG("RD DQ CAL Status Checking error\r\n");
-
-		ret = CFALSE;
+		ret = -1;
 		goto rd_err_ret;
 	}
 
-	for (cal_count = 0; cal_count < 100; cal_count++) {
-		if (ReadIO32(&pReg_DDRPHY->CAL_FAIL_STAT[0]) == 0) {
-			break;
-		}
-
-		DMC_Delay(100);
-	}
-
-	if (cal_count == 100) {
-		MEMMSG("RD DQ: CAL_FAIL_STATUS Checking : fail...!!!\r\n");
-
-		ret = CFALSE; // Failure Case
+	/* Step XX-1. check to success or failed (status) */
+	status = mmio_read_32(&pReg_DDRPHY->CAL_FAIL_STAT[0]);			//dq_fail_status[31:0] : Slice 0 ~Slice3
+	if (status != 0) {
+		MEMMSG("Read DQ Calibration Status: 0x%08X \r\n", status);
+		ret = -1;
 		goto rd_err_ret;
 	}
-
-	//------------------------------------------------------------------------------------------------------------------------
-
-	g_RD_vwmc = ReadIO32(&pReg_DDRPHY->CAL_RD_VWMC[0]);
+	g_RD_vwmc = mmio_read_32(&pReg_DDRPHY->CAL_RD_VWMC[0]);
 
 rd_err_ret:
-
-#if 0
-    SetIO32  ( &pReg_DDRPHY->OFFSETD_CON,       (0x1    <<  24) );          // ctrl_resync[24]=0x1 (HIGH)
-    ClearIO32( &pReg_DDRPHY->OFFSETD_CON,       (0x1    <<  24) );          // ctrl_resync[24]=0x0 (LOW)
-#if 0
-    SetIO32  ( &pReg_Drex->PHYCONTROL,          (0x1    <<   3) );          // Force DLL Resyncronization
-    ClearIO32( &pReg_Drex->PHYCONTROL,          (0x1    <<   3) );          // Force DLL Resyncronization
-#endif
-#endif
-
-#if defined(MEM_TYPE_DDR3)
-	/* Set MPR mode disable */
+	/* Step 07. Disable the Memory in MPR Mode (MR3:A2=0) */
 	MR.Reg = 0;
+	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR.Reg);
 
-	SendDirectCommand(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR.Reg);
+#if (MEM_CALIBRATION_INFO == 1)
+	read_dq_calibration_information();
 #endif
-#else
-	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR.Reg);
-#endif
-#endif
-
-#if MEM_CALIBRAION_INFO	
-	volatile U32 readcenter, readleft, readright, readstat, i, j;
-	volatile U32 rdskew[8], rdcenter[8], rdleft[8], rdright[8];
-
-	readcenter = ReadIO32(&pReg_DDRPHY->CAL_RD_VWMC[0]);
-
-	readleft = ReadIO32(&pReg_DDRPHY->CAL_RD_VWML[0]);
-	readright = ReadIO32(&pReg_DDRPHY->CAL_RD_VWMR[0]);
-	readstat = ReadIO32(&pReg_DDRPHY->CAL_FAIL_STAT[0]);
-
-	for(i=0; i<8; i++)
-	{
-		rdskew[i] = ReadIO32(&pReg_DDRPHY->RD_DESKEW_CON[i*3]);
-		rdcenter[i] = ReadIO32(&pReg_DDRPHY->VWMC_STAT[i*3]);
-		rdleft[i] = ReadIO32(&pReg_DDRPHY->VWML_STAT[i*3]);
-		rdright[i] = ReadIO32(&pReg_DDRPHY->VWMR_STAT[i*3]);
-	}
-
-	printf("read leveling status : 0x%08X\r\n", readstat);
-	printf("read leveling value:\r\n\tleft\tcenter\tright\r\n");
-	for(i=0; i<4; i++)
-	{
-		printf("lane %d\t%d\t%d\t%d\r\n", i, (readleft>>(8*i))&0xFF, (readcenter>>(8*i))&0xFF, (readright>>(8*i))&0xFF);
-	}
-	printf("read deskew value\r\n");
-	printf("\tskew\t\tleft\tcenter\tright\r\n");
-	for(i=0; i<4; i++)
-		for(j=0; j<8; j++)
-			printf("DQ %d\t%d\t\t%d\t%d\t%d\r\n",
-				i*8+j,
-				(rdskew[j]>>(8*i))&0xFF,
-				(rdleft[j]>>(8*i))&0xFF,
-				(rdcenter[j]>>(8*i))&0xFF,
-				(rdright[j]>>(8*i))&0xFF);
-#endif	
 	MEMMSG("\r\n########## Read DQ Calibration - End ##########\r\n");
 
 	return ret;
 }
-#endif // #if (DDR_READ_DQ_CALIB_EN == 0)
+#endif // #if (DDR_READ_DQ_CALIB_EN == 1)
 
 #if ((DDR_WRITE_LEVELING_EN == 1) && (MEM_CALIBRATION_INFO == 1))
 void write_latency_information(void)
@@ -2460,7 +2487,7 @@ CBOOL init_DDR3(U32 isResume)
 	}
 	
 	if (pSBI->LvlTr_Mode & LVLTR_RD_CAL)
-		DDR_Read_DQ_Calibration();
+		ddr_read_dq_calibration();
 
 
 #if (DDR_WRITE_LEVELING_EN == 1)
