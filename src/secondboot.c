@@ -41,7 +41,7 @@ extern CBOOL iNANDBOOTEC(struct NX_SecondBootInfo *const pTBI);
 extern CBOOL iSDXCFSBOOT(struct NX_SecondBootInfo *const pTBI);
 extern void initClock(void);
 #ifdef MEM_TYPE_DDR3
-extern CBOOL init_DDR3(U32);
+extern CBOOL ddr3_initialize(U32);
 #endif
 #ifdef MEM_TYPE_LPDDR23
 extern CBOOL init_LPDDR3(U32);
@@ -241,15 +241,15 @@ void BootMain(U32 CPUID)
 	SYSMSG("\r\nDDR3 POR Init Start %d\r\n", isResume);
 #ifdef MEM_TYPE_DDR3
 #if 0
-	if (init_DDR3(isResume) == CFALSE)
-		init_DDR3(isResume);
+	if (ddr3_initialize(isResume) == CFALSE)
+		ddr3_initialize(isResume);
 #else
 	/*
 	 * DDR initialization fails, a temporary code
 	 * code for the defense.
 	 */
 	int ddr_retry = 0;
-	while (init_DDR3(0) == CFALSE) {
+	while (ddr3_initialize(0) == CFALSE) {
 		ddr_retry++;
 		if (ddr_retry > 3) {
 			printf("Memory Initialize Retry : %d \r\n", ddr_retry);
@@ -265,7 +265,7 @@ void BootMain(U32 CPUID)
 #endif
 
 	if (isResume)
-		exitSelfRefresh();
+		exit_self_refresh();
 
 	SYSMSG("DDR3 Init Done!\r\n");
 

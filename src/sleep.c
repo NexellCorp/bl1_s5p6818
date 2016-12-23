@@ -25,8 +25,8 @@ extern void DMC_Delay(int milisecond);
 extern U32 iget_fcs(U32 fcs, U32 data);
 extern U32 calc_crc(void *addr, int len);
 
-extern void enterSelfRefresh(void);
-extern void exitSelfRefresh(void);
+extern void enter_self_refresh(void);
+extern void exit_self_refresh(void);
 
 extern U32 g_WR_lvl;
 extern U32 g_GT_cycle;
@@ -204,11 +204,11 @@ void sleepMain(void)
 	printf("enter self refresh\r\n");
 	while (!serial_empty());
 	while (serial_busy());
-	enterSelfRefresh();
+	enter_self_refresh();
 
 	vddPowerOff();
 
-	exitSelfRefresh();
+	exit_self_refresh();
 	DMC_Delay(50);
 
 	SetIO32(&pReg_Tieoff->TIEOFFREG[76], (7 << 6)); //; Unlock Drex port
