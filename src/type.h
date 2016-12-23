@@ -53,5 +53,11 @@
 #define s16				short
 #define s32				int
 #define s64				long long
-#endif
 
+#define true				0
+#define false				-1
+
+#define TRUE				1
+#define FALSE				0
+
+#endif

@@ -122,12 +122,11 @@ void DMC_Delay(int milisecond);
 #include "pmic_mp8845.h"
 #endif
 
-extern void I2C_Init(U8 gpioGRP, U8 gpioSCL, U8 gpioSDA, U32 gpioSCLAlt, U32 gpioSDAAlt);
-// extern void	I2C_Deinit( void );
-extern CBOOL I2C_Read(U8 DeviceAddress, U8 RegisterAddress, U8 *pData,
-		      U32 Length);
-extern CBOOL I2C_Write(U8 DeviceAddress, U8 RegisterAddress, U8 *pData,
-		       U32 Length);
+/* External Function */
+extern void i2c_gpio_init(unsigned char gpio_grp, unsigned char gpio_scl,
+	unsigned char gpio_sda, unsigned int gpio_scl_alt, unsigned int gpio_sda_alt);
+extern  int i2c_gpio_read(char dev_addr, char reg_addr, char* pdata, int length);
+extern  int i2c_gpio_write(char dev_addr, char reg_addr, char* pdata, int length);
 
 #if (MP8845_PMIC_INIT == 1)
 static const U8 MP8845_mV_list[] = {
@@ -264,17 +263,17 @@ inline void PMIC_Drone(void)
 {
 	U8 pData[4];
 
-	I2C_Init(AXP_I2C_GPIO_GRP, AXP_I2C_SCL, AXP_I2C_SDA,
+	i2c_gpio_init(AXP_I2C_GPIO_GRP, AXP_I2C_SCL, AXP_I2C_SDA,
 			AXP_I2C_SCL_ALT, AXP_I2C_SDA_ALT);
 
-	I2C_Read(I2C_ADDR_AXP228, 0x80, pData, 1);
+	i2c_gpio_read(I2C_ADDR_AXP228, 0x80, pData, 1);
 	pData[0] = (pData[0] & 0x1F) | DCDC_SYS | DCDC_DDR;
-	I2C_Write(I2C_ADDR_AXP228, 0x80, pData, 1);
+	i2c_gpio_write(I2C_ADDR_AXP228, 0x80, pData, 1);
 
 	// Set bridge DCDC2 and DCDC3
-	I2C_Read(I2C_ADDR_AXP228, 0x37, pData, 1);
+	i2c_gpio_read(I2C_ADDR_AXP228, 0x37, pData, 1);
 	pData[0] |= 0x10;
-	I2C_Write(I2C_ADDR_AXP228, 0x37, pData, 1);
+	i2c_gpio_write(I2C_ADDR_AXP228, 0x37, pData, 1);
 
 //
 // ARM voltage change
@@ -283,17 +282,17 @@ inline void PMIC_Drone(void)
 	pData[0] = axp228_get_dcdc_step(
 	    AXP228_DEF_DDC2_VOL, AXP228_DEF_DDC234_VOL_STEP,
 	    AXP228_DEF_DDC234_VOL_MIN, AXP228_DEF_DDC24_VOL_MAX);
-	I2C_Write(I2C_ADDR_AXP228, AXP228_REG_DC2VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_AXP228, AXP228_REG_DC2VOL, pData, 1);
 #endif
 
 #if 0
 	// Set voltage of DCDC4.
 	pData[0] = axp228_get_dcdc_step(AXP228_DEF_DDC4_VOL, AXP228_DEF_DDC234_VOL_STEP, AXP228_DEF_DDC234_VOL_MIN, AXP228_DEF_DDC24_VOL_MAX);
-	I2C_Write(I2C_ADDR_AXP228, AXP228_REG_DC4VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_AXP228, AXP228_REG_DC4VOL, pData, 1);
 
 	// Set voltage of DCDC5.
 	pData[0] = axp228_get_dcdc_step(AXP228_DEF_DDC5_VOL, AXP228_DEF_DDC5_VOL_STEP, AXP228_DEF_DDC5_VOL_MIN, AXP228_DEF_DDC5_VOL_MAX);
-	I2C_Write(I2C_ADDR_AXP228, AXP228_REG_DC5VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_AXP228, AXP228_REG_DC5VOL, pData, 1);
 #endif
 }
 #endif // DRONE
@@ -306,21 +305,21 @@ inline void PMIC_AVN(void)
 
 	/* I2C init for CORE & NXE2000 power. */
 	/* GPIOD, SCL:6, SDA:7 */
-	I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
+	i2c_gpio_init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
 			NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
 
 	/* ARM voltage change */// 1.25V
 	pData[0] = nxe2000_get_dcdc_step(1250000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
 	/* Core voltage change */ // 1.2V
 	pData[0] = nxe2000_get_dcdc_step(1200000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData, 1);
 	/* DDR3 voltage change */ // 1.5V
 	pData[0] = nxe2000_get_dcdc_step(1500000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC4VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC4VOL, pData, 1);
 	/* DDR3 IO voltage change */ // 1.5V
 	pData[0] = nxe2000_get_dcdc_step(1500000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC5VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC5VOL, pData, 1);
 
 }
 #endif // AVN
@@ -335,20 +334,20 @@ inline void PMIC_BF700(void)
 	//
 	// I2C init for CORE power.
 	//
-	I2C_Init(MP8845_CORE_I2C_GPIO_GRP, MP8845_CORE_I2C_SCL, MP8845_CORE_I2C_SDA,
+	i2c_gpio_init(MP8845_CORE_I2C_GPIO_GRP, MP8845_CORE_I2C_SCL, MP8845_CORE_I2C_SDA,
 			 MP8845_CORE_I2C_SCL_ALT, MP8845_CORE_I2C_SDA_ALT);
 
 	// PFM -> PWM mode
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 	pData[0] |= 1 << 0;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 
 	//
 	// Core voltage change
 	//
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 	pData[0] |= 1 << 5;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 
 #if (AUTO_VOLTAGE_CONTROL == 1) && !defined(BF700_PMIC_INIT)
 	if (ecid_1) {
@@ -356,9 +355,9 @@ inline void PMIC_BF700(void)
 
 		pData[0] = MP8845_mV_list[asv_idx] | 1 << 7;
 		Data = pData[0];
-		I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+		i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 
-		I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+		i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 
 		if (Data != pData[0]) {
 			printf("verify arm voltage code write:%d, read:%d\r\n",
@@ -367,30 +366,30 @@ inline void PMIC_BF700(void)
 	}
 #else
 	pData[0] = 90 | 1 << 7; // 1.2V
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 #endif
 
 	//
 	// I2C init for ARM power.
 	//
-	I2C_Init(MP8845_ARM_I2C_GPIO_GRP, MP8845_ARM_I2C_SCL, MP8845_ARM_I2C_SDA,
+	i2c_gpio_init(MP8845_ARM_I2C_GPIO_GRP, MP8845_ARM_I2C_SCL, MP8845_ARM_I2C_SDA,
 			MP8845_ARM_I2C_SCL_ALT, MP8845_ARM_I2C_SDA_ALT);
 
 	// PFM -> PWM mode
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 	pData[0] |= 1 << 0;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 
 //
 // ARM voltage change
 //
 #if (ARM_VOLTAGE_CONTROL_SKIP == 0)
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 	pData[0] |= 1 << 5;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 
 	pData[0] = 90 | 1 << 7; // 1.2V
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 #endif
 }
 #endif	// BF700
@@ -403,29 +402,29 @@ inline void PMIC_SVT(void)
 	//
 	// I2C init for CORE & NXE2000 power.
 	//
-	I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
+	i2c_gpio_init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
 			NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
 
 	// PFM -> PWM mode
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 	pData[0] |= 1 << 0;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 
 //
 // Core voltage change
 //
 #if 1
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 	pData[0] |= 1 << 5;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 
 	//    pData[0] = 90 | 1<<7;   // 90: 1.2V
 	//    pData[0] = 80 | 1<<7;   // 80: 1.135V
 	pData[0] = 75 | 1 << 7; // 75: 1.1V
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 #else
 	pData[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC2_VOL);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData,
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData,
 		  1); // Core - second power
 #endif
 
@@ -434,14 +433,14 @@ inline void PMIC_SVT(void)
 //
 #if (ARM_VOLTAGE_CONTROL_SKIP == 0)
 	pData[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC1_VOL);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
 #endif
 
 	pData[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC4_VOL);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC4VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC4VOL, pData, 1);
 
 	//    pData[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC5_VOL);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC5VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC5VOL, pData, 1);
 }
 #endif // SVT
 
@@ -458,20 +457,20 @@ inline void PMIC_ASB(void)
 	//
 	// I2C init for Core power.
 	//
-	I2C_Init(MP8845_I2C_GPIO_GRP, MP8845_I2C_SCL, MP8845_I2C_SDA,
+	i2c_gpio_init(MP8845_I2C_GPIO_GRP, MP8845_I2C_SCL, MP8845_I2C_SDA,
 			MP8845_I2C_SCL_ALT, MP8845_I2C_SDA_ALT);
 
 	// PFM -> PWM mode
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 	pData[0] |= 1 << 0;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 
 	//
 	// Core voltage change
 	//
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 	pData[0] |= 1 << 5;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL2, pData, 1);
 
 #if (AUTO_VOLTAGE_CONTROL == 1)
 	if (ecid_1) {
@@ -479,9 +478,9 @@ inline void PMIC_ASB(void)
 
 		pData[0] = MP8845_mV_list[asv_idx] | 1 << 7;
 		Data = pData[0];
-		I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+		i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 
-		I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+		i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 
 		if (Data != pData[0]) {
 			printf("verify arm voltage code write:%d, read:%d\r\n",
@@ -492,18 +491,18 @@ inline void PMIC_ASB(void)
 	//    pData[0] = 90 | 1<<7;   // 90: 1.2V
 	//    pData[0] = 80 | 1<<7;   // 80: 1.135V
 	pData[0] = 75 | 1 << 7; // 75: 1.1V
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 #endif
 
 	//
 	// I2C init for ARM & NXE2000 power.
 	//
-	I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA);
+	i2c_gpio_init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA);
 
 	// PFM -> PWM mode
-	I2C_Read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_read(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 	pData[0] |= 1 << 0;
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_SYSCNTL1, pData, 1);
 
 //
 // ARM voltage change
@@ -513,16 +512,16 @@ inline void PMIC_ASB(void)
 	//    pData[0] = 90 | 1<<7;   // 90: 1.2V
 	//    pData[0] = 80 | 1<<7;   // 80: 1.135V
 	pData[0] = 75 | 1 << 7; // 75: 1.1V
-	I2C_Write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_MP8845, MP8845C_REG_VSEL, pData, 1);
 #else
 	pData[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC1_VOL);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
 #endif
 #endif
 
 	//    pData[0] = nxe2000_get_dcdc_step(vdd_tb->mV * 1000);
 	pData[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC2_VOL);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData,
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData,
 		  1); // Core - second power
 }
 #endif // ASB
@@ -541,11 +540,11 @@ void PMIC_RAPTOR(void)
 	if (board_rev >= 0x2) {
 		/* I2C init for CORE & NXE2000 power. */
 		/* GPIOC, SCL:15(ALT1), SDA:16(ALT1) */
-		I2C_Init(2, 15, 16, 1, 1);
+		i2c_gpio_init(2, 15, 16, 1, 1);
 	} else {
 		/* I2C init for CORE & NXE2000 power. */
 		/* GPIOD, SCL:6, SDA:7 */
-		I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
+		i2c_gpio_init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
 				NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
 	}
 
@@ -553,16 +552,16 @@ void PMIC_RAPTOR(void)
 
 	/* ARM voltage change */// 1.25V
 	pData[0] = nxe2000_get_dcdc_step(1250000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC1VOL, pData, 1);
 	/* Core voltage change */ // 1.2V
 	pData[0] = nxe2000_get_dcdc_step(1200000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC2VOL, pData, 1);
 	/* DDR3 voltage change */ // 1.5
 	pData[0] = nxe2000_get_dcdc_step(1500000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC4VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC4VOL, pData, 1);
 	/* DDR3 IO voltage change */
 	pData[0] = nxe2000_get_dcdc_step(1500000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_DC5VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_DC5VOL, pData, 1);
 
 	/*
 	 * Raptor Board Rev0X
@@ -571,7 +570,7 @@ void PMIC_RAPTOR(void)
 	 */
 	/* LDO7 IO voltage change*/ // 3.3V
 	pData[0] = nxe2000_get_ldo7_step(3300000);
-	I2C_Write(I2C_ADDR_NXE2000, NXE2000_REG_LDO7VOL, pData, 1);
+	i2c_gpio_write(I2C_ADDR_NXE2000, NXE2000_REG_LDO7VOL, pData, 1);
 }
 #endif // RAPTOR
 

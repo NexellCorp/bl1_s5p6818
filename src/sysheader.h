@@ -53,8 +53,10 @@
 
 #include "secondboot.h"
 #include <clkgen.h>
-#include <printf.h>
+#include <gpio.h>
+
 #include <serial.h>
+#include <printf.h>
 
 #if defined(SYSLOG_ON)
 #define SYSMSG printf
