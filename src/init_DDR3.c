@@ -1006,157 +1006,129 @@ ca_error_ret:
 }
 #endif // #if (DDR_CA_CALIB_EN == 1)
 
-#if (DDR_GATE_LEVELING_EN == 1)
-CBOOL DDR_Gate_Leveling(void)
+#if ((DDR_GATE_LEVELING_EN == 1) && (MEM_CALIBRATION_INFO == 1))
+void gate_leveling_information(void)
 {
-#if defined(MEM_TYPE_DDR3)
-	union SDRAM_MR MR;
+	unsigned int slice, max_slice = 4;
+	unsigned int status, gate_center[4], gate_cycle[4], lock_value;
+
+	status = mmio_read_32(&pReg_DDRPHY->CAL_FAIL_STAT[0]);
+	g_GT_code = mmio_read_32(&pReg_DDRPHY->CAL_GT_VWMC[0]);
+	for(slice = 0; slice < max_slice; slice++)
+		gate_center[slice] = g_GT_code >> (slice*8) & 0xFF;
+
+	g_GT_cycle = mmio_read_32(&pReg_DDRPHY->CAL_GT_CYC);
+	for(slice = 0; slice < max_slice; slice++)
+		gate_cycle[slice] = g_GT_cycle >> (slice*3) & 0x7;
+
+	lock_value = (mmio_read_32(&pReg_DDRPHY->MDLL_CON[1]) >> 8) & 0x1FF;
+
+	MEMMSG("\r\n####### Gate Leveling - Information #######\r\n");
+
+	MEMMSG("Gate Leveling %s!! \r\n", status ? "Failed" : "Success");
+	MEMMSG("Gate Level Center    : %2d, %2d, %2d, %2d\r\n",
+		gate_center[0], gate_center[1], gate_center[2], gate_center[3]);
+	MEMMSG("Gate Level Cycle     : %d, %d, %d, %d\r\n",
+		gate_cycle[0], gate_cycle[1], gate_cycle[2], gate_cycle[3]);
+	MEMMSG("Gate Delay           : %d, %d, %d, %d\r\n",
+		(gate_cycle[0])*lock_value + gate_center[0],
+		(gate_cycle[1])*lock_value + gate_center[1],
+		(gate_cycle[2])*lock_value + gate_center[2],
+		(gate_cycle[3])*lock_value + gate_center[3]);
+	MEMMSG("###########################################\r\n");
+}
 #endif
-	volatile U32 cal_count = 0;
-	U32 temp;
-	CBOOL ret = CTRUE;
+
+#if (DDR_GATE_LEVELING_EN == 1)
+/*************************************************************
+ * Must be S5P6818
+ * Gate Leveling sequence in S5P6818
+ * must go through the following steps:
+ *
+ * Step 01. Send ALL Precharge command.
+ * Step 02. Set the Memory in MPR Mode (MR3:A2=1)
+ * Step 03. Set the Gate Leveling Mode.
+ *	    -> Enable "gate_cal_mode" in PHY_CON2[24]
+ *	    -> Enable "ctrl_shgate" in PHY_CON0[8]
+ *	    -> Set "ctrl_gateduradj[3:0] (=PHY_CON1[23:20]) (DDR3: 4'b0000")
+ * Step 04. Waiting for Response.
+ *	    -> Wait until "rd_wr_cal_resp"(=PHYT_CON3[26])
+ * Step 05.  End the Gate Leveling
+ *	     -> Disable "gate_lvl_start(=PHY_CON3[18]"
+ *	         after "rd_wr_cal_resp"(=PHY_CON3)is disabled.
+ * Step 06. Disable DQS Pull Down Mode.
+ *	     -> Set the "ctrl_pulld_dqs[8:0] = 0"
+ * Step 07. Step 07. Disable the Memory in MPR Mode (MR3:A2=0)
+ *************************************************************/
+int ddr_gate_leveling(void)
+{
+	union SDRAM_MR MR;
+
+	volatile int cal_count = 0;
+	volatile int status, response;
+	int ret = 0;
 
 	MEMMSG("\r\n########## Gate Leveling - Start ##########\r\n");
 
-#if 1
-	SendDirectCommand(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
+	/* Step 01. Send ALL Precharge command. */
+	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
 #if (CFG_NSIH_EN == 0)
 #if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
+	send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
 #endif
 #else
 	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
+		send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
 				  CNULL);
 #endif
-#endif
 
-#if defined(MEM_TYPE_DDR3)
-	/* Set MPR mode enable */
+	/* Step 02. Set the Memory in MPR Mode (MR3:A2=1) */
 	MR.Reg = 0;
 	MR.MR3.MPR = 1;
+	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR.Reg);
 
-	SendDirectCommand(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR.Reg);
-#endif
-#else
-	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR.Reg);
-#endif
-#endif // #if defined(MEM_TYPE_DDR3)
+	/* Step 03. Set the Gate Leveling Mode. */
+	/* Step 03-1. Enable "gate_cal_mode" in PHY_CON2[24] */
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[2], (0x1 << 24));			// gate_cal_mode[24] = 1
+	/* Step 03-2. Enable "ctrl_shgate" in PHY_CON0[8] */
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[0], (0x5 <<  6));			// ctrl_shgate[8]=1, ctrl_atgate[6]=1
+	/* Step 03-3. Set "ctrl_gateduradj[3:0] (=PHY_CON1[23:20]) (DDR3: 4'b0000") */
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[1], (0xF << 20));			// ctrl_gateduradj[23:20] = DDR3: 0x0, LPDDR3: 0xB, LPDDR2: 0x9
 
-	SetIO32(&pReg_DDRPHY->PHY_CON[2], (0x1 << 24)); // gate_cal_mode[24] = 1
-	SetIO32(&pReg_DDRPHY->PHY_CON[0],
-		(0x5 << 6)); // ctrl_shgate[8]=1, ctrl_atgate[6]=1
-	ClearIO32(&pReg_DDRPHY->PHY_CON[1],
-		  (0xF << 20)); // ctrl_gateduradj[23:20] = DDR3: 0x0, LPDDR3:
-				// 0xB, LPDDR2: 0x9
-
-	WriteIO32(&pReg_DDRPHY->PHY_CON[3],
-		  (0x1 << 18)); // gate_lvl_start[18] = 1
-	//    SetIO32  ( &pReg_DDRPHY->PHY_CON[3],        (0x1    <<  18) );
-	//    // gate_lvl_start[18] = 1
-
+	/* Step 04. Wait for Response */
+	mmio_write_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 18));			// gate_lvl_start[18] = 1
 	for (cal_count = 0; cal_count < 100; cal_count++) {
-		temp = ReadIO32(&pReg_DDRPHY->PHY_CON[3]);
-		if (temp & (0x1 << 26)) // rd_wr_cal_resp[26] : Wating until
-					// GATE calibration is complete
-		{
+		response = mmio_read_32(&pReg_DDRPHY->PHY_CON[3]);
+		if (response & (0x1 << 26))
 			break;
-		}
-
 		DMC_Delay(100);
 	}
-
-	//    WriteIO32( &pReg_DDRPHY->PHY_CON[3],        0x0 );
-	//    // gate_lvl_start[18]=0 : Stopping it after completion of GATE
-	//    leveling.
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3],
-		  (0x1 << 18)); // gate_lvl_start[18]=0 : Stopping it after
-				// completion of GATE leveling.
-
-	//------------------------------------------------------------------------------------------------------------------------
-
+	/* Step 05. End the Gate Leveling */
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 18));			// gate_lvl_start[18]=0 : Stopping it after completion of GATE leveling.
 	if (cal_count == 100) {
-		MEMMSG("GATE: Calibration Responese Checking : fail...!!!\r\n");
-
-		ret = CFALSE; // Failure Case
+		MEMMSG("Gate: Calibration Responese Checking : fail...!!!\r\n");
+		ret = -1; // Failure Case
 		goto gate_err_ret;
 	}
+	g_GT_code = mmio_read_32(&pReg_DDRPHY->CAL_GT_VWMC[0]);
+	g_GT_cycle = mmio_read_32(&pReg_DDRPHY->CAL_GT_CYC);
 
-	//------------------------------------------------------------------------------------------------------------------------
-
-	g_GT_code = ReadIO32(&pReg_DDRPHY->CAL_GT_VWMC[0]);
-	g_GT_cycle = ReadIO32(&pReg_DDRPHY->CAL_GT_CYC);
-	//    g_GT_cycle  = ReadIO32( &pReg_DDRPHY->CAL_GT_CYC ) + 0x492;
-
-	//    MEMMSG("CAL_FAIL_STAT0  = 0x%08x\r\n",
-	//    ReadIO32(&pReg_DDRPHY->CAL_FAIL_STAT[0]) );
-
-	//    MEMMSG("GT VWMC0 = 0x%08X\r\n",
-	//    ReadIO32(&pReg_DDRPHY->CAL_GT_VWMC[0]) );
-
-
-#if MEM_CALIBRAION_INFO
-	volatile U32 failstat, gatelcenter, gatecycle, lockvalue;
-	union DWtoB lane;
-	failstat = ReadIO32(&pReg_DDRPHY->CAL_FAIL_STAT[0]);
-	lane.dw = ReadIO32(&pReg_DDRPHY->CAL_GT_VWMC[0]);
-	gatecycle = ReadIO32(&pReg_DDRPHY->CAL_GT_CYC);
-	lockvalue = (ReadIO32(&pReg_DDRPHY->MDLL_CON[1]) >> 8) & 0x1FF;
-	
-	MEMMSG("gate leveling status : 0x%08X\r\n", failstat);
-	MEMMSG("gate level center %2d, %2d, %2d, %2d\r\n", lane.b[0], lane.b[1], lane.b[2], lane.b[3]);
-	MEMMSG("gate level cycle %d, %d, %d, %d\r\n",
-		(gatecycle>>0)&0x7,
-		(gatecycle>>3)&0x7,
-		(gatecycle>>6)&0x7,
-		(gatecycle>>9)&0x7
-	);
-	MEMMSG("gate delay %d, %d, %d, %d\r\n",
-		((gatecycle>>0)&0x7)*lockvalue+lane.b[0],
-		((gatecycle>>3)&0x7)*lockvalue+lane.b[1],
-		((gatecycle>>6)&0x7)*lockvalue+lane.b[2],
-		((gatecycle>>9)&0x7)*lockvalue+lane.b[3]
-	);
+#if (MEM_CALIBRATION_INFO == 1)
+	gate_leveling_information();
 #endif
 
 gate_err_ret:
+	/* Step 06. Set the PHY for dqs pull down mode (Disable) */
+	mmio_write_32(&pReg_DDRPHY->LP_CON, 0x0);				// ctrl_pulld_dqs[8:0] = 0
 
-#if 0
-    SetIO32  ( &pReg_DDRPHY->OFFSETD_CON,       (0x1    <<  24) );          // ctrl_resync[24]=0x1 (HIGH)
-    ClearIO32( &pReg_DDRPHY->OFFSETD_CON,       (0x1    <<  24) );          // ctrl_resync[24]=0x0 (LOW)
-#if 0
-    SetIO32  ( &pReg_Drex->PHYCONTROL,          (0x1    <<   3) );          // Force DLL Resyncronization
-    ClearIO32( &pReg_Drex->PHYCONTROL,          (0x1    <<   3) );          // Force DLL Resyncronization
-#endif
-#endif
-
-	WriteIO32(&pReg_DDRPHY->LP_CON, 0x0); // ctrl_pulld_dqs[8:0] = 0
-	ClearIO32(&pReg_DDRPHY->RODT_CON, (0x1 << 16)); // ctrl_read_dis[16] = 0
-
-#if defined(MEM_TYPE_DDR3)
-	/* Set MPR mode disable */
+	/* Step 07. Disable the Memory in MPR Mode (MR3:A2=0) */
 	MR.Reg = 0;
-
-	SendDirectCommand(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR.Reg);
-#endif
-#else
-	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR.Reg);
-#endif
-#endif // #if defined(MEM_TYPE_DDR3)
+	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR.Reg);
 
 	MEMMSG("\r\n########## Gate Leveling - End ##########\r\n");
 
-	//    if ( pSBI->FlyBy_Mode && (g_GT_code == 0x08080808) )
 	if (g_GT_code == 0x08080808)
-		ret = CFALSE;
+		ret = -1;
 
 	return ret;
 }
@@ -2483,7 +2455,7 @@ CBOOL init_DDR3(U32 isResume)
 
 	/* DDR Controller Calibration*/
 	if (pSBI->LvlTr_Mode & LVLTR_GT_LVL) {
-		if (DDR_Gate_Leveling() == CFALSE)
+		if (ddr_gate_leveling() == CFALSE)
 			return CFALSE;
 	}
 	
