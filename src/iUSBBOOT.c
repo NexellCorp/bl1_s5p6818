@@ -61,24 +61,24 @@ static U8 __attribute__((aligned(4))) gs_DeviceDescriptorFS[DEVICE_DESCRIPTOR_SI
 
 static U8 __attribute__((aligned(4))) gs_DeviceDescriptorHS[DEVICE_DESCRIPTOR_SIZE] =
 {
-    18,						//  0 desc size
-    (U8)(DESCRIPTORTYPE_DEVICE),		//  1 desc type (DEVICE)
-    (U8)(HIGH_USB_VER % 0x100),			//  2 USB release
-    (U8)(HIGH_USB_VER / 0x100),			//  3 => 1.00
-    0xFF,					//  4 class
-    0xFF,					//  5 subclass
-    0xFF,					//  6 protocol
-    (U8)HIGH_MAX_PKT_SIZE_EP0,			//  7 max pack size
-    (U8)(VENDORID    % 0x100),			//  8 vendor ID LSB
-    (U8)(VENDORID    / 0x100),			//  9 vendor ID MSB
-    (U8)(PRODUCTID % 0x100),			// 10 product ID LSB    (second product)
-    (U8)(PRODUCTID / 0x100),			// 11 product ID MSB
-    0x00,					// 12 device release LSB
-    0x00,					// 13 device release MSB
-    0x00,					// 14 manufacturer string desc index
-    0x00,					// 15 product string desc index
-    0x00,					// 16 serial num string desc index
-    0x01					// 17 num of possible configurations
+    18,                             //  0 desc size
+    (U8)(DESCRIPTORTYPE_DEVICE),    //  1 desc type (DEVICE)
+    (U8)(HIGH_USB_VER % 0x100),     //  2 USB release
+    (U8)(HIGH_USB_VER / 0x100),     //  3 => 1.00
+    0xFF,                           //  4 class
+    0xFF,                           //  5 subclass
+    0xFF,                           //  6 protocol
+    (U8)HIGH_MAX_PKT_SIZE_EP0,      //  7 max pack size
+    (U8)(VENDORID    % 0x100),      //  8 vendor ID LSB
+    (U8)(VENDORID    / 0x100),      //  9 vendor ID MSB
+    (U8)(PRODUCTID % 0x100),        // 10 product ID LSB    (second product)
+    (U8)(PRODUCTID / 0x100),        // 11 product ID MSB
+    0x00,                           // 12 device release LSB
+    0x00,                           // 13 device release MSB
+    0x00,                           // 14 manufacturer string desc index
+    0x00,                           // 15 product string desc index
+    0x00,                           // 16 serial num string desc index
+    0x01                            // 17 num of possible configurations
 };
 
 static const U8 __attribute__((aligned(4)))

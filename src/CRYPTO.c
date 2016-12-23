@@ -93,15 +93,11 @@ void aes_gen_tables(void)
 	for (i = 1; i < 256; i++) {
 		x = pow[255 - log[i]];
 
-		y = x;
-		y = (y << 1) | (y >> 7);
-		x ^= y;
-		y = (y << 1) | (y >> 7);
-		x ^= y;
-		y = (y << 1) | (y >> 7);
-		x ^= y;
-		y = (y << 1) | (y >> 7);
-		x ^= y ^ 0x63;
+        y = x;  y = ( y << 1 ) | ( y >> 7 );
+        x ^= y; y = ( y << 1 ) | ( y >> 7 );
+        x ^= y; y = ( y << 1 ) | ( y >> 7 );
+        x ^= y; y = ( y << 1 ) | ( y >> 7 );
+        x ^= y ^ 0x63;
 
 		FSb[i] = x;
 		RSb[x] = i;
@@ -137,19 +133,21 @@ void aes_gen_tables(void)
 
 /* platform-independant 32-bit integer manipulation macros */
 
-#define GET_UINT32(n, b, i)                                                    \
-	{                                                                      \
-		(n) = ((U32)(b)[(i)] << 24) | ((U32)(b)[(i) + 1] << 16) |      \
-		      ((U32)(b)[(i) + 2] << 8) | ((U32)(b)[(i) + 3]);          \
-	}
+#define GET_UINT32(n,b,i)                       \
+{                                               \
+    (n) = ( (U32) (b)[(i)    ] << 24 )       \
+        | ( (U32) (b)[(i) + 1] << 16 )       \
+        | ( (U32) (b)[(i) + 2] <<  8 )       \
+        | ( (U32) (b)[(i) + 3]       );      \
+}
 
-#define PUT_UINT32(n, b, i)                                                    \
-	{                                                                      \
-		(b)[(i)] = (U8)((n) >> 24);                                    \
-		(b)[(i) + 1] = (U8)((n) >> 16);                                \
-		(b)[(i) + 2] = (U8)((n) >> 8);                                 \
-		(b)[(i) + 3] = (U8)((n));                                      \
-	}
+#define PUT_UINT32(n,b,i)                       \
+{                                               \
+    (b)[(i)    ] = (U8) ( (n) >> 24 );       \
+    (b)[(i) + 1] = (U8) ( (n) >> 16 );       \
+    (b)[(i) + 2] = (U8) ( (n) >>  8 );       \
+    (b)[(i) + 3] = (U8) ( (n)       );       \
+}
 
 /* decryption key schedule tables */
 
@@ -215,22 +213,26 @@ int aes_set_key(U8 *key, int nbits)
 	for (i = 1; i < nr; i++) {
 		RK -= 8;
 
-		*SK++ = KT0[(U8)(*RK >> 24)] ^ KT1[(U8)(*RK >> 16)] ^
-			KT2[(U8)(*RK >> 8)] ^ KT3[(U8)(*RK)];
-		RK++;
+        *SK++ = KT0[ (U8) ( *RK >> 24 ) ] ^
+                KT1[ (U8) ( *RK >> 16 ) ] ^
+                KT2[ (U8) ( *RK >>  8 ) ] ^
+                KT3[ (U8) ( *RK       ) ]; RK++;
 
-		*SK++ = KT0[(U8)(*RK >> 24)] ^ KT1[(U8)(*RK >> 16)] ^
-			KT2[(U8)(*RK >> 8)] ^ KT3[(U8)(*RK)];
-		RK++;
+        *SK++ = KT0[ (U8) ( *RK >> 24 ) ] ^
+                KT1[ (U8) ( *RK >> 16 ) ] ^
+                KT2[ (U8) ( *RK >>  8 ) ] ^
+                KT3[ (U8) ( *RK       ) ]; RK++;
 
-		*SK++ = KT0[(U8)(*RK >> 24)] ^ KT1[(U8)(*RK >> 16)] ^
-			KT2[(U8)(*RK >> 8)] ^ KT3[(U8)(*RK)];
-		RK++;
+        *SK++ = KT0[ (U8) ( *RK >> 24 ) ] ^
+                KT1[ (U8) ( *RK >> 16 ) ] ^
+                KT2[ (U8) ( *RK >>  8 ) ] ^
+                KT3[ (U8) ( *RK       ) ]; RK++;
 
-		*SK++ = KT0[(U8)(*RK >> 24)] ^ KT1[(U8)(*RK >> 16)] ^
-			KT2[(U8)(*RK >> 8)] ^ KT3[(U8)(*RK)];
-		RK++;
-	}
+        *SK++ = KT0[ (U8) ( *RK >> 24 ) ] ^
+                KT1[ (U8) ( *RK >> 16 ) ] ^
+                KT2[ (U8) ( *RK >>  8 ) ] ^
+                KT3[ (U8) ( *RK       ) ]; RK++;
+    }
 
 	RK -= 8;
 
@@ -250,31 +252,35 @@ void aes_decrypt(U8 input[16], U8 output[16])
 
 	RK = drk;
 
-	GET_UINT32(X0, input, 0);
-	X0 ^= RK[0];
-	GET_UINT32(X1, input, 4);
-	X1 ^= RK[1];
-	GET_UINT32(X2, input, 8);
-	X2 ^= RK[2];
-	GET_UINT32(X3, input, 12);
-	X3 ^= RK[3];
+    GET_UINT32( X0, input,  0 ); X0 ^= RK[0];
+    GET_UINT32( X1, input,  4 ); X1 ^= RK[1];
+    GET_UINT32( X2, input,  8 ); X2 ^= RK[2];
+    GET_UINT32( X3, input, 12 ); X3 ^= RK[3];
 
-#define AES_RROUND(X0, X1, X2, X3, Y0, Y1, Y2, Y3)                             \
-	{                                                                      \
-		RK += 4;                                                       \
-                                                                               \
-		X0 = RK[0] ^ RT0[(U8)(Y0 >> 24)] ^ RT1[(U8)(Y3 >> 16)] ^       \
-		     RT2[(U8)(Y2 >> 8)] ^ RT3[(U8)(Y1)];                       \
-                                                                               \
-		X1 = RK[1] ^ RT0[(U8)(Y1 >> 24)] ^ RT1[(U8)(Y0 >> 16)] ^       \
-		     RT2[(U8)(Y3 >> 8)] ^ RT3[(U8)(Y2)];                       \
-                                                                               \
-		X2 = RK[2] ^ RT0[(U8)(Y2 >> 24)] ^ RT1[(U8)(Y1 >> 16)] ^       \
-		     RT2[(U8)(Y0 >> 8)] ^ RT3[(U8)(Y3)];                       \
-                                                                               \
-		X3 = RK[3] ^ RT0[(U8)(Y3 >> 24)] ^ RT1[(U8)(Y2 >> 16)] ^       \
-		     RT2[(U8)(Y1 >> 8)] ^ RT3[(U8)(Y0)];                       \
-	}
+#define AES_RROUND(X0,X1,X2,X3,Y0,Y1,Y2,Y3)     \
+{                                               \
+    RK += 4;                                    \
+                                                \
+    X0 = RK[0] ^ RT0[ (U8) ( Y0 >> 24 ) ] ^  \
+                 RT1[ (U8) ( Y3 >> 16 ) ] ^  \
+                 RT2[ (U8) ( Y2 >>  8 ) ] ^  \
+                 RT3[ (U8) ( Y1       ) ];   \
+                                                \
+    X1 = RK[1] ^ RT0[ (U8) ( Y1 >> 24 ) ] ^  \
+                 RT1[ (U8) ( Y0 >> 16 ) ] ^  \
+                 RT2[ (U8) ( Y3 >>  8 ) ] ^  \
+                 RT3[ (U8) ( Y2       ) ];   \
+                                                \
+    X2 = RK[2] ^ RT0[ (U8) ( Y2 >> 24 ) ] ^  \
+                 RT1[ (U8) ( Y1 >> 16 ) ] ^  \
+                 RT2[ (U8) ( Y0 >>  8 ) ] ^  \
+                 RT3[ (U8) ( Y3       ) ];   \
+                                                \
+    X3 = RK[3] ^ RT0[ (U8) ( Y3 >> 24 ) ] ^  \
+                 RT1[ (U8) ( Y2 >> 16 ) ] ^  \
+                 RT2[ (U8) ( Y1 >>  8 ) ] ^  \
+                 RT3[ (U8) ( Y0       ) ];   \
+}
 
 	AES_RROUND(Y0, Y1, Y2, Y3, X0, X1, X2, X3); /* round 1 */
 	AES_RROUND(X0, X1, X2, X3, Y0, Y1, Y2, Y3); /* round 2 */
@@ -290,17 +296,25 @@ void aes_decrypt(U8 input[16], U8 output[16])
 
 	RK += 4;
 
-	X0 = RK[0] ^ (RSb[(U8)(Y0 >> 24)] << 24) ^ (RSb[(U8)(Y3 >> 16)] << 16) ^
-	     (RSb[(U8)(Y2 >> 8)] << 8) ^ (RSb[(U8)(Y1)]);
+    X0 = RK[0] ^ ( RSb[ (U8) ( Y0 >> 24 ) ] << 24 ) ^
+                 ( RSb[ (U8) ( Y3 >> 16 ) ] << 16 ) ^
+                 ( RSb[ (U8) ( Y2 >>  8 ) ] <<  8 ) ^
+                 ( RSb[ (U8) ( Y1       ) ]       );
 
-	X1 = RK[1] ^ (RSb[(U8)(Y1 >> 24)] << 24) ^ (RSb[(U8)(Y0 >> 16)] << 16) ^
-	     (RSb[(U8)(Y3 >> 8)] << 8) ^ (RSb[(U8)(Y2)]);
+    X1 = RK[1] ^ ( RSb[ (U8) ( Y1 >> 24 ) ] << 24 ) ^
+                 ( RSb[ (U8) ( Y0 >> 16 ) ] << 16 ) ^
+                 ( RSb[ (U8) ( Y3 >>  8 ) ] <<  8 ) ^
+                 ( RSb[ (U8) ( Y2       ) ]       );
 
-	X2 = RK[2] ^ (RSb[(U8)(Y2 >> 24)] << 24) ^ (RSb[(U8)(Y1 >> 16)] << 16) ^
-	     (RSb[(U8)(Y0 >> 8)] << 8) ^ (RSb[(U8)(Y3)]);
+    X2 = RK[2] ^ ( RSb[ (U8) ( Y2 >> 24 ) ] << 24 ) ^
+                 ( RSb[ (U8) ( Y1 >> 16 ) ] << 16 ) ^
+                 ( RSb[ (U8) ( Y0 >>  8 ) ] <<  8 ) ^
+                 ( RSb[ (U8) ( Y3       ) ]       );
 
-	X3 = RK[3] ^ (RSb[(U8)(Y3 >> 24)] << 24) ^ (RSb[(U8)(Y2 >> 16)] << 16) ^
-	     (RSb[(U8)(Y1 >> 8)] << 8) ^ (RSb[(U8)(Y0)]);
+    X3 = RK[3] ^ ( RSb[ (U8) ( Y3 >> 24 ) ] << 24 ) ^
+                 ( RSb[ (U8) ( Y2 >> 16 ) ] << 16 ) ^
+                 ( RSb[ (U8) ( Y1 >>  8 ) ] <<  8 ) ^
+                 ( RSb[ (U8) ( Y0       ) ]       );
 
 	PUT_UINT32(X0, output, 0);
 	PUT_UINT32(X1, output, 4);

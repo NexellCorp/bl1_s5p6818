@@ -337,26 +337,16 @@ static inline void SetTZPC(void)
 	U32 i, j;
 	union NX_TZPC_PROT *pProt = (union NX_TZPC_PROT *)Prot_bit;
 
-	for (i = 0; i < NX_TZPC_MODULE_NUMBER; i++) {
-		//		printf("i:%d, base:%X, size:%x\r\n", i,
-		//&pReg_TZPC[i]->R0SIZE, sizeof(struct NX_TZPC_RegisterSet));
-		WriteIO32(&pReg_TZPC[i]->R0SIZE,
-			  TZPC_R0SIZE[i]); // 1: 4KB, 2:8KB, ....
-		for (j = 0; j < NX_TZPC_PORT; j++) {
-			WriteIO32(&pReg_TZPC[i]->DETPROT[j].CLEAR,
-				  ~(pProt[i * NX_TZPC_PORT + j]
-					.ProtGroup)); // set all secure mode to
-						      // default
-			WriteIO32(&pReg_TZPC[i]->DETPROT[j].SET,
-				  pProt[i * NX_TZPC_PORT + j]
-				      .ProtGroup); // 0: secure, 1: non-secure
-						   //			WriteIO32(
-			//&pReg_TZPC[i]->DETPROT[j].SET, 0xFFFFFFFF);	// 0:
-			//secure, 1: non-secure
+	for(i = 0; i < NX_TZPC_MODULE_NUMBER; i++) {
+//		printf("i:%d, base:%X, size:%x\r\n", i, &pReg_TZPC[i]->R0SIZE, sizeof(struct NX_TZPC_RegisterSet));
+		WriteIO32( &pReg_TZPC[i]->R0SIZE, TZPC_R0SIZE[i]);		// 1: 4KB, 2:8KB, ....
+		for(j = 0; j < NX_TZPC_PORT; j++) {
+			WriteIO32( &pReg_TZPC[i]->DETPROT[j].CLEAR, ~(pProt[i*NX_TZPC_PORT+j].ProtGroup));		// set all secure mode to default
+			WriteIO32( &pReg_TZPC[i]->DETPROT[j].SET, pProt[i*NX_TZPC_PORT+j].ProtGroup);	// 0: secure, 1: non-secure
+//			WriteIO32( &pReg_TZPC[i]->DETPROT[j].SET, 0xFFFFFFFF);	// 0: secure, 1: non-secure
 		}
 	}
-	//	pReg_Tieoff->TIEOFFREG[26] = 0xFFFFFFFF;		// tzpc
-	//decprot mode set. 0:secure, 1:non-secure
+//	pReg_Tieoff->TIEOFFREG[26] = 0xFFFFFFFF;		// tzpc decprot mode set. 0:secure, 1:non-secure
 }
 
 static inline void SetTZASC(void)
@@ -365,25 +355,20 @@ static inline void SetTZASC(void)
 	struct NX_TZC380_RegisterSet *const pTZC380 =
 	    (struct NX_TZC380_RegisterSet *)PHY_BASEADDR_DREX_TZ_MODULE;
 
-	//	printf("address width %d, num of region:%d\r\n",
-	//((pTZC380->CONFIGURATION >>8)&0x3F)+1, (pTZC380->CONFIGURATION &
-	//0xF));
-	WriteIO32(&pTZC380->ACTION,
-		  NX_TZASC_REACTION_INTLOW_DECERR); // int low and DECERR
-						    // response so occur
-						    // exception
+//	printf("address width %d, num of region:%d\r\n", ((pTZC380->CONFIGURATION >>8)&0x3F)+1, (pTZC380->CONFIGURATION & 0xF));
+	WriteIO32( &pTZC380->ACTION, NX_TZASC_REACTION_INTLOW_DECERR);			// int low and DECERR response so occur exception
 
 	// region 0 is always cover all area to secure.
-	j = (ReadIO32(&pTZC380->CONFIGURATION) & 0xF) + 1;
-	for (i = 1; i < j; i++) {
-		WriteIO32(&pTZC380->RS[i].REGION_SETUP_HIGH, 0);
-		WriteIO32(&pTZC380->RS[i].REGION_SETUP_LOW, 0); // x40000000;
-		WriteIO32(&pTZC380->RS[i].REGION_ATTRIBUTES,
-			  ((0x0F << 28) | // secure r/w, non-secure r/w
-			   (0xFF << 8) |  // sub region x is enabled
-			   (0x20 << 1) |  // 2GB region
-			   (0x00 << 0) // enable for region 0: disable, 1:enable
-			   ));
+	j = (ReadIO32( &pTZC380->CONFIGURATION) & 0xF) + 1;
+	for(i = 1; i < j; i++) {
+		WriteIO32( &pTZC380->RS[i].REGION_SETUP_HIGH, 0);
+		WriteIO32( &pTZC380->RS[i].REGION_SETUP_LOW,  0);//x40000000;
+		WriteIO32( &pTZC380->RS[i].REGION_ATTRIBUTES,
+			((0x0F << 28) |			// secure r/w, non-secure r/w
+			(0xFF <<  8) |			// sub region x is enabled
+			(0x20 <<  1) |			// 2GB region
+			(0x00 <<  0)));			// enable for region 0: disable, 1:enable
+
 	}
 
 	/* Set TZASC region 1 as secure DRAM (from 0x7E000000, size 32MB) */
@@ -392,11 +377,9 @@ static inline void SetTZASC(void)
 	WriteIO32(&pTZC380->RS[1].REGION_ATTRIBUTES,
 		  ((0x0C << 28) | // Only secure r/w
 		   (0x200 << 4) |  // 32MB region (0x200 * 64KB)
-		   (0x01 << 0) // enable for region
-			));
+		   (0x01 <<  0))); // enable for region
 
-	WriteIO32(&pTZC380->SPECULATION_CONTROL,
-		  0); // 0: speculation is enabled. defalut
+	WriteIO32(&pTZC380->SPECULATION_CONTROL, 0); // 0: speculation is enabled. defalut
 }
 
 static inline void SetGIC_Master(void)
@@ -422,37 +405,23 @@ static inline void SetGIC_Master(void)
 		WriteIO32(&pReg_GIC400->GICD.IPRIORITYR[i * 8 + 5], 0x80808080);
 		WriteIO32(&pReg_GIC400->GICD.IPRIORITYR[i * 8 + 6], 0x80808080);
 		WriteIO32(&pReg_GIC400->GICD.IPRIORITYR[i * 8 + 7], 0x80808080);
-		WriteIO32(&pReg_GIC400->GICD.IGROUPR[i],
-			  0xFFFFFFFF); // set int group to non-secure	// 0:
-				       // to secure FIQ, 1: to non-secure IRQ
+		WriteIO32(&pReg_GIC400->GICD.IGROUPR[i], 0xFFFFFFFF);				// set int group to non-secur 0: to secure FIQ, 1: to non-secure IRQ
 		//		printf("GICD.IGROUPR[%d]:%X\r\n", i, ReadIO32(
 		//&pReg_GIC400->GICD.IGROUPR[i]));
 	}
-	//	WriteIO8( &pReg_GIC400->GICD.ITARGETSR[0], 0xFF);		//
-	//sgi target to all cpu
-	//	WriteIO8( &pReg_GIC400->GICD.IPRIORITYR[0], 0xFF);		//
-	//sgi target to all cpu
-	//	WriteIO32( &pReg_GIC400->GICC.NSAPR0, 0xFFFFFFFF);		//
-	//non-secure read/write access permitted
-	//	WriteIO32( &pReg_GIC400->GICD.NSACR[0], 0xFFFFFFFF);
-	//// non-secure read/write access permitted
-	//	WriteIO32( &pReg_GIC400->GICD.ICFGR[0], 0x0);		// 0:
-	//level, 1: edge
-
-	WriteIO32(&pReg_GIC400->GICD.CTLR,
-		  0x1 << 1 |     // enable group1	routed to non-secure IRQ by
-				 // GICC.CTLR.FIQEn
-		      0x1 << 0); // enable group0	routed to secure FIQ
+//	WriteIO8( &pReg_GIC400->GICD.ITARGETSR[0], 0xFF);		// sgi target to all cpu
+//	WriteIO8( &pReg_GIC400->GICD.IPRIORITYR[0], 0xFF);		// sgi target to all cpu
+//	WriteIO32( &pReg_GIC400->GICC.NSAPR0, 0xFFFFFFFF);		// non-secure read/write access permitted
+//	WriteIO32( &pReg_GIC400->GICD.NSACR[0], 0xFFFFFFFF);		// non-secure read/write access permitted
+//	WriteIO32( &pReg_GIC400->GICD.ICFGR[0], 0x0);		// 0: level, 1: edge
 #endif
 }
 
 inline void SetGIC_All(void)
 {
-	//	WriteIO32( &pReg_GIC400->GICC.PMR,	0x1<<7);	// all
-	//high priority
+//	WriteIO32( &pReg_GIC400->GICC.PMR,	0x1<<7);	// all high priority
 	WriteIO32(&pReg_GIC400->GICC.PMR, 0xFF); // all high priority
-	WriteIO32(
-	    &pReg_GIC400->GICC.CTLR,
+	WriteIO32(&pReg_GIC400->GICC.CTLR,
 	    0 << 10 |    // EOImodeNS
 		0 << 9 | // EOImodeS
 		1 << 8 | // IRQBypDisGrp1
@@ -487,10 +456,8 @@ inline void SetGIC_All(void)
 	WriteIO32(&pReg_GIC400->GICD.IGROUPR[0],
 		  0xFFFFFFFF); // banked, set int group to 1	// 0: to
 			       // secure FIQ, 1: to non-secure IRQ
-	//	WriteIO32( &pReg_GIC400->GICD.ISENABLER[0], 0xFF);		//
-	//enable SGI 0
-	//	WriteIO32( &pReg_GIC400->GICD.ICPENDR[0], 0xFF);		//
-	//clear pending
+//	WriteIO32( &pReg_GIC400->GICD.ISENABLER[0], 0xFF);		// enable SGI 0
+//	WriteIO32( &pReg_GIC400->GICD.ICPENDR[0], 0xFF);		// clear pending
 }
 
 void SetSecureState(void)

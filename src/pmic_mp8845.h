@@ -19,13 +19,13 @@
 #ifndef __PMIC_MP8845_H__
 #define __PMIC_MP8845_H__
 
-#define MP8845C_REG_VSEL 0x00
-#define MP8845C_REG_SYSCNTL1 0x01
-#define MP8845C_REG_SYSCNTL2 0x02
-#define MP8845C_REG_ID1 0x03
-#define MP8845C_REG_ID2 0x04
-#define MP8845C_REG_STATUS 0x05
+#define MP8845C_REG_VSEL                0x00
+#define MP8845C_REG_SYSCNTL1            0x01
+#define MP8845C_REG_SYSCNTL2            0x02
+#define MP8845C_REG_ID1                 0x03
+#define MP8845C_REG_ID2                 0x04
+#define MP8845C_REG_STATUS              0x05
 
-#define I2C_ADDR_MP8845 (0x38 >> 1) // SVT & ASB
+#define I2C_ADDR_MP8845                 (0x38 >> 1)  // SVT & ASB
 
-#endif // ifdef __PMIC_MP8845_H__
+#endif	// ifdef __PMIC_MP8845_H__

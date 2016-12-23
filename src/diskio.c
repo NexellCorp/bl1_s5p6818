@@ -48,8 +48,8 @@
 DSTATUS disk_initialize(U8 drv /* Physical drive nmuber (0..) */
 			)
 {
-	//	DSTATUS stat = RES_OK;
-	//	int result;
+//	DSTATUS stat = RES_OK;
+//	int result;
 
 	switch (drv) {
 	case MMC:
@@ -67,16 +67,16 @@ DSTATUS disk_initialize(U8 drv /* Physical drive nmuber (0..) */
 DSTATUS disk_status(U8 drv /* Physical drive nmuber (0..) */
 		    )
 {
-	//	DSTATUS stat;
-	//	int result;
+//	DSTATUS stat;
+//	int result;
 
 	switch (drv) {
-	case MMC:
-		//		result = MMC_disk_status();
+	case MMC :
+//		result = MMC_disk_status();
 		// translate the reslut code here
 
-		return RES_OK; // stat;
-		//		return STA_NOINIT;//stat;
+		return RES_OK;//stat;
+//		return STA_NOINIT;//stat;
 	}
 	return STA_NOINIT;
 }
@@ -97,8 +97,7 @@ DRESULT disk_read(U8 drv,     /* Physical drive nmuber (0..) */
 	case MMC:
 		//		result = MMC_disk_read(buff, sector, count);
 		// translate the reslut code here
-		NX_SDMMC_ReadSectors(pSDXCBootStatus, sector, count,
-				     (U32 *)buff);
+		NX_SDMMC_ReadSectors( pSDXCBootStatus, sector, count, (U32*)buff );
 #if 0
 {
 	U32 k;

@@ -57,49 +57,49 @@ struct NX_SDMMC_RegisterSet * const pgSDXCReg[3] =
 //------------------------------------------------------------------------------
 #if 1
 typedef struct {
-	U32 nPllNum;
-	U32 nFreqHz;
-	U32 nClkDiv;
-	U32 nClkGenDiv;
+    U32 nPllNum;
+    U32 nFreqHz;
+    U32 nClkDiv;
+    U32 nClkGenDiv;
 } NX_CLKINFO_SDMMC;
 
 CBOOL   NX_SDMMC_GetClkParam( NX_CLKINFO_SDMMC *pClkInfo )
 {
-	U32 srcFreq;
-	U32 nRetry = 1, nTemp = 0;
-	CBOOL   fRet = CFALSE;
+    U32 srcFreq;
+    U32 nRetry = 1, nTemp = 0;
+    CBOOL   fRet = CFALSE;
 
-	srcFreq = NX_CLKPWR_GetPLLFreq(pClkInfo->nPllNum);
+    srcFreq = NX_CLKPWR_GetPLLFreq(pClkInfo->nPllNum);
 
 retry_getparam:
-	for (pClkInfo->nClkDiv = 2; ; pClkInfo->nClkDiv += 2)
-	{
-		nTemp   = (pClkInfo->nFreqHz * pClkInfo->nClkDiv);
-		pClkInfo->nClkGenDiv  = getquotient(srcFreq, nTemp);      // (srcFreq / nTemp)
+    for (pClkInfo->nClkDiv = 2; ; pClkInfo->nClkDiv += 2)
+    {
+        nTemp   = (pClkInfo->nFreqHz * pClkInfo->nClkDiv);
+        pClkInfo->nClkGenDiv  = getquotient(srcFreq, nTemp);      // (srcFreq / nTemp)
 
-		if (srcFreq > (pClkInfo->nFreqHz * pClkInfo->nClkDiv))
-			pClkInfo->nClkGenDiv+=2;
+        if (srcFreq > (pClkInfo->nFreqHz * pClkInfo->nClkDiv))
+            pClkInfo->nClkGenDiv+=2;
 
-		if (pClkInfo->nClkGenDiv < 255)
-			break;
-	}
+        if (pClkInfo->nClkGenDiv < 255)
+            break;
+    }
 
-	nTemp = getquotient(srcFreq, (pClkInfo->nClkGenDiv * pClkInfo->nClkDiv));
-	if (nTemp <= pClkInfo->nFreqHz)
-	{
-		fRet = CTRUE;
-		goto exit_getparam;
-	}
+    nTemp = getquotient(srcFreq, (pClkInfo->nClkGenDiv * pClkInfo->nClkDiv));
+    if (nTemp <= pClkInfo->nFreqHz)
+    {
+        fRet = CTRUE;
+        goto exit_getparam;
+    }
 
-	if (nRetry)
-	{
-		nRetry--;
-		goto retry_getparam;
-	}
+    if (nRetry)
+    {
+        nRetry--;
+        goto retry_getparam;
+    }
 
 exit_getparam:
 
-	return fRet;
+    return fRet;
 }
 #endif
 
@@ -110,32 +110,32 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
 	volatile U32 timeout;
 	register struct NX_SDMMC_RegisterSet * const pSDXCReg = pgSDXCReg[pSDXCBootStatus->SDPort];
 	register struct NX_CLKGEN_RegisterSet * const pSDClkGenReg = pgSDClkGenReg[pSDXCBootStatus->SDPort];
-	NX_CLKINFO_SDMMC clkInfo;
-	CBOOL ret;
+    NX_CLKINFO_SDMMC clkInfo;
+    CBOOL ret;
 
-#if defined(VERBOSE)
+	#if defined(VERBOSE)
 	dev_msg("NX_SDMMC_SetClock : divider = %d\r\n", divider);
-#endif
+	#endif
 
-	//	NX_ASSERT( (1==divider) || (0==(divider&1)) );		// 1 or even number
-	//	NX_ASSERT( (0<divider) && (510>=divider) );			// between 1 and 510
+//	NX_ASSERT( (1==divider) || (0==(divider&1)) );		// 1 or even number
+//	NX_ASSERT( (0<divider) && (510>=divider) );			// between 1 and 510
 
 	//--------------------------------------------------------------------------
 	// 1. Confirm that no card is engaged in any transaction.
 	//	If there's a transaction, wait until it has been finished.
-	//	while( NX_SDXC_IsDataTransferBusy() );
-	//	while( NX_SDXC_IsCardDataBusy() );
+//	while( NX_SDXC_IsDataTransferBusy() );
+//	while( NX_SDXC_IsCardDataBusy() );
 
-#if defined(NX_DEBUG)
+	#if defined(NX_DEBUG)
 	if( pSDXCReg->STATUS & (NX_SDXC_STATUS_DATABUSY | NX_SDXC_STATUS_FSMBUSY) )
 	{
-#if defined(NX_DEBUG)
+		#if defined(NX_DEBUG)
 		if( pSDXCReg->STATUS & NX_SDXC_STATUS_DATABUSY )
 			dev_msg("NX_SDMMC_SetClock : ERROR - Data is busy\r\n" );
 
 		if( pSDXCReg->STATUS & NX_SDXC_STATUS_FSMBUSY )
 			dev_msg("NX_SDMMC_SetClock : ERROR - Data Transfer is busy\r\n" );
-#endif
+		#endif
 		//return CFALSE;
 		timeout = NX_SDMMC_TIMEOUT;
 		while(timeout--)
@@ -148,7 +148,7 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
 			INFINTE_LOOP();
 		}
 	}
-#endif
+	#endif
 
 	//--------------------------------------------------------------------------
 	// 2. Disable the output clock.
@@ -158,31 +158,31 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
 	pSDClkGenReg->CLKENB = NX_PCLKMODE_ALWAYS<<3 | NX_BCLKMODE_DYNAMIC<<0;
 #if 0
 	pSDClkGenReg->CLKGEN[0] = (pSDClkGenReg->CLKGEN[0] & ~(0x7<<2 | 0xFF<<5))
-		| (SDXC_CLKGENSRC<<2)				// set clock source
-		| ((divider-1)<<5)					// set clock divisor
-		| (0UL<<1);							// set clock invert
+								| (SDXC_CLKGENSRC<<2)				// set clock source
+								| ((divider-1)<<5)					// set clock divisor
+								| (0UL<<1);							// set clock invert
 #else
 
-	clkInfo.nPllNum = NX_CLKSRC_SDMMC;
-	clkInfo.nFreqHz = nFreq;
-	ret = NX_SDMMC_GetClkParam( &clkInfo );
-	if (ret == CTRUE)
-	{
-		pSDClkGenReg->CLKGEN[0] = (pSDClkGenReg->CLKGEN[0] & ~(0x7<<2 | 0xFF<<5))
-			| (clkInfo.nPllNum<<2)			// set clock source
-			| ((clkInfo.nClkGenDiv-1)<<5)	// set clock divisor
-			| (0UL<<1);						// set clock invert
+    clkInfo.nPllNum = NX_CLKSRC_SDMMC;
+    clkInfo.nFreqHz = nFreq;
+    ret = NX_SDMMC_GetClkParam( &clkInfo );
+    if (ret == CTRUE)
+    {
+    	pSDClkGenReg->CLKGEN[0] = (pSDClkGenReg->CLKGEN[0] & ~(0x7<<2 | 0xFF<<5))
+    								| (clkInfo.nPllNum<<2)			// set clock source
+    								| ((clkInfo.nClkGenDiv-1)<<5)	// set clock divisor
+    								| (0UL<<1);						// set clock invert
 
-		pSDXCReg->CLKDIV = (clkInfo.nClkDiv>>1);    //  2*n divider (0 : bypass)
-	}
+        pSDXCReg->CLKDIV = (clkInfo.nClkDiv>>1);    //  2*n divider (0 : bypass)
+    }
 #endif
 	pSDClkGenReg->CLKENB |= 0x1UL<<2;			// clock generation enable
 	pSDXCReg->CLKENA &= ~NX_SDXC_CLKENA_LOWPWR;	// normal power mode
 	//--------------------------------------------------------------------------
 	// 3. Program the clock divider as required.
-	//	pSDXCReg->CLKSRC = 0;	// prescaler 0
-	//	pSDXCReg->CLKDIV = SDXC_CLKDIV>>1;	//	2*n divider (0 : bypass)
-	//	pSDXCReg->CLKDIV = (divider>>1);	//	2*n divider (0 : bypass)
+//	pSDXCReg->CLKSRC = 0;	// prescaler 0
+//	pSDXCReg->CLKDIV = SDXC_CLKDIV>>1;	//	2*n divider (0 : bypass)
+//	pSDXCReg->CLKDIV = (divider>>1);	//	2*n divider (0 : bypass)
 
 	//--------------------------------------------------------------------------
 	// 4. Start a command with NX_SDXC_CMDFLAG_UPDATECLKONLY flag.
@@ -219,7 +219,7 @@ repeat_4 :
 	//--------------------------------------------------------------------------
 	// 7. Start a command with NX_SDXC_CMDFLAG_UPDATECLKONLY flag.
 repeat_7 :
-	//	pSDXCReg->CMD = 0 | NX_SDXC_CMDFLAG_STARTCMD | NX_SDXC_CMDFLAG_UPDATECLKONLY | NX_SDXC_CMDFLAG_WAITPRVDAT;
+//	pSDXCReg->CMD = 0 | NX_SDXC_CMDFLAG_STARTCMD | NX_SDXC_CMDFLAG_UPDATECLKONLY | NX_SDXC_CMDFLAG_WAITPRVDAT;
 	pSDXCReg->CMD = 0 | NX_SDXC_CMDFLAG_STARTCMD | NX_SDXC_CMDFLAG_UPDATECLKONLY | NX_SDXC_CMDFLAG_STOPABORT;
 
 	//--------------------------------------------------------------------------
@@ -256,9 +256,9 @@ static U32		NX_SDMMC_SendCommandInternal( SDXCBOOTSTATUS * pSDXCBootStatus, NX_S
 
 	NX_ASSERT( CNULL != pCommand );
 
-#ifdef VERBOSE
+	#ifdef VERBOSE
 	dev_msg("NX_SDMMC_SendCommandInternal : Command(0x%08X), Argument(0x%08X)\r\n", pCommand->cmdidx, pCommand->arg);
-#endif
+	#endif
 
 	cmd	= pCommand->cmdidx & 0xFF;
 	flag = pCommand->flag;
@@ -348,13 +348,13 @@ static U32		NX_SDMMC_SendCommandInternal( SDXCBOOTSTATUS * pSDXCBootStatus, NX_S
 
 End:
 
-#if defined(NX_DEBUG)
+	#if defined(NX_DEBUG)
 	if( NX_SDMMC_STATUS_NOERROR != status )
 	{
 		dev_msg("NX_SDMMC_SendCommandInternal Failed : command(0x%08X), argument(0x%08X) => status(0x%08X)\r\n",
-				pCommand->cmdidx, pCommand->arg, status);
+			pCommand->cmdidx, pCommand->arg, status);
 	}
-#endif
+	#endif
 
 	pCommand->status = status;
 
@@ -514,7 +514,7 @@ static CBOOL	NX_SDMMC_IdentifyCard( SDXCBOOTSTATUS * pSDXCBootStatus )
 	{
 		//----------------------------------------------------------------------
 		// SD memory card
-#define FAST_BOOT	(1<<29)
+		#define FAST_BOOT	(1<<29)
 
 		cmd.cmdidx	= SD_SEND_OP_COND;
 		cmd.arg		= (HCS | FAST_BOOT | 0x00FC0000);	// 3.0 ~ 3.6V
@@ -712,29 +712,29 @@ CBOOL	NX_SDMMC_Init( SDXCBOOTSTATUS * pSDXCBootStatus )
 	register struct NX_SDMMC_RegisterSet * const pSDXCReg = pgSDXCReg[pSDXCBootStatus->SDPort];
 	register struct NX_CLKGEN_RegisterSet * const pSDClkGenReg = pgSDClkGenReg[pSDXCBootStatus->SDPort];
 #if 1
-	NX_CLKINFO_SDMMC clkInfo;
-	CBOOL ret;
+    NX_CLKINFO_SDMMC clkInfo;
+    CBOOL ret;
 
-	clkInfo.nPllNum = NX_CLKSRC_SDMMC;
-	clkInfo.nFreqHz = 25000000;
+    clkInfo.nPllNum = NX_CLKSRC_SDMMC;
+    clkInfo.nFreqHz = 25000000;
 
-	ret = NX_SDMMC_GetClkParam( &clkInfo );
-	if (ret == CFALSE)
-		printf("get clock param faile.\r\n");
+    ret = NX_SDMMC_GetClkParam( &clkInfo );
+    if (ret == CFALSE)
+        printf("get clock param faile.\r\n");
 #endif
 
 	// CLKGEN
 	pSDClkGenReg->CLKENB = NX_PCLKMODE_ALWAYS<<3 | NX_BCLKMODE_DYNAMIC<<0;
 #if 0
 	pSDClkGenReg->CLKGEN[0] = (pSDClkGenReg->CLKGEN[0] & ~(0x7<<2 | 0xFF<<5))
-		| (SDXC_CLKGENSRC<<2)				// set clock source
-		| ((SDXC_CLKGENDIV-1)<<5)			// set clock divisor
-		| (0UL<<1);							// set clock invert
+								| (SDXC_CLKGENSRC<<2)				// set clock source
+								| ((SDXC_CLKGENDIV-1)<<5)			// set clock divisor
+								| (0UL<<1);							// set clock invert
 #else
 	pSDClkGenReg->CLKGEN[0] = (pSDClkGenReg->CLKGEN[0] & ~(0x7<<2 | 0xFF<<5))
-		| (clkInfo.nPllNum<<2)				// set clock source
-		| ((clkInfo.nClkGenDiv-1)<<5)		// set clock divisor
-		| (0UL<<1);							// set clock invert
+								| (clkInfo.nPllNum<<2)				// set clock source
+								| ((clkInfo.nClkGenDiv-1)<<5)		// set clock divisor
+								| (0UL<<1);							// set clock invert
 #endif
 	pSDClkGenReg->CLKENB |= 0x1UL<<2;			// clock generation enable
 
@@ -743,13 +743,13 @@ CBOOL	NX_SDMMC_Init( SDXCBOOTSTATUS * pSDXCBootStatus )
 
 	pSDXCReg->PWREN = 0<<0;	// Set Power Disable
 
-	//	pSDXCReg->UHS_REG |= 1<<0;		// for DDR mode
+//	pSDXCReg->UHS_REG |= 1<<0;		// for DDR mode
 
 	pSDXCReg->CLKENA = NX_SDXC_CLKENA_LOWPWR;	// low power mode & clock disable
 	pSDXCReg->CLKCTRL = 0<<24 |				// sample clock phase shift 0:0 1:90 2:180 3:270
-		2<<16 |				// drive clock phase shift 0:0 1:90 2:180 3:270
-		0<<8 |				// sample clock delay
-		0<<0;				// drive clock delay
+						2<<16 |				// drive clock phase shift 0:0 1:90 2:180 3:270
+						0<<8 |				// sample clock delay
+						0<<0;				// drive clock delay
 
 	pSDXCReg->CLKSRC = 0;	// prescaler 0
 #if 0
@@ -777,7 +777,7 @@ CBOOL	NX_SDMMC_Init( SDXCBOOTSTATUS * pSDXCBootStatus )
 
 	// Issue when RX FIFO Count >= 8 x 4 bytes & TX FIFO Count <= 8 x 4 bytes
 	pSDXCReg->FIFOTH = ((8-1)<<16) |		// Rx threshold
-		(8<<0);			// Tx threshold
+							(8<<0);			// Tx threshold
 
 	// Mask & Clear All interrupts
 	pSDXCReg->INTMASK = 0;
@@ -846,7 +846,7 @@ CBOOL	NX_SDMMC_Open( SDXCBOOTSTATUS * pSDXCBootStatus )//U32 option )
 //------------------------------------------------------------------------------
 CBOOL	NX_SDMMC_Close( SDXCBOOTSTATUS * pSDXCBootStatus )
 {
-	//	NX_SDMMC_SetClock( pSDXCBootStatus, CFALSE, SDXC_CLKGENDIV_400KHZ );
+//	NX_SDMMC_SetClock( pSDXCBootStatus, CFALSE, SDXC_CLKGENDIV_400KHZ );
 	NX_SDMMC_SetClock( pSDXCBootStatus, CFALSE, 400000 );
 	return CTRUE;
 }
@@ -865,7 +865,7 @@ static CBOOL	NX_SDMMC_ReadSectorData( SDXCBOOTSTATUS * pSDXCBootStatus, U32 numb
 	while( 0 < count )
 	{
 		if( (pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_RXDR)
-				|| (pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_DTO) )
+		 || (pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_DTO) )
 		{
 			U32 FSize, Timeout = NX_SDMMC_TIMEOUT;
 			while((pSDXCReg->STATUS & NX_SDXC_STATUS_FIFOEMPTY) && Timeout--);
@@ -885,7 +885,7 @@ static CBOOL	NX_SDMMC_ReadSectorData( SDXCBOOTSTATUS * pSDXCBootStatus, U32 numb
 		// Check Errors
 		if( pSDXCReg->RINTSTS & (NX_SDXC_RINTSTS_DRTO | NX_SDXC_RINTSTS_EBE | NX_SDXC_RINTSTS_SBE | NX_SDXC_RINTSTS_DCRC) )
 		{
-#if defined(NX_DEBUG)
+			#if defined(NX_DEBUG)
 			dev_msg("Read left = %d\r\n", count);
 
 			if( pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_DRTO )
@@ -896,7 +896,7 @@ static CBOOL	NX_SDMMC_ReadSectorData( SDXCBOOTSTATUS * pSDXCBootStatus, U32 numb
 				dev_msg("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_SBE\r\n");
 			if( pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_DCRC )
 				dev_msg("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_DCRC\r\n");
-#endif
+			#endif
 
 			return CFALSE;
 		}
@@ -910,13 +910,13 @@ static CBOOL	NX_SDMMC_ReadSectorData( SDXCBOOTSTATUS * pSDXCBootStatus, U32 numb
 			}
 		}
 
-#if defined(NX_DEBUG)
+		#if defined(NX_DEBUG)
 		if( pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_HTO )
 		{
 			dev_msg("ERROR : NX_SDMMC_ReadSectors - NX_SDXC_RINTSTS_HTO\r\n");
 			pSDXCReg->RINTSTS = NX_SDXC_RINTSTS_HTO;
 		}
-#endif
+		#endif
 
 		NX_ASSERT( 0 == (pSDXCReg->RINTSTS & NX_SDXC_RINTSTS_FRUN) );
 	}
@@ -965,13 +965,13 @@ CBOOL	NX_SDMMC_ReadSectors( SDXCBOOTSTATUS * pSDXCBootStatus, U32 SectorNum, U32
 	{
 		cmd.cmdidx	= READ_MULTIPLE_BLOCK;
 		cmd.flag	= NX_SDXC_CMDFLAG_STARTCMD | NX_SDXC_CMDFLAG_WAITPRVDAT | NX_SDXC_CMDFLAG_CHKRSPCRC | NX_SDXC_CMDFLAG_SHORTRSP
-			| NX_SDXC_CMDFLAG_BLOCK | NX_SDXC_CMDFLAG_RXDATA | NX_SDXC_CMDFLAG_SENDAUTOSTOP;
+					| NX_SDXC_CMDFLAG_BLOCK | NX_SDXC_CMDFLAG_RXDATA | NX_SDXC_CMDFLAG_SENDAUTOSTOP;
 	}
 	else
 	{
 		cmd.cmdidx	= READ_SINGLE_BLOCK;
 		cmd.flag	= NX_SDXC_CMDFLAG_STARTCMD | NX_SDXC_CMDFLAG_WAITPRVDAT | NX_SDXC_CMDFLAG_CHKRSPCRC | NX_SDXC_CMDFLAG_SHORTRSP
-			| NX_SDXC_CMDFLAG_BLOCK | NX_SDXC_CMDFLAG_RXDATA;
+					| NX_SDXC_CMDFLAG_BLOCK | NX_SDXC_CMDFLAG_RXDATA;
 	}
 	cmd.arg		= (pSDXCBootStatus->bHighCapacity) ? SectorNum : SectorNum*BLOCK_LENGTH;
 
@@ -994,7 +994,7 @@ CBOOL	NX_SDMMC_ReadSectors( SDXCBOOTSTATUS * pSDXCBootStatus, U32 SectorNum, U32
 
 			NX_ASSERT( 0 == (pSDXCReg->STATUS & NX_SDXC_STATUS_FSMBUSY) );
 
-#if defined(NX_DEBUG)
+			#if defined(NX_DEBUG)
 			// Get Auto-stop response and then check it.
 			response = pSDXCReg->RESP1;
 			if( response & 0xFDF98008 )
@@ -1002,7 +1002,7 @@ CBOOL	NX_SDMMC_ReadSectors( SDXCBOOTSTATUS * pSDXCBootStatus, U32 SectorNum, U32
 				dev_msg("ERROR : NX_SDMMC_ReadSectors - Auto Stop Response Failed = 0x%08X\r\n", response);
 				//goto End;
 			}
-#endif
+			#endif
 		}
 
 		result = CTRUE;

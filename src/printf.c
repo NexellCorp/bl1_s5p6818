@@ -49,7 +49,7 @@
 
 static void printchar(char **str, int c)
 {
-	extern void DebugPutch(S8 ch);
+	extern void	DebugPutch(S8 ch);
 
 	if (str) {
 		**str = c;
@@ -95,14 +95,11 @@ static int prints(char **out, const char *string, int width, int pad)
 	return pc;
 }
 
-#define PRINT_BUF_LEN                                                          \
-	22 // 0xFFFFFFFFFFFFFFFF = 18446 74407 37095 51615 + sign bit + last
-	   // '\0'
+#define PRINT_BUF_LEN 22	// 0xFFFFFFFFFFFFFFFF = 18446 74407 37095 51615 + sign bit + last '\0'
 //#define PRINT_BUF_LEN 12
 int getquotient(int, int);
 int getremainder(int, int);
-static int printi(char **out, int i, int b, int sg, int width, int pad,
-		  int letbase)
+static int printi(char **out, int i, int b, int sg, int width, int pad, int letbase)
 {
 	char print_buf[PRINT_BUF_LEN];
 	register char *s;
@@ -129,7 +126,7 @@ static int printi(char **out, int i, int b, int sg, int width, int pad,
 		if (t >= 10)
 			t += letbase - '0' - 10;
 		*--s = t + '0';
-		//		u /= b;
+//		u /= b;
 		u = getquotient(u, b);
 	}
 
@@ -177,30 +174,25 @@ static int print(char **out, const char *format, va_list args)
 				pc += prints(out, s ? s : "(null)", width, pad);
 				continue;
 			}
-			if (*format == 'd') {
-				pc += printi(out, va_arg(args, int), 10, 1,
-					     width, pad, 'a');
+			if( *format == 'd' ) {
+				pc += printi (out, va_arg( args, int ), 10, 1, width, pad, 'a');
 				continue;
 			}
-			if (*format == 'x') {
-				pc += printi(out, va_arg(args, int), 16, 0,
-					     width, pad, 'a');
+			if( *format == 'x' ) {
+				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'a');
 				continue;
 			}
-			if (*format == 'X') {
-				pc += printi(out, va_arg(args, int), 16, 0,
-					     width, pad, 'A');
+			if( *format == 'X' ) {
+				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'A');
 				continue;
 			}
-			if (*format == 'u') {
-				pc += printi(out, va_arg(args, int), 10, 0,
-					     width, pad, 'a');
+			if( *format == 'u' ) {
+				pc += printi (out, va_arg( args, int ), 10, 0, width, pad, 'a');
 				continue;
 			}
-			if (*format == 'c') {
-				/* char are converted to int then pushed on the
-				 * stack */
-				scr[0] = (char)va_arg(args, int);
+			if( *format == 'c' ) {
+				/* char are converted to int then pushed on the stack */
+				scr[0] = (char)va_arg( args, int );
 				scr[1] = '\0';
 				pc += prints(out, scr, width, pad);
 				continue;
