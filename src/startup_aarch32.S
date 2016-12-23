@@ -15,12 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <s5p6818.h>
 #include "nx_peridot.h"
-#include "cfgBootDefine.h"
 
-
-        .align 8
+	.align 8
+#if (SUPPORT_KERNEL_3_4 == 0)
 	.skip 0x200, 0x00
+#endif
+
 /*
  * start and end of BSS
  */

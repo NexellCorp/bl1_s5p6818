@@ -16,12 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "nx_peridot.h"
-#include "cfgBootDefine.h"
 
 #include "aarch64_Vectors.inc"
 
-        .align 9, 0    // 2^9 = 512 bytes sector size
+	.align 9, 0    // 2^9 = 512 bytes sector size
+#if (SUPPORT_KERNEL_3_4 == 0)
 	.skip 0x200, 0x00
+#endif
 
 /*
  * entry point of main function
