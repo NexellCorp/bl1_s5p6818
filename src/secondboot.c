@@ -23,8 +23,6 @@
 
 //#define SIMPLE_MEMTEST 			(1)
 
-#define EMA_VALUE (1) // Manual setting - 1: 1.1V, 3: 1.0V, 4: 0.95V
-
 extern void DMC_Delay(int milisecond);
 
 // extern void     flushICache(void);
@@ -164,37 +162,9 @@ void BootMain(U32 CPUID)
 	serial_ch = 3;
 #endif
 
-	//--------------------------------------------------------------------------
-	// Set EMA
-	//--------------------------------------------------------------------------
-
-	// Set EMA for CPU Cluster0
-	temp = ReadIO32(&pReg_Tieoff->TIEOFFREG[94]) &
-	       ~((0x7 << 23) | (0x7 << 17));
-	temp |= ((EMA_VALUE << 23) | (EMA_VALUE << 17));
-	WriteIO32(&pReg_Tieoff->TIEOFFREG[94], temp);
-
-	// Set EMA for CPU Cluster1
-	temp = ReadIO32(&pReg_Tieoff->TIEOFFREG[111]) &
-	       ~((0x7 << 23) | (0x7 << 17));
-	temp |= ((EMA_VALUE << 23) | (EMA_VALUE << 17));
-	WriteIO32(&pReg_Tieoff->TIEOFFREG[111], temp);
-
-	//--------------------------------------------------------------------------
-	// Set Affinity ID
-	//--------------------------------------------------------------------------
-#if (CONFIG_RESET_AFFINITY_ID == 1)
-	// Set Affinity level1 for CPU Cluster1
-	temp = ReadIO32(&pReg_Tieoff->TIEOFFREG[95]) & 0x00FFFFFF;
-	temp |= (1 << 24);
-	WriteIO32(&pReg_Tieoff->TIEOFFREG[95], temp);
-
-	// Set Affinity level2 for CPU Cluster1
-	temp = ReadIO32(&pReg_Tieoff->TIEOFFREG[96]) & 0xF0;
-	//    temp |= (1 << 0);
-	WriteIO32(&pReg_Tieoff->TIEOFFREG[96], temp);
-#endif
-
+	/* setp 01. set the ema for sram and instruction-cache */
+	cache_setup_ema();
+	
 #if 0	/* (early) low level - log message */
 	/* stepxx. serial console(uartX) initialize. */
 	serial_init(serial_ch);
@@ -240,12 +210,6 @@ void BootMain(U32 CPUID)
 #if defined(INITPMIC_YES)
 	initPMIC();
 #endif
-
-	SYSMSG("EMA is %s\r\n", (EMA_VALUE == 1) ? "1.1V" : (EMA_VALUE == 3) ? "1.0V" : "0.95V");
-	SYSMSG("\r\n\nWorking to aarch%d\r\nwaiting for pll change..\r\n", sizeof(void *) * 8);
-
-	while (!serial_done());
-
 	//--------------------------------------------------------------------------
 	// Change to PLL.
 	//--------------------------------------------------------------------------
@@ -253,6 +217,9 @@ void BootMain(U32 CPUID)
 
 	/* stepxx. serial console(uartX) initialize. */
 	serial_init(serial_ch);
+
+	/* stepxx. display the ema(extra margin adjustments) information. */
+	ema_information();
 
 	//--------------------------------------------------------------------------
 	// build information. version, build time and date
