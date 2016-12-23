@@ -25,9 +25,9 @@ extern void DMC_Delay(int milisecond);
 #ifdef aarch32
 void BringUpSlaveCPU(U32 CPUID)
 {
-	WriteIO32(&pReg_ClkPwr->CPURESETMODE, 0x1);
-	WriteIO32(&pReg_ClkPwr->CPUPOWERDOWNREQ, (1 << CPUID));
-	WriteIO32(&pReg_ClkPwr->CPUPOWERONREQ, (1 << CPUID));
+    WriteIO32( &pReg_ClkPwr->CPURESETMODE,      0x1);
+    WriteIO32( &pReg_ClkPwr->CPUPOWERDOWNREQ,   (1 << CPUID) );
+    WriteIO32( &pReg_ClkPwr->CPUPOWERONREQ,     (1 << CPUID) );
 }
 
 void SetVectorLocation(U32 CPUID, CBOOL LowHigh)
@@ -70,15 +70,12 @@ void SetVectorLocation(U32 CPUID, CBOOL LowHigh)
 		regvalue = ReadIO32(&pReg_Tieoff->TIEOFFREG[96]);
 		regvalue |= 1 << (4 + CPUID);
 		WriteIO32(&pReg_Tieoff->TIEOFFREG[96], regvalue);
-		WriteIO32(&pReg_Tieoff->TIEOFFREG[97 + (CPUID << 1)],
-			  0xFFFF0200 >> 2);
-	} else // cpu 0, 1, 2, 3
-	{
+		WriteIO32(&pReg_Tieoff->TIEOFFREG[97 + (CPUID << 1)], 0xFFFF0200 >> 2);
+	} else { // cpu 0, 1, 2, 3 
 		regvalue = ReadIO32(&pReg_Tieoff->TIEOFFREG[79]);
 		regvalue |= 1 << (12 + CPUID); // set cpu mode to AArch64
 		WriteIO32(&pReg_Tieoff->TIEOFFREG[79], regvalue);
-		WriteIO32(&pReg_Tieoff->TIEOFFREG[80 + (CPUID << 1)],
-			  0xFFFF0200 >> 2);
+		WriteIO32(&pReg_Tieoff->TIEOFFREG[80 + (CPUID << 1)], 0xFFFF0200 >> 2);
 	}
 }
 #endif
@@ -98,14 +95,21 @@ void SubCPUBoot(U32 CPUID)
 	register struct NX_SubCPUBringUpInfo *pCPUStartInfo =
 	    (struct NX_SubCPUBringUpInfo *)CPU_ALIVE_FLAG_ADDR;
 
+#if (SUPPORT_KERNEL_3_4 == 1)
+	WriteIO32( &pReg_GIC400->GICC.CTLR,         0x07 );			// enable cpu interface
+	WriteIO32( &pReg_GIC400->GICC.PMR,          0xFF );			// all high priority
+	WriteIO32( &pReg_GIC400->GICD.ISENABLER[0], 0xFF );			// enable sgi all
+	WriteIO32( &pReg_ClkPwr->CPUPOWERONREQ,     0x00 );			// clear own wakeup req bit
+#else
 	SetGIC_All();
-	WriteIO32(&pReg_GIC400->GICD.ISENABLER[0], 0xFF); // enable sgi all
-	WriteIO32(&pReg_ClkPwr->CPUPOWERONREQ,
-		  0x00); // clear own wakeup req bit
+	WriteIO32(&pReg_GIC400->GICD.ISENABLER[0], 0xFF);			// enable sgi all
+	WriteIO32(&pReg_ClkPwr->CPUPOWERONREQ, 0x00);				// clear own wakeup req bit
+#endif
 
-	//    printf("Hello World. I'm CPU %d!\r\n", CPUID);
+//	printf("Hello World. I'm CPU %d!\r\n", CPUID);
 	pCPUStartInfo->WakeupFlag = 1;
 	DebugPutch('0' + CPUID);
+
 #ifdef aarch64
 	SwitchToEL2();
 #endif
@@ -113,10 +117,9 @@ void SubCPUBoot(U32 CPUID)
 		register void (*pLaunch)(void);
 		__asm__ __volatile__("wfi");
 
-		//        WriteIO32(&pReg_GIC400->GICD.ICPENDR[0], 1<<CPUID);
-		//        WriteIO32(&pReg_GIC400->GICC.EOIR,
-		//        ReadIO32(&pReg_GIC400->GICC.IAR));
-		//        __asm__ __volatile__ ("wfe");
+//		WriteIO32(&pReg_GIC400->GICD.ICPENDR[0], 1<<CPUID);
+//		WriteIO32(&pReg_GIC400->GICC.EOIR, ReadIO32(&pReg_GIC400->GICC.IAR));
+//		_asm__ __volatile__ ("wfe");
 		pLaunch = (void (*)(void))((MPTRS)pCPUStartInfo->JumpAddr);
 		if ((MPTRS)pLaunch != (MPTRS)0xFFFFFFFF) {
 			if (CPUID == pCPUStartInfo->CPUID)
@@ -133,49 +136,42 @@ CBOOL SubCPUBringUp(U32 CPUID)
 	S32 CPUNumber, retry = 0;
 	S32 result = CPUID;
 
-	WriteIO32(&pReg_GIC400->GICC.CTLR, 0x07); // enable cpu interface
-	WriteIO32(&pReg_GIC400->GICC.PMR, 0xFF);  // all high priority
-	WriteIO32(&pReg_GIC400->GICD.CTLR, 0x03); // distributor enable
+	WriteIO32(&pReg_GIC400->GICC.CTLR, 0x07);	// enable cpu interface
+	WriteIO32(&pReg_GIC400->GICC.PMR,  0xFF);	// all high priority
+	WriteIO32(&pReg_GIC400->GICD.CTLR, 0x03);	// distributor enable
 
 	printf("Wakeup Sub CPU ");
 
 #if (MULTICORE_BRING_UP == 1)
+    pCPUStartInfo->JumpAddr = (U32)0xFFFFFFFF;              // set cpu jump info to invalid
 
-	pCPUStartInfo->JumpAddr =
-	    (U32)0xFFFFFFFF; // set cpu jump info to invalid
+    for (CPUNumber = 1; CPUNumber < 8; ) {
+        register volatile U32 delay;
 
-	for (CPUNumber = 1; CPUNumber < 8;) {
-		register volatile U32 delay;
-
-		pCPUStartInfo->WakeupFlag = 0;
-		delay = 0x10000;
-		SetVectorLocation(CPUNumber, CTRUE); // CTRUE: High
-						     // Vector(0xFFFF0000),
-						     // CFALSE: Low Vector (0x0)
-		BringUpSlaveCPU(CPUNumber);
-		DMC_Delay(10000);
-		while ((pCPUStartInfo->WakeupFlag == 0) && (--delay))
-			;
-		if (delay == 0) {
-			if (retry > 3) {
-				printf("maybe cpu %d is dead. -_-;\r\n",
-				       CPUNumber);
-				CPUNumber++; // try next cpu bringup
-				retry = 0;
-				result = CFALSE;
-			} else {
-				printf("cpu %d is not bringup, retry\r\n",
-				       CPUNumber);
-				retry++;
-			}
-		} else {
-			retry = 0;
-			result++;
-			CPUNumber++; // try next cpu bringup
-		}
-		DMC_Delay(10000);
-	}
-#endif // #if (MULTICORE_BRING_UP == 1)
+        pCPUStartInfo->WakeupFlag = 0;
+        delay = 0x10000;
+        SetVectorLocation(CPUNumber, CTRUE);    // CTRUE: High Vector(0xFFFF0000), CFALSE: Low Vector (0x0)
+        BringUpSlaveCPU(CPUNumber);
+        DMC_Delay(10000);
+        while((pCPUStartInfo->WakeupFlag == 0) && (--delay));
+        if(delay == 0) {
+            if(retry > 3) {
+                printf("maybe cpu %d is dead. -_-;\r\n", CPUNumber);
+                CPUNumber++;    // try next cpu bringup
+                retry = 0;
+                result = CFALSE;
+            } else {
+                printf("cpu %d is not bringup, retry\r\n", CPUNumber);
+                retry++;
+            }
+        } else {
+            retry = 0;
+            result++;
+            CPUNumber++;    // try next cpu bringup
+        }
+        DMC_Delay(10000);
+    }
+#endif  // #if (MULTICORE_BRING_UP == 1)
 
 	printf("\r\nCPU Wakeup done! WFI is expected.\r\n");
 	printf("CPU%d is Master!\r\n\n", CPUID);
