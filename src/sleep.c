@@ -67,7 +67,7 @@ void dowakeup(void)
 		if (function && (crc == ret)) {
 			U32 timerout = 0x100000;
 			printf("It's WARM BOOT\r\nJump to Kernel!\r\n");
-			while (DebugIsBusy() && timerout--);
+			while (serial_busy() && timerout--);
 			JumpNextBoot();
 		}
 	} else if (ATF_SUSPEND_SIGNATURE == (atf_signature & 0xFFFFFF00)) {
@@ -81,7 +81,7 @@ void dowakeup(void)
 			JumpNextBoot = (void (*)(void))((MPTRS)((header->startaddr) & 0xFFFFFFFF));
 			printf("Jump to 0x%08X\r\n", JumpNextBoot);
 			printf("It's WARM BOOT\r\nJump to ATF!\r\n");
-			while (DebugIsBusy() && timerout--);
+			while (serial_busy() && timerout--);
 			JumpNextBoot();
 		}
 
@@ -202,8 +202,8 @@ void sleepMain(void)
 	} while (temp);
 
 	printf("enter self refresh\r\n");
-	while (!DebugIsTXEmpty());
-	while (DebugIsBusy());
+	while (!serial_empty());
+	while (serial_busy());
 	enterSelfRefresh();
 
 	vddPowerOff();

@@ -33,14 +33,14 @@ void aarch32_monitor(unsigned int lr)
 			__asm__ __volatile__("wfi");
 		} else {
 			printf("smc with suspend request code %d\r\nenter suspend...\r\n", smccode);
-			while(!DebugIsTXEmpty());
-			while(DebugIsBusy());
+			while(!serial_empty());
+			while(serial_busy());
 
 			sleepMain();
 
 			printf("machine is resumed at mode 0x%x\r\n", GetCurrentSMode());
-			while(!DebugIsTXEmpty());
-			while(DebugIsBusy());
+			while(!serial_empty());
+			while(serial_busy());
 		}
 	} else {
 		printf("unknown excption to Monitor mode\r\n");

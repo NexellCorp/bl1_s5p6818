@@ -1145,7 +1145,7 @@ CBOOL init_LPDDR3(U32 isResume)
 // Set 200Mhz to PLL3.
 #if (CFG_DDR_LOW_FREQ == 1)
 #if defined(MEM_TYPE_LPDDR23)
-	while (!DebugIsUartTxDone())
+	while (!serial_done())
 		;
 	setMemPLL(0);
 #endif
@@ -2030,7 +2030,7 @@ CBOOL init_LPDDR3(U32 isResume)
 // Set PLL3.
 #if (CFG_DDR_LOW_FREQ == 1)
 #if defined(MEM_TYPE_LPDDR23)
-	while (!DebugIsUartTxDone())
+	while (!serial_done())
 		;
 	setMemPLL(1);
 #endif

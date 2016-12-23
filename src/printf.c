@@ -15,47 +15,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
-	Copyright 2001, 2002 Georges Menie (www.menie.org)
-	stdarg version contributed by Christian Ettinger
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
-
-/*
-	putchar is the only external dependency for this file,
-	if you have a working putchar, leave it commented out.
-	If not, uncomment the define below and
-	replace outbyte(c) by your own function call.
-
-#define putchar(c) outbyte(c)
-*/
-
 #include <stdarg.h>
-#include "nx_type.h"
-#include "printf.h"
+#include <printf.h>
+
+/* External Function */
+int getquotient(int, int);
+int getremainder(int, int);
 
 static void printchar(char **str, int c)
 {
-	extern void	DebugPutch(S8 ch);
+	extern void DebugPutch(char ch);
 
 	if (str) {
 		**str = c;
 		++(*str);
-	} else
-		(void)putchar((S8)c);
+	} else {
+		(void)putchar(c);
+	}
 }
 
 #define PAD_RIGHT 1
@@ -95,10 +71,10 @@ static int prints(char **out, const char *string, int width, int pad)
 	return pc;
 }
 
-#define PRINT_BUF_LEN 22	// 0xFFFFFFFFFFFFFFFF = 18446 74407 37095 51615 + sign bit + last '\0'
-//#define PRINT_BUF_LEN 12
-int getquotient(int, int);
-int getremainder(int, int);
+/* 0xFFFFFFFFFFFFFFFF = 18446 74407 37095 51615 + sign bit + last '\0' */
+#define PRINT_BUF_LEN 			22
+//#define PRINT_BUF_LEN 			12
+
 static int printi(char **out, int i, int b, int sg, int width, int pad, int letbase)
 {
 	char print_buf[PRINT_BUF_LEN];
@@ -220,9 +196,9 @@ int printf(const char *format, ...)
 #if 0
 int sprintf(char *out, const char *format, ...)
 {
-    va_list args;
+	va_list args;
 
-    va_start( args, format );
-    return print( &out, format, args );
+	va_start( args, format );
+	return print( &out, format, args );
 }
 #endif

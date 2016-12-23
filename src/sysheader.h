@@ -52,12 +52,9 @@
 #include <nx_tzc380.h>
 
 #include "secondboot.h"
-#include "printf.h"
-#include "debug.h"
-
-//------------------------------------------------------------------------------
-//  Set DEBUG Macro
-//------------------------------------------------------------------------------
+#include <clkgen.h>
+#include <printf.h>
+#include <serial.h>
 
 #if defined(SYSLOG_ON)
 #define SYSMSG printf
@@ -79,6 +76,47 @@
 #endif
 
 #define DEVMSG_ON	0
+
+/* Set Log Message(Debug) Macro */
+#define LOG_LEVEL			30
+
+#define LOG_LEVEL_NONE			0
+#define LOG_LEVEL_ERROR			10
+#define LOG_LEVEL_NOTICE		20
+#define LOG_LEVEL_WARNING		30
+#define LOG_LEVEL_INFO			40
+#define LOG_LEVEL_VERBOSE		50
+
+
+#if (LOG_LEVEL >= LOG_LEVEL_NOTICE) && defined(SYSLOG_ON)
+# define NOTICE(...)	printf("NOTICE:  " __VA_ARGS__)
+#else
+# define NOTICE(...)
+#endif
+
+#if (LOG_LEVEL >= LOG_LEVEL_ERROR) && defined(SYSLOG_ON)
+# define ERROR(...)	printf("ERROR:   " __VA_ARGS__)
+#else
+# define ERROR(...)
+#endif
+
+#if (LOG_LEVEL >= LOG_LEVEL_WARNING) && defined(SYSLOG_ON)
+# define WARN(...)	printf("WARNING: " __VA_ARGS__)
+#else
+# define WARN(...)
+#endif
+
+#if (LOG_LEVEL >= LOG_LEVEL_INFO) && defined(SYSLOG_ON)
+# define INFO(...)	printf("INFO:    " __VA_ARGS__)
+#else
+# define INFO(...)
+#endif
+
+#if (LOG_LEVEL >= LOG_LEVEL_VERBOSE) && defined(SYSLOG_ON)
+# define VERBOSE(...)	printf("VERBOSE: " __VA_ARGS__)
+#else
+# define VERBOSE(...)
+#endif
 
 //------------------------------------------------------------------------------
 //  Set global variables

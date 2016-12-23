@@ -18,11 +18,15 @@
 #ifndef __K_PRINTF__
 #define __K_PRINTF__
 
-#include <stdarg.h>
-#include "debug.h"
-#define putchar DebugPutch
+#include <serial.h>
+
+#define getchar		serial_getch
+#define putchar		serial_putch
+
+#define serial_done	serial_is_uart_tx_done
+#define serial_busy	serial_is_busy
+#define serial_empty	serial_is_tx_empty
 
 int printf(const char *format, ...);
 
-#define UartPrintf printf
 #endif

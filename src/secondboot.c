@@ -158,10 +158,10 @@ void BootMain(U32 CPUID)
 	CBOOL Result = CFALSE;
 	register volatile U32 temp;
 	U32 signature, isResume = 0;
-	U32 debugCH = 0;
+	U32 serial_ch = 0;
 
 #if defined(RAPTOR_PMIC_INIT) || defined(AVN_PMIC_INIT)
-	debugCH = 3;
+	serial_ch = 3;
 #endif
 
 	//--------------------------------------------------------------------------
@@ -195,10 +195,10 @@ void BootMain(U32 CPUID)
 	WriteIO32(&pReg_Tieoff->TIEOFFREG[96], temp);
 #endif
 
-	//--------------------------------------------------------------------------
-	// Init debug
-	//--------------------------------------------------------------------------
-	DebugInit(debugCH);
+#if 0	/* (early) low level - log message */
+	/* stepxx. serial console(uartX) initialize. */
+	serial_init(serial_ch);
+#endif
 
 	WriteIO32(&pReg_Alive->ALIVEPWRGATEREG, 1);
 	WriteIO32(&pReg_Alive->VDDCTRLSETREG, 0x000003FC); //; Retention off (Pad hold off)
@@ -244,17 +244,15 @@ void BootMain(U32 CPUID)
 	SYSMSG("EMA is %s\r\n", (EMA_VALUE == 1) ? "1.1V" : (EMA_VALUE == 3) ? "1.0V" : "0.95V");
 	SYSMSG("\r\n\nWorking to aarch%d\r\nwaiting for pll change..\r\n", sizeof(void *) * 8);
 
-	while (!DebugIsUartTxDone());
+	while (!serial_done());
 
 	//--------------------------------------------------------------------------
 	// Change to PLL.
 	//--------------------------------------------------------------------------
 	initClock();
 
-	//--------------------------------------------------------------------------
-	// Debug Console
-	//--------------------------------------------------------------------------
-	DebugInit(debugCH);
+	/* stepxx. serial console(uartX) initialize. */
+	serial_init(serial_ch);
 
 	//--------------------------------------------------------------------------
 	// build information. version, build time and date
@@ -399,13 +397,13 @@ void BootMain(U32 CPUID)
 		SYSMSG("Launch to 0x%08X\r\n", (MPTRS)pLaunch);
 		temp = 0x10000000;
 
-		while (!DebugIsUartTxDone() && temp--);
+		while (!serial_done() && temp--);
 		pLaunch(0, 4330);
 	}
 
 	printf(" Image Loading Failure Try to USB boot\r\n");
 	temp = 0x10000000;
-	while (!DebugIsUartTxDone() && temp--);
+	while (!serial_done() && temp--);
 	RomUSBBoot((U32)0x0000009C);
 	while (1);
 }

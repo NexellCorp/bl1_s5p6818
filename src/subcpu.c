@@ -108,7 +108,7 @@ void SubCPUBoot(U32 CPUID)
 
 //	printf("Hello World. I'm CPU %d!\r\n", CPUID);
 	pCPUStartInfo->WakeupFlag = 1;
-	DebugPutch('0' + CPUID);
+	putchar('0' + CPUID);
 
 #ifdef aarch64
 	SwitchToEL2();

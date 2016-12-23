@@ -27,7 +27,7 @@ LDFLAGS		=	-Bstatic							\
 
 SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o secondboot.o subcpu.o sleep.o	\
 				resetcon.o GPIO.o crc.o	SecureManager.o							\
-				clockinit.o debug.o lib2ndboot.o buildinfo.o							\
+				clockinit.o serial.o lib2ndboot.o buildinfo.o							\
 				printf.o
 SYS_OBJS	+=	sysbus.o
 

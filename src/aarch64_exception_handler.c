@@ -66,16 +66,16 @@ void sync_c_handler_EL3(void)
 			printf("smc with suspend request code %d\r\nenter "
 			       "suspend...\r\n",
 			       smccode);
-			while (!DebugIsTXEmpty());
-			while (DebugIsBusy());
+			while (!serial_empty());
+			while (serial_busy());
 
 			sleepMain();
 
 			printf("machine is resumed at el%d\r\n",
 			       GetCurrentSMode());
-			while (!DebugIsTXEmpty())
+			while (!serial_empty())
 				;
-			while (DebugIsBusy())
+			while (serial_busy())
 				;
 		}
 	}
