@@ -19,7 +19,7 @@
 #ifndef NX_ARM_H
 #define NX_ARM_H
 
-#include "cfgBootDefine.h"
+#include <s5p6818.h>
 
 //; Standard definitions of mode bits and interrupt (I & F) flags in PSRs
 
