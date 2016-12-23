@@ -1028,10 +1028,10 @@ End:
 
 //------------------------------------------------------------------------------
 extern void Decrypt(U32 *SrcAddr, U32 *DestAddr, U32 Size);
-static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
+static	int SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 		struct NX_SecondBootInfo * pTBI )//U32 option )
 {
-	CBOOL	result = CFALSE;
+	int	result = CFALSE;
 	register struct NX_SDMMC_RegisterSet * const pSDXCReg =
 					pgSDXCReg[pSDXCBootStatus->SDPort];
 
@@ -1047,38 +1047,12 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 		dev_msg( "FIFO Reset!!!\r\n" );
 		pSDXCReg->CTRL = NX_SDXC_CTRL_FIFORST;	// Reset the FIFO.
 
-		while( pSDXCReg->CTRL & NX_SDXC_CTRL_FIFORST )
-			;
+		while( pSDXCReg->CTRL & NX_SDXC_CTRL_FIFORST );
 	}
 
 	result = NX_SDMMC_ReadSectors(pSDXCBootStatus,
 			pSBI->DEVICEADDR/BLOCK_LENGTH, 2, (U32 *)pTBI );
-#if 0
-	do {
-	U32 i;
-	U32 *buff = (U32 *)pTBI;
-	U8 *bbuff = (U8 *)buff;
 
-	for (i = 0; i < 512/4; ) {
-		U32 j;
-		printf("0x%08X: ", &buff[i]);
-		for(j = 0; j < 4; j++) {
-			printf("%08X ", buff[i + j]);
-		}
-		DebugPutch(' ');
-		for (j = 0; j < 16; j++) {
-			if(bbuff[i*4 + j] < 0x20 || bbuff[i*4 + j] > 0x7E) {
-				DebugPutch('.');
-			} else {
-				DebugPutch(bbuff[i*4 + j]);
-			}
-		}
-		DebugPutch('\r');
-		DebugPutch('\n');
-		i+= 4;
-	}
-	} while(0);
-#endif
 	if (result == CFALSE) {
 		printf("cannot read boot header! SDMMC boot failure\r\n");
 		return result;
@@ -1094,26 +1068,33 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 		return CFALSE;
 	}
 
-	do {
-		U32 i;
-		U32 *src = (U32*)pTBI;
-		U32 *tb_load = (U32*)ptbh->tbbi.loadaddr;
-		U32 *dst = tb_load;
+#if (SUPPORT_KERNEL_3_4 == 1)
+	dev_msg("Load Addr :0x%08X,  Load Size :0x%08X,  Launch Addr :0x%08X\r\n",
+		pTBI->LOADADDR, pTBI->LOADSIZE, pTBI->LAUNCHADDR);
 
-		/* copy full struct nx_bootheader */
-		for (i = 0; i< sizeof(struct nx_bootheader)/sizeof(U32); i++)
-			*dst++ = *src++;
+	result = NX_SDMMC_ReadSectors(pSDXCBootStatus, pSBI->DEVICEADDR/BLOCK_LENGTH+1,
+		(pTBI->LOADSIZE+BLOCK_LENGTH-1)/BLOCK_LENGTH, (unsigned int *)((MPTRS)pTBI->LOADADDR));
+#else	// #if (SUPPORT_KERNEL_3_4 == 1)
+	/* Version Kernel 4.1 & 4.4 */
+	unsigned int *tb_load = (unsigned int*)ptbh->tbbi.loadaddr;
+	unsigned int *src = (unsigned int*)pTBI;
+	unsigned int *dst = tb_load;
+	unsigned int i;
 
-#ifdef SECURE_ON
-		dst = tb_load;
+	/* Copy Full "struct nx_bootheader" */
+	for (i = 0; i< sizeof(struct nx_bootheader)/sizeof(unsigned int); i++)
+		*dst++ = *src++;
 
-		/* copy rsapublickey part. */
-		src = psbh->rsa_public.rsapublickey;
-		dst = ((struct nx_bootheader *)dst)->rsa_public.rsapublickey;
-		for (i = 0; i< sizeof(struct nx_bootheader)/sizeof(U32)/4; i++)
-			*dst++ = *src++;
+	/* Support the Secure Boot */
+#if defined(SECURE_ON)
+	dst = tb_load;
+
+	/* Copy RSA-Publickey Part. */
+	src = psbh->rsa_public.rsapublickey;
+	dst = ((struct nx_bootheader *)dst)->rsa_public.rsapublickey;
+	for (i = 0; i< sizeof(struct nx_bootheader)/sizeof(unsigned int)/4; i++)
+		*dst++ = *src++;
 #endif
-	} while(0);
 	ptbh = (struct nx_bootheader *)ptbh->tbbi.loadaddr;
 
 	ptbh->tbbi.loadsize += sizeof(struct nx_bootheader);
@@ -1125,16 +1106,16 @@ static	CBOOL	SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 	result = NX_SDMMC_ReadSectors(pSDXCBootStatus,
 			pSBI->DEVICEADDR / BLOCK_LENGTH + 2,
 			(ptbh->tbbi.loadsize + BLOCK_LENGTH - 1) / BLOCK_LENGTH,
-			(U32 *)((MPTRS)(ptbh->tbbi.loadaddr + BLOCK_LENGTH * 2)));
-	//pTBI->LAUNCHADDR = ptbh->tbbi.startaddr;	/* for old style boot */
+			(unsigned int *)((MPTRS)(ptbh->tbbi.loadaddr + BLOCK_LENGTH * 2)));
+//	pTBI->LAUNCHADDR = ptbh->tbbi.startaddr;	/* for old style boot */
 
-	if (pReg_ClkPwr->SYSRSTCONFIG & 1<<14)
-		Decrypt((U32 *)(ptbh->tbbi.loadaddr + sizeof(struct nx_bootheader)),
-			(U32 *)(ptbh->tbbi.loadaddr + sizeof(struct nx_bootheader)),
+	if (pReg_ClkPwr->SYSRSTCONFIG & 1 << 14)
+		Decrypt((unsigned int *)(ptbh->tbbi.loadaddr + sizeof(struct nx_bootheader)),
+			(unsigned int *)(ptbh->tbbi.loadaddr + sizeof(struct nx_bootheader)),
 			ptbh->tbbi.loadsize);
-	if (result == CFALSE) {
+#endif
+	if (result == CFALSE)
 		printf("Image Read Failure\r\n");
-	}
 
 	return result;
 }
