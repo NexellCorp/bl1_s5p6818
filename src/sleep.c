@@ -23,7 +23,7 @@
 extern void DMC_Delay(int milisecond);
 
 extern U32 iget_fcs(U32 fcs, U32 data);
-extern U32 __calc_crc(void *addr, int len);
+extern U32 calc_crc(void *addr, int len);
 
 extern void enterSelfRefresh(void);
 extern void exitSelfRefresh(void);
@@ -60,7 +60,7 @@ void dowakeup(void)
 		WriteIO32(&pReg_Alive->ALIVESCRATCHRST3, 0xFFFFFFFF);
 		WriteIO32(&pReg_Alive->ALIVESCRATCHRST4, 0xFFFFFFFF);
 
-		U32 ret = __calc_crc((void *)((MPTRS)physical), size);
+		U32 ret = calc_crc((void *)((MPTRS)physical), size);
 
 		printf("CRC: 0x%08X FN: 0x%08X phy: 0x%08X len: 0x%08X ret: 0x%08X\r\n",
 			crc, function, physical, size, ret);
@@ -73,7 +73,7 @@ void dowakeup(void)
 	} else if (ATF_SUSPEND_SIGNATURE == (atf_signature & 0xFFFFFF00)) {
 		/* Arm Trusted Firmware */
 		struct nx_tbbinfo *header = (struct nx_tbbinfo*)ReadIO32(&pReg_Alive->ALIVESCRATCHVALUE2);
-		cal_crc = __calc_crc((void *)((MPTRS)(header->loadaddr + ATF_HEADER_SIZE)), header->loadsize - ATF_HEADER_SIZE);
+		cal_crc = calc_crc((void *)((MPTRS)(header->loadaddr + ATF_HEADER_SIZE)), header->loadsize - ATF_HEADER_SIZE);
 		printf("Calcurated CRC: 0x%08X, Normal CRC: 0x%08X \r\n", cal_crc, header->crc32);
 
 		if (cal_crc == header->crc32) {

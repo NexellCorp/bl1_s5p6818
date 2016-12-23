@@ -18,6 +18,7 @@
 
 #include "nx_peridot.h"
 
+#if (SUPPORT_SW_CRC_CHECK == 0)
          .global get_fcs
 get_fcs:
 //      .long   0xE(cond:all), 1, 0(byte), 0(Rn), 0(Rd), 0(C), 4, 1(Rd)
@@ -31,6 +32,7 @@ sget_fcs:
 iget_fcs:
          .long   0xE1400041      // CRC32W       R0, R0, R1
          bx      lr
+#endif
 
 	.global GetCurrentSMode
 //; unsigned int GetCurrentSMode(void);

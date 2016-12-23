@@ -385,8 +385,8 @@ void BootMain(U32 CPUID)
 	}
 
 #ifdef CRC_CHECK_ON
-	//Result = CRC_Check((void*)pTBI->LOADADDR, (unsigned int)pTBI->LOADSIZE,
-	//		   (unsigned int)pTBI->DBI.SDMMCBI.CRC32);
+	Result = crc_check((void*)pTBI->LOADADDR, (unsigned int)pTBI->LOADSIZE,
+			   (unsigned int)pTBI->DBI.SDMMCBI.CRC32);
 #endif
 	if (Result) {
 	#if (SUPPORT_KERNEL_3_4 == 1)

@@ -19,6 +19,7 @@
 #include "nx_peridot.h"
 	.align 3
 
+#if (SUPPORT_SW_CRC_CHECK == 0)
          .global xget_fcs
 xget_fcs:
          crc32x  w0, w0, x1
@@ -35,6 +36,7 @@ sget_fcs:
 get_fcs:
          crc32b  w0, w0, w1
          ret
+#endif
 
 	.global GetCurrentSMode
 //; unsigned int GetCurrentSMode(void);

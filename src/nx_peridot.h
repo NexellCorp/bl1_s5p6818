@@ -90,9 +90,6 @@
 #define GPIO_GROUP_D 			3
 #define GPIO_GROUP_E 			4
 
-#define POLY 0xEDB88320L
-//#define POLY 0x04C11DB7L		// Reverse
-
 #define ATF_SUSPEND_SIGNATURE		(0x41544600) /* ATF (ASCII) */
 #define SUSPEND_SIGNATURE 		(0x50575200) /* PWR (ASCII) */
 #define BL1_SUSPEND_SIGNATURE		(0x01020304)
