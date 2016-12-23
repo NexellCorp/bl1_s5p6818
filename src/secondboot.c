@@ -316,7 +316,9 @@ void BootMain(U32 CPUID)
 	initCCI400();
 #endif
 
+#if (SUPPORT_KERNEL_3_4 == 0)
 	SetSecureState();
+#endif
 
 	SYSMSG("Wakeup CPU ");
 
@@ -387,9 +389,12 @@ void BootMain(U32 CPUID)
 	//		   (unsigned int)pTBI->DBI.SDMMCBI.CRC32);
 #endif
 	if (Result) {
+	#if (SUPPORT_KERNEL_3_4 == 1)
+		void (*pLaunch)(U32,U32) = (void(*)(U32,U32))((MPTRS)pTBI->LAUNCHADDR);
+	#else
 		struct nx_tbbinfo *tbi = (struct nx_tbbinfo *)&TBI;
 		void (*pLaunch)() = (void (*)())(tbi->startaddr);
-
+	#endif
 		SYSMSG(" Image Loading Done!\r\n");
 		SYSMSG("Launch to 0x%08X\r\n", (MPTRS)pLaunch);
 		temp = 0x10000000;
