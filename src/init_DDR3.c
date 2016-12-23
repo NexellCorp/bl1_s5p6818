@@ -428,238 +428,155 @@ void exitSelfRefresh(void)
 }
 
 #if (SKIP_LEVELING_TRAINING == 0)
-CBOOL DDR_HW_Write_Leveling(void)
+
+#if ((DDR_WRITE_LEVELING_EN == 1) && (MEM_CALIBRATION_INFO == 1))
+void hw_write_leveling_information(void)
 {
-#if defined(MEM_TYPE_DDR3)
-	union SDRAM_MR MR1;
+	int wl_calibration;
+	int wl_dll_value[4];
+
+	int max_slice = 4, slice;
+
+	wl_calibration = mmio_read_32(&pReg_DDRPHY->WR_LVL_CON[0]);
+	MEMMSG("SLICE %03d %03d %03d %03d\r\n     ", 0, 1, 2, 3);
+	for (slice = 0; slice < max_slice; slice++) {
+		wl_dll_value[slice] = (wl_calibration >> (slice * 8)) & 0xFF;
+		MEMMSG(" %03X", wl_dll_value[slice]);
+	}
+	MEMMSG("\r\n");
+}
 #endif
-	volatile U32 cal_count = 0;
-	U32 temp;
-	CBOOL ret = CTRUE;
+
+#if (DDR_WRITE_LEVELING_EN == 1)
+/*************************************************************
+ * Must be S5P6818
+ * Hardware Write Leveling sequence in S5P6818
+ * must go through the following steps:
+ *
+ * Step 01. Send ALL Precharge command. (Suspend/Resume/Option)
+ *	    - Set "cmd_default[8:7] =2'b11" (LPDDR_CON4[8:7]) to enable
+ *	      "ODT[1:0]" signals during Write Leveling.
+ * Step 02. Set the MR1 Register for Write Leveling Mode.
+ * Step 03. Memory Controller should configure Memory in Write Level Mode.
+ * Step 04. Configure PHY in Write Level mode
+ *	     - Enable "wrlvl_mode" in PHY_CON[16] = '1' "
+ * Step 05.  Start Write Leveling.
+ *	     - Set the "wrlvel_start = 1'b1" (=PHY_CON3[16])
+ * Step 06. Waiting for (DRAM)Response.
+ *	     - Wait until "wrlvel_resp = 1'b1" (=PHY_CON3[24])
+ * Step 07. Finish Write Leveling.
+ *	     - Set the "wrlvel_Start=1'b0" (=PHY_CON3[16])
+ * Step 08. Configure PHY in normal mode
+ *	     - Disable "wrlvel_mode" in PHY_CON0[16]
+ * Step 09. Disable ODT[1:0]
+ *	     - Set "cmd_default[8:7]=2'b00' (LPDDR_CON4[8:7]).
+ * Step 10. Disable Memory in Write Leveling Mode
+ * Step 11. Update ALL SDLL Resync.
+ * Step 12-0. Hardware Write Leveling Information
+ * Step 12-1. It adjust the duration cycle of "ctrl_read" on a
+ *	        clock cycle base. (subtract delay)
+ *************************************************************/
+int ddr_hw_write_leveling(void)
+{
+	union SDRAM_MR MR1;
+
+	volatile unsigned int cal_count = 0;
+	unsigned int response;
+	int ret = 0;
 
 	MEMMSG("\r\n########## Write Leveling - Start ##########\r\n");
 
-#if 1
-	// Send PALL command.
-	SendDirectCommand(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
-				  CNULL);
-#endif
-//    DMC_Delay(0x100);
-#endif
+	/* Step 01. Send ALL Precharge command. */
+	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
 
-	temp = ReadIO32(&pReg_DDRPHY->PHY_CON[2]) & ~(0x7F << 16);
-	temp |= (0x2 << 16); // rdlvl_incr_adj=2
-//    WriteIO32( &pReg_DDRPHY->PHY_CON[2],        temp);
+//	DMC_Delay(0x100);
 
-#if defined(MEM_TYPE_DDR3)
-	/* Set MPR mode enable */
-	MR1.Reg = 0;
-	MR1.MR1.DLL = 0; // 0: Enable, 1 : Disable
+	/* Step 02. Set the MR1 Register for Write Leveling Mode */
+	MR1.Reg		 = 0;
+	MR1.MR1.DLL	 = 0;							// 0: Enable, 1 : Disable
 #if (CFG_NSIH_EN == 0)
-	MR1.MR1.AL = MR1_nAL;
+	MR1.MR1.AL	 = MR1_nAL;
 #else
-	MR1.MR1.AL = pSBI->DII.MR1_AL;
+	MR1.MR1.AL	 = pSBI->DII.MR1_AL;
 #endif
 #if 1
-	MR1.MR1.ODS1 = 0; // 00: RZQ/6, 01 : RZQ/7
-	MR1.MR1.ODS0 = 1;
+	MR1.MR1.ODS1 	 = 0;							// 00: RZQ/6, 01 : RZQ/7
+	MR1.MR1.ODS0	 = 1;
 #else
 	MR1.MR1.ODS1 = 0; // 00: RZQ/6, 01 : RZQ/7
 	MR1.MR1.ODS0 = 0;
 #endif
-	MR1.MR1.QOff = 0;
-	MR1.MR1.RTT_Nom2 = 0; // RTT_Nom - 001: RZQ/4, 010: RZQ/2, 011: RZQ/6,
-			      // 100: RZQ/12, 101: RZQ/8
+	MR1.MR1.QOff	 = 0;
+	MR1.MR1.RTT_Nom2 = 0;							// RTT_Nom - 001: RZQ/4, 010: RZQ/2, 011: RZQ/6, 100: RZQ/12, 101: RZQ/8
 	MR1.MR1.RTT_Nom1 = 1;
 	MR1.MR1.RTT_Nom0 = 1;
-	MR1.MR1.WL = 1; // Write leveling enable
-#if 0
-#if (CFG_NSIH_EN == 0)
-    MR1.MR1.TDQS    = (_DDR_BUS_WIDTH>>3) & 1;
-#else
-    MR1.MR1.TDQS    = (pSBI->DII.BusWidth>>3) & 1;
-#endif
-#endif
+	MR1.MR1.WL	 = 1;							// Write leveling enable
 
-	SendDirectCommand(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR1.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1, MR1.Reg);
-#endif
-#else
-	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1,
-				  MR1.Reg);
-#endif
-//    DMC_Delay(0x100);
-#endif // #if defined(MEM_TYPE_DDR3)
+	/* Step 03. Memory controller settings for the Write Leveling Mode. */
+	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR1.Reg);
 
-#if (CFG_ODT_OFF == 1)
-	//    ClearIO32( &pReg_Drex->PHYCONTROL,          (0x7    <<  29) );
-	//    // ODT Disable
+//	DMC_Delay(0x100);
 
-	ClearIO32(&pReg_Drex->WRLVL_CONFIG[0],
-		  (0x1 << 0)); // odt_on[0]="0" (turn off)
+	/* Step 03-02. Enable the ODT[1:0] (Signal High) */
+	mmio_set_32  (&pReg_DDRPHY->LP_DDR_CON[4], (0x3 << 7) );          	// cmd_default, ODT[8:7]=0x3
 
-	WriteIO32(&pReg_Drex->WRLVL_CONFIG[1],
-		  0x0); // dfi_wdata_en_p0[0]="0" (turn off)
-	WriteIO32(&pReg_Drex->WRLVL_CONFIG[1],
-		  0x1); // dfi_wdata_en_p0[0]="0" (turn on)
+	/* Step 04. Configure PHY in Write Level mode */
+	mmio_set_32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 16));
 
-	ClearIO32(&pReg_DDRPHY->LP_DDR_CON[4],
-		  (0x3 << 7)); // cmd_default, ODT[8:7]=0x0
-#else
+	/* Step 05. Start Write Leveling. */
+	mmio_write_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 16));
 
-	//    SetIO32  ( &pReg_Drex->PHYCONTROL,          (0x7    <<  29) );
-	//    // ODT Enable
-
-	SetIO32(&pReg_Drex->WRLVL_CONFIG[0],
-		(0x1 << 0)); // odt_on[0]="1" (turn on)
-
-	WriteIO32(&pReg_Drex->WRLVL_CONFIG[1], 0x1); // dfi_wdata_en_p0[0]="1"
-	WriteIO32(&pReg_Drex->WRLVL_CONFIG[1], 0x0); // dfi_wdata_en_p0[0]="0"
-
-	SetIO32(&pReg_DDRPHY->LP_DDR_CON[4],
-		(0x3 << 7)); // cmd_default, ODT[8:7]=0x3
-#endif // #if (CFG_ODT_OFF == 1)
-
-	SetIO32(&pReg_DDRPHY->PHY_CON[0],
-		(0x1 << 16)); // wrlvl_mode[16]="1" (Enable)
-
-	//    SetIO32  ( &pReg_DDRPHY->PHY_CON[3],        (0x1    <<  16) );
-	//    // wrlvl_start[16]="1" (Enable)
-	WriteIO32(&pReg_DDRPHY->PHY_CON[3],
-		  (0x1 << 16)); // wrlvl_start[16]="1" (Enable)
-
+	/* Step 06. Waiting for (DRAM)Response. */
 	for (cal_count = 0; cal_count < 100; cal_count++) {
-		temp = ReadIO32(&pReg_DDRPHY->PHY_CON[3]);
-		if (temp & (0x1 << 24)) // wrlvl_resp[24] : Wating until WRITE
-					// leveling is complete
-		{
+		response = mmio_read_32(&pReg_DDRPHY->PHY_CON[3]);
+		if (response & (0x1 << 24))
 			break;
-		}
 
 		MEMMSG("WRITE LVL: Waiting wrlvl_resp...!!!\r\n");
 		DMC_Delay(100);
 	}
 
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 24)); // wrlvl_resp[24]="0"
+	/* Step 07. Finish Write Leveling. */
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 16));
 
-	//    WriteIO32( &pReg_DDRPHY->PHY_CON[3],        0x0 );
-	//    // wrlvl_start[16]="0" (Disable)
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3],
-		  (0x1 << 16)); // wrlvl_start[16]="0" (Disable)
-	ClearIO32(&pReg_DDRPHY->PHY_CON[0],
-		  (0x1 << 16)); // wrlvl_mode[16]="0" (Disable)
-
-	//------------------------------------------------------------------------------------------------------------------------
+	/* Step 08. Configure PHY in normal mode */
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 16));
 
 	if (cal_count == 100) {
-		MEMMSG(
-		    "WRITE LVL: Leveling Responese Checking : fail...!!!\r\n");
-
-		ret = CFALSE; // Failure Case
+		MEMMSG("WRITE LVL: Leveling Responese Checking : fail...!!!\r\n");
+		ret = -1; 	// Failure Case
 	}
+	g_WR_lvl = mmio_read_32(&pReg_DDRPHY->WR_LVL_CON[0]);
 
-	//------------------------------------------------------------------------------------------------------------------------
+	/* Step 09. Disable the ODT[1:0] */
+	mmio_clear_32(&pReg_DDRPHY->LP_DDR_CON[4], (0x3 << 7));          	// cmd_default, ODT[8:7]=0x0
 
-	g_WR_lvl = ReadIO32(&pReg_DDRPHY->WR_LVL_CON[0]);
+	/* Step 10. Disable Memory in Write Leveling Mode */
+	MR1.MR1.WL      = 0;
+	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR1.Reg);
 
-#if 0
-    SetIO32  ( &pReg_DDRPHY->WR_LVL_CON[3],     (0x1    <<   0) );          // wrlvl_resync[0]=0x1
-    ClearIO32( &pReg_DDRPHY->WR_LVL_CON[3],     (0x1    <<   0) );          // wrlvl_resync[0]=0x0
-#endif
-
-	ClearIO32(&pReg_Drex->WRLVL_CONFIG[0],
-		  (0x1 << 0)); // odt_on[0]="0" (turn off)
-	ClearIO32(&pReg_DDRPHY->LP_DDR_CON[4],
-		  (0x3 << 7)); // cmd_default, ODT[8:7]=0x0
-
-#if defined(MEM_TYPE_DDR3)
-	MR1.MR1.WL = 0;
-
-	SendDirectCommand(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR1.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
-	SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1, MR1.Reg);
-#endif
-#else
-	if (pSBI->DII.ChipNum > 1)
-		SendDirectCommand(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1,
-				  MR1.Reg);
-#endif
 	DMC_Delay(0x100);
-#endif // #if defined(MEM_TYPE_DDR3)
 
-#if 0
-    SetIO32  ( &pReg_DDRPHY->OFFSETD_CON,       (0x1    <<  24) );          // ctrl_resync[24]=0x1 (HIGH)
-    ClearIO32( &pReg_DDRPHY->OFFSETD_CON,       (0x1    <<  24) );          // ctrl_resync[24]=0x0 (LOW)
-#if 0
-    SetIO32  ( &pReg_Drex->PHYCONTROL,          (0x1    <<   3) );          // Force DLL Resyncronization
-    ClearIO32( &pReg_Drex->PHYCONTROL,          (0x1    <<   3) );          // Force DLL Resyncronization
+	/* Step 11. Update ALL SDLL Resync. */
+	mmio_set_32  (&pReg_DDRPHY->OFFSETD_CON, (0x1  << 24));		// ctrl_resync[24]=0x1 (HIGH)
+	mmio_clear_32(&pReg_DDRPHY->OFFSETD_CON, (0x1  << 24));		// ctrl_resync[24]=0x0 (LOW)
+
+	/* Step 12-0. Hardware Write Leveling Information */
+	mmio_set_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 0));	    		// reg_mode[7:0]=0x1
+#if (MEM_CALIBRATION_INFO == 1)
+	hw_write_leveling_information();
 #endif
-#endif
+	/* Step 12-0. Leveling Information Register Mode Off (Not Must) */
+//	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3],  (0xFF << 0));			// reg_mode[7:0]=0x0
 
-#if 0
-	SetIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 0)); // reg_mode[7:0]=0x1
-
-	MEMMSG("ctrl_wrlat      = 0x%08X\r\n",
-	       (ReadIO32(&pReg_DDRPHY->PHY_CON[4]) >> 16) & 0x1F);
-	MEMMSG("ctrl_wrlat_plus = 0x%08X\r\n",
-	       ReadIO32(&pReg_DDRPHY->PHY_CON[5]));
-	MEMMSG("WR_LVL_CON0     = 0x%08X\r\n",
-	       ReadIO32(&pReg_DDRPHY->WR_LVL_CON[0]));
-	MEMMSG("WR_LVL_CON1     = 0x%08X\r\n",
-	       ReadIO32(&pReg_DDRPHY->WR_LVL_CON[1]));
-	MEMMSG("WR_LVL_CON2     = 0x%08X\r\n",
-	       ReadIO32(&pReg_DDRPHY->WR_LVL_CON[2]));
-	MEMMSG("WR_LVL_CON3     = 0x%08X\r\n",
-	       ReadIO32(&pReg_DDRPHY->WR_LVL_CON[3]));
-	MEMMSG("CAL_WL_STAT     = 0x%08X\r\n",
-	       ReadIO32(&pReg_DDRPHY->CAL_WL_STAT));
-
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3], (0xFF << 0)); // reg_mode[7:0]=0x0
-#endif
-#if 1
-	    SetIO32  ( &pReg_DDRPHY->PHY_CON[3],	(0x1	<<   0) );	    // reg_mode[7:0]=0x1
-	
-	    MEMMSG("ctrl_wrlat	    = 0x%08X\r\n", (ReadIO32(&pReg_DDRPHY->PHY_CON[4]) >> 16) & 0x1F );
-	    MEMMSG("ctrl_wrlat_plus = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[5]) );
-	    MEMMSG("WR_LVL_CON0     = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->WR_LVL_CON[0]) );
-	    MEMMSG("WR_LVL_CON1     = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->WR_LVL_CON[1]) );
-	    MEMMSG("WR_LVL_CON2     = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->WR_LVL_CON[2]) );
-	    MEMMSG("WR_LVL_CON3     = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->WR_LVL_CON[3]) );
-	    MEMMSG("CAL_WL_STAT     = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->CAL_WL_STAT) );
-	
-	{
-		volatile U32 cal_wl_stat;
-		union DWtoB wlat_wl_cal0, wrlat;
-		cal_wl_stat = ReadIO32(&pReg_DDRPHY->CAL_WL_STAT);
-		wlat_wl_cal0.dw = ReadIO32(&pReg_DDRPHY->WR_LVL_CON[0]);
-		wrlat.dw = ReadIO32(&pReg_DDRPHY->PHY_CON[5]);
-	
-		printf("\r\n\n");
-		printf("WLAT_WL_Cal_Stat:%08X\r\n", cal_wl_stat);
-		printf("WLAT_LVL_LAT_Delay:%d %d %d %d\r\n", wrlat.b[0], wrlat.b[1], wrlat.b[2], wrlat.b[3]);
-		printf("WLAT_WL_Cal0:%d %d %d %d\r\n",	wlat_wl_cal0.b[0], wlat_wl_cal0.b[1], wlat_wl_cal0.b[2], wlat_wl_cal0.b[3]);
-	}
-	
-	    ClearIO32( &pReg_DDRPHY->PHY_CON[3],	(0xFF	<<   0) );	    // reg_mode[7:0]=0x0
-#endif
-
-
+	/* Step 12-1. It adjust the duration cycle of "ctrl_read" on a clock cycle base. (subtract delay) */
+	mmio_set_32  (&pReg_DDRPHY->RODT_CON,    (0x1  << 28));		// ctrl_readduradj [31:28]
 
 	MEMMSG("\r\n########## Write Leveling - End ##########\r\n");
 
 	return ret;
 }
+#endif // #if (DDR_WRITE_LEVELING_EN == 1)
 
 #if (DDR_CA_CALIB_EN == 1)
 // for LPDDR3
@@ -1425,79 +1342,134 @@ rd_err_ret:
 }
 #endif // #if (DDR_READ_DQ_CALIB_EN == 0)
 
-CBOOL DDR_Write_Latency_Calibration(void)
+#if ((DDR_WRITE_LEVELING_EN == 1) && (MEM_CALIBRATION_INFO == 1))
+void write_latency_information(void)
 {
-	volatile U32 cal_count = 0;
-	U32 temp;
-	CBOOL ret = CTRUE;
+	unsigned int latency, latency_plus;
+	unsigned int status;
+
+	unsigned int max_slice = 4, slice;
+
+	status = mmio_read_32(&pReg_DDRPHY->CAL_WL_STAT) & 0xF;
+	if (status != 0) {
+		latency = (mmio_read_32(&pReg_DDRPHY->PHY_CON[4]) >> 16) & 0x1F;
+		latency_plus = (mmio_read_32(&pReg_DDRPHY->PHY_CON[5]) >> 0) & 0x7;
+
+		for (slice = 0; slice < max_slice; slice++)
+			MEMMSG("[SLICE%02d] Write Latency Cycle : %d\r\n",
+				slice, latency_plus >> (slice*3) & 0x7);
+		MEMMSG("0: Half Cycle, 1: One Cycle, 2: Two Cycle \r\n");
+	}
+
+	MEMMSG("Write Latency Calibration %s(ret=0x%08X)!! \r\n",
+			(status == 0xF) ? "Success" : "Failed", status);
+}
+#endif // #if ((DDR_WRITE_LEVELING_EN == 1) && (MEM_CALIBRATION_INFO == 1))
+
+#if (DDR_WRITE_LEVELING_EN == 1)
+/*************************************************************
+ * Must be S5P6818
+ * Write Latency Calibration sequence in S5P6818
+ * must go through the following steps:
+ *
+ * Step 01. Set Write Latency(=ctrl_wrlat) before Write Latency Calibration.
+ * Step 02. Set issue Active command.
+ * Step 03. Set the colum address.
+ * Step 04. Set the Write Latency Calibration Mode & Start
+ *	     - Set the "wl_cal_mode=1 (=PHY_CON3[20])"
+ *	     - Set the "wl_cal_start=1 (=PHY_CON3[21])"
+ * Step 05.  Start Write Leveling.
+ *	     - Set the "wrlvel_start = 1'b1" (=PHY_CON3[16])
+ * Step 06. Wait until the for Write Latency Calibtion complete.
+ *	     - Wait until "wl_cal_resp" (=PHY_CON3[27])
+ * Step 07. Check the success or not.
+ * Step 08. Check the success or not.
+ *	     -> Read Status (=CAL_WL_STAT)
+ *************************************************************/
+int ddr_write_latency_calibration(void)
+{
+	volatile int bank = 0, row = 0, column = 0;
+	volatile int cal_count;
+	volatile int response, done_status = 0;
+	int ret = 0;
 
 	MEMMSG("\r\n########## Write Latency Calibration - Start ##########\r\n");
 
 #if (CFG_8BIT_DESKEW == 1)
-	SetIO32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 13)); // byte_rdlvl_en[13]=1
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[0], (0x1 << 13));			// byte_rdlvl_en[13]=1
 #endif
 
-	// Set issue active command.
-	WriteIO32(&pReg_Drex->WRTRA_CONFIG,
-		  (0x0 << 16) |    // [31:16] row_addr
-		      (0x0 << 1) | // [ 3: 1] bank_addr
-		      (0x1 << 0)); // [    0] write_training_en
+#if 0	/* Step 01. Set Write Latency(=ctrl_wrlat) before Write Latency Calibration.*/
+	int DDR_AL = 0, DDR_WL, DDR_RL;
+#if (CFG_NSIH_EN == 0)
+	if (MR1_nAL > 0)
+		DDR_AL = nCL - MR1_nAL;
 
-	ClearIO32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 14)); // p0_cmd_en[14] = 0
-	SetIO32(&pReg_DDRPHY->PHY_CON[0], (0x1 << 14));   // p0_cmd_en[14] = 1
+	DDR_WL = (DDR_AL + nCWL);
+	DDR_RL = (DDR_AL + nCL);
+#else
+	if (pSBI->DII.MR1_AL > 0)
+		DDR_AL = pSBI->DII.CL - pSBI->DII.MR1_AL;
 
-	SetIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 20)); // wl_cal_mode[20] = 1
-	SetIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 21)); // wl_cal_start[21] = 1
+	DDR_WL = (DDR_AL + pSBI->DII.CWL);
+	DDR_RL = (DDR_AL + pSBI->DII.CL);
+#endif
+	DDR_RL = DDR_RL;
+	mmio_set_32(&pReg_DDRPHY->PHY_CON[4], (DDR_WL << 16));
+#endif // Step 00.
 
+	/* Step 02. Set issue Active command. */
+	mmio_write_32(&pReg_Drex->WRTRA_CONFIG,
+			(row    << 16) |					// [31:16] row_addr
+			(0x0    <<  1) |					// [ 3: 1] bank_addr
+			(0x1    <<  0));					// [    0] write_training_en
+	mmio_clear_32(&pReg_Drex->WRTRA_CONFIG, (0x1 <<  0));			// [   0]write_training_en[0] = 0
+
+	/* Step 03. Set the colum address*/
+	mmio_set_32  (&pReg_DDRPHY->LP_DDR_CON[2], (column <<  1));		// [15: 1] ddr3_address
+
+	/* Step 04. Set the Write Latency Calibration Mode & Start */
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[3], (0x1 << 20));			// wl_cal_mode[20] = 1
+	mmio_set_32  (&pReg_DDRPHY->PHY_CON[3], (0x1 << 21));			// wl_cal_start[21] = 1
+
+	/* Step 05. Wait until the for Write Latency Calibtion complete. */
 	for (cal_count = 0; cal_count < 100; cal_count++) {
-		temp = ReadIO32(&pReg_DDRPHY->PHY_CON[3]);
-		if (temp & (0x1 << 27)) // wl_cal_resp[27] : Wating until WRITE
-					// LATENCY calibration is complete
-		{
+		response = mmio_read_32( &pReg_DDRPHY->PHY_CON[3] );
+		if ( response & (0x1 << 27) )					// wl_cal_resp[27] : Wating until WRITE LATENCY calibration is complete
 			break;
-		}
-
 		DMC_Delay(0x100);
 	}
 
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3],
-		  (0x1 << 21)); // wl_cal_start[21] = 0
-	ClearIO32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 20)); // wl_cal_mode[20] = 0
-	//    ClearIO32( &pReg_DDRPHY->PHY_CON[3],        (0x3    <<  20) );
-	//    // wl_cal_start[21] = 0, wl_cal_mode[20] = 0
+	/* Step 06. After the completion Write Latency Calibration and clear. */
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 21));			// wl_cal_start[21] = 0
 
-	ClearIO32(&pReg_Drex->WRTRA_CONFIG,
-		  (0x1 << 0)); // write_training_en[0] = 0
-
-	//------------------------------------------------------------------------------------------------------------------------
-
-	if (cal_count == 100) // Failure Case
-	{
+	/* Step 07. Check the success or not. */
+	if (cal_count == 100) {                                                 // Failure Case
 		MEMMSG("WR Latency CAL Status Checking error\r\n");
-
-		ret = CFALSE;
+		ret = -1;
 	}
 
-	//------------------------------------------------------------------------------------------------------------------------
+	/* Step XX.  Check the Write Latency Information. */
+	mmio_set_32(&pReg_DDRPHY->PHY_CON[3], (0x1 << 0));	   		// reg_mode[7:0]=0x1
+
+#if (MEM_CALIBRATION_INFO == 1)
+	write_latency_information();
+#endif
+	mmio_clear_32(&pReg_DDRPHY->PHY_CON[3], (0xFF << 0));			// reg_mode[7:0]=0x0
+
+	/* Step 08. Check the success or not. (=CAL_WL_STAT) */
+	done_status = mmio_read_32(&pReg_DDRPHY->CAL_WL_STAT) & 0xF;
+	if (done_status != 0xF) {
+		MEMMSG("Write Latency Calibration Not Complete!! (ret=%08X) \r\n",
+			done_status);
+		ret = -1;
+	}
 
 	MEMMSG("\r\n########## Write Latency Calibration - End ##########\r\n");
-#if MEM_CALIBRAION_INFO
-	volatile U32 wrlatstatus;
-	wrlatstatus = pReg_DDRPHY->PHY_CON[5];
-
-	SendDirectCommand(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-
-	printf("write latency status : 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->CAL_WL_STAT));
-	printf("0:%d, 1:%d, 2:%d, 3:%d\r\n",
-		((wrlatstatus>>0)&0x7),
-		((wrlatstatus>>3)&0x7),
-		((wrlatstatus>>6)&0x7),
-		((wrlatstatus>>9)&0x7));
-#endif
-
 
 	return ret;
 }
+#endif // #if (DDR_WRITE_LEVELING_EN == 1)
 
 #if (DDR_WRITE_DQ_CALIB_EN == 1)
 CBOOL DDR_Write_DQ_Calibration(void)
@@ -2498,8 +2470,11 @@ CBOOL init_DDR3(U32 isResume)
 
 #if (SKIP_LEVELING_TRAINING == 0)
 	if (isResume == 0) {
+
+#if (DDR_WRITE_LEVELING_EN == 1)
 		if (pSBI->LvlTr_Mode & LVLTR_WR_LVL)
-			DDR_HW_Write_Leveling();
+			ddr_hw_write_leveling();
+#endif
 
 #if 0
         if (pSBI->LvlTr_Mode & LVLTR_CA_CAL)
@@ -2515,8 +2490,11 @@ CBOOL init_DDR3(U32 isResume)
 	if (pSBI->LvlTr_Mode & LVLTR_RD_CAL)
 		DDR_Read_DQ_Calibration();
 
+
+#if (DDR_WRITE_LEVELING_EN == 1)
 	if (pSBI->LvlTr_Mode & LVLTR_WR_LVL)
-		DDR_Write_Latency_Calibration();
+		ddr_write_latency_calibration();
+#endif
 
 	if (pSBI->LvlTr_Mode & LVLTR_WR_CAL)
 		DDR_Write_DQ_Calibration();
@@ -2625,8 +2603,11 @@ CBOOL init_DDR3(U32 isResume)
 			WriteIO32(&pReg_DDRPHY->OFFSETR_CON[0], g_RD_vwmc);
 		}
 
+
+#if (DDR_WRITE_LEVELING_EN == 1)
 		if (pSBI->LvlTr_Mode & LVLTR_WR_LVL)
-			DDR_Write_Latency_Calibration();
+			ddr_write_latency_calibration();
+#endif
 
 		if (pSBI->LvlTr_Mode & LVLTR_WR_CAL) {
 			g_WR_vwmc = getVWMC_Offset(g_WR_vwmc, lock_div4);
