@@ -28,7 +28,7 @@
  * entry point of main function
  */
 .global BootMain
-.global SubCPUBoot
+.global s5p6818_subcpu_on
 .global GetCPUID
 
 //;==================================================================
@@ -205,7 +205,7 @@ CPUBRINGUP:
         bl      BootMain                            //; save this in register for possible long jump
         b       .
 1:
-        bl      SubCPUBoot
+        bl      s5p6818_subcpu_on
         b       .
 
         .ltorg

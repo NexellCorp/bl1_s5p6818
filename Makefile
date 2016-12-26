@@ -25,11 +25,10 @@ LDFLAGS		=	-Bstatic							\
 			-Wl,--build-id=none						\
 			-nostdlib
 
-SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o secondboot.o subcpu.o plat_pm.o	\
-			resetcon.o GPIO.o crc.o	secure_manager.o								\
-			clockinit.o serial.o lib2ndboot.o buildinfo.o								\
-			printf.o ema.o
-			
+SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o plat_pm.o subcpu.o			\
+			clockinit.o resetcon.o GPIO.o secure_manager.o lib2ndboot.o buildinfo.o					\
+			serial.o printf.o crc.o ema.o secondboot.o
+
 SYS_OBJS	+=	sysbus.o
 
 ifeq ($(MEMTYPE),DDR3)

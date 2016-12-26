@@ -51,7 +51,7 @@ extern CBOOL buildinfo(void);
 extern void printClkInfo(void);
 
 extern void ResetCon(U32 devicenum, CBOOL en);
-extern CBOOL SubCPUBringUp(U32 CPUID);
+extern CBOOL s5p6818_subcpu_bringup(U32 CPUID);
 
 extern void initPMIC(void);
 extern void s5p6818_resume(void);
@@ -262,10 +262,8 @@ void BootMain(U32 CPUID)
 	secure_set_state();
 #endif
 
-	SYSMSG("Wakeup CPU ");
-
 #if (MULTICORE_BRING_UP == 1)
-	SubCPUBringUp(CPUID);
+	s5p6818_subcpu_bringup(CPUID);
 #endif
 
 	if (is_resume) {

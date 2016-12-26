@@ -34,7 +34,7 @@
  * entry point of main function
  */
 .global BootMain
-.global SubCPUBoot
+.global s5p6818_subcpu_on
 
 //;==================================================================
 //; Vectors
@@ -166,7 +166,7 @@ CPUBRINGUP:
         movs    r0, r12
 
         bleq    BootMain                            //; save this in register for possible long jump
-        blne    SubCPUBoot
+        blne    s5p6818_subcpu_on
         b       .
 
 //;==================================================================
