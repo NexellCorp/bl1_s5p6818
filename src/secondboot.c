@@ -56,7 +56,7 @@ extern CBOOL SubCPUBringUp(U32 CPUID);
 extern void initPMIC(void);
 extern void dowakeup(void);
 extern void RomUSBBoot(U32 RomJumpAddr);
-extern void SetSecureState(void);
+extern void secure_set_state(void);
 extern int memtester_main(unsigned int start, unsigned int end);
 
 extern int CRC_Check(void* buf, unsigned int size, unsigned int ref_crc);
@@ -282,7 +282,7 @@ void BootMain(U32 CPUID)
 #endif
 
 #if (SUPPORT_KERNEL_3_4 == 0)
-	SetSecureState();
+	secure_set_state();
 #endif
 
 	SYSMSG("Wakeup CPU ");

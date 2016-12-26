@@ -18,11 +18,11 @@
 
 #include "sysheader.h"
 
-struct NX_TZPC_Test {
-	U8 module_index;
-	U8 port_index;
-	U8 set_bit;
-	U8 target_type;
-	U32 target_data;
-	U32 target_addr;
+struct nx_tzpc_test {
+	unsigned short module_index;
+	unsigned short port_index;
+	unsigned short set_bit;
+	unsigned short target_type;
+	unsigned int target_data;
+	unsigned int target_addr;
 };

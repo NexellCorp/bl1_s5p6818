@@ -88,7 +88,7 @@ struct NX_SubCPUBringUpInfo {
 	volatile U32 WakeupFlag;
 };
 void SwitchToEL2(void);
-void SetGIC_All(void);
+void secure_set_gic_all(void);
 #define CPU_ALIVE_FLAG_ADDR 0xC0010230
 void SubCPUBoot(U32 CPUID)
 {
@@ -101,7 +101,7 @@ void SubCPUBoot(U32 CPUID)
 	WriteIO32( &pReg_GIC400->GICD.ISENABLER[0], 0xFF );			// enable sgi all
 	WriteIO32( &pReg_ClkPwr->CPUPOWERONREQ,     0x00 );			// clear own wakeup req bit
 #else
-	SetGIC_All();
+	secure_set_gic_all();
 	WriteIO32(&pReg_GIC400->GICD.ISENABLER[0], 0xFF);			// enable sgi all
 	WriteIO32(&pReg_ClkPwr->CPUPOWERONREQ, 0x00);				// clear own wakeup req bit
 #endif
