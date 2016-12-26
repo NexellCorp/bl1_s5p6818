@@ -190,7 +190,7 @@ pllchangedelayloop:                                 //; this code will be alread
 //; Self-Refresh Service
 //;==================================================================
 .global enterSelfRefresh                            //; this code is call linux kernel, so here is virtual memory space.
-.global sleepMain
+.global s5p6818_suspend
 .global vddPowerOff
 //.global subCPUsleep
 //.global jumpToVirtualArea
@@ -331,8 +331,8 @@ recheck_suspend_ready:
         push    {lr}
 
 
-        //; Goto sleepMain function.
-        bl      sleepMain
+        //; Goto s5p6818_suspend function.
+        bl      s5p6818_suspend
 
         //; Awake other cpus.
         ldr     r0, =0xC0009F00

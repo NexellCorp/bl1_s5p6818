@@ -37,14 +37,17 @@ MEMTYPE				?= DDR3
 MEMTEST				?= n
 
 # power management ic(pmic) on/off
-INITPMIC			?= YES
-#INITPMIC			?= NO
+#INITPMIC			?= YES
+INITPMIC			?= NO
 
 CRC_CHECK			?= n
 
 # supported (thridboot) boot mode
 SUPPORT_USB_BOOT		?= y
 SUPPORT_SDMMC_BOOT		?= y
+SUPPORT_SPI_BOOT		?= n
+SUPPORT_NAND_BOOT		?= n
+SUPPORT_SDFS_BOOT		?= n
 
 #BOARD				?= SVT
 #BOARD				?= ASB
@@ -54,11 +57,11 @@ BOARD				?= AVN
 #BOARD				?= RAPTOR
 
 # supported kernel version (3.18-3.4/4.1-4.4)
-#KERNEL_VER			?= 3
-KERNEL_VER			?= 4
+KERNEL_VER			?= 3
+#KERNEL_VER			?= 4
 
 # system log message
-SYSLOG				?= n
+SYSLOG				?= y
 
 # secure Boot
 SECURE_ON			?= 0

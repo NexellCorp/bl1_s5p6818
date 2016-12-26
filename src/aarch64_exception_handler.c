@@ -18,7 +18,7 @@
 
 #include "sysheader.h"
 
-void sleepMain(void);
+void s5p6818_suspend(void);
 U32 GetSMCCodeFromAArch32(void);
 U32 GetSMCCodeFromAArch64(void);
 U32 GetSaveAArchMode(void);
@@ -69,7 +69,7 @@ void sync_c_handler_EL3(void)
 			while (!serial_empty());
 			while (serial_busy());
 
-			sleepMain();
+			s5p6818_suspend();
 
 			printf("machine is resumed at el%d\r\n",
 			       GetCurrentSMode());

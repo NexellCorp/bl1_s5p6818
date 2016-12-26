@@ -18,7 +18,7 @@
 
 #include "sysheader.h"
 
-void sleepMain(void);
+void s5p6818_suspend(void);
 U32 GetCPUID(void);
 U32 GetSMCCode(void *);
 U32 GetCurrentSMode(void);
@@ -36,7 +36,7 @@ void aarch32_monitor(unsigned int lr)
 			while(!serial_empty());
 			while(serial_busy());
 
-			sleepMain();
+			s5p6818_suspend();
 
 			printf("machine is resumed at mode 0x%x\r\n", GetCurrentSMode());
 			while(!serial_empty());

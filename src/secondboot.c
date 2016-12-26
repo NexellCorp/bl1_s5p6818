@@ -54,7 +54,7 @@ extern void ResetCon(U32 devicenum, CBOOL en);
 extern CBOOL SubCPUBringUp(U32 CPUID);
 
 extern void initPMIC(void);
-extern void dowakeup(void);
+extern void s5p6818_resume(void);
 extern void RomUSBBoot(U32 RomJumpAddr);
 extern void secure_set_state(void);
 extern int memtester_main(unsigned int start, unsigned int end);
@@ -155,7 +155,7 @@ void BootMain(U32 CPUID)
 	struct NX_SecondBootInfo *pTBI = &TBI; // third boot info
 	CBOOL Result = CFALSE;
 	register volatile U32 temp;
-	U32 signature, isResume = 0;
+	U32 signature, is_resume = 0;
 	U32 serial_ch = 0;
 
 #if defined(RAPTOR_PMIC_INIT) || defined(AVN_PMIC_INIT)
@@ -173,31 +173,8 @@ void BootMain(U32 CPUID)
 	WriteIO32(&pReg_Alive->ALIVEPWRGATEREG, 1);
 	WriteIO32(&pReg_Alive->VDDCTRLSETREG, 0x000003FC); //; Retention off (Pad hold off)
 
-	if (USBREBOOT_SIGNATURE == ReadIO32(&pReg_Alive->ALIVESCRATCHVALUE5))
-		RomUSBBoot((U32)0x0000009C);
-#if !defined(LOAD_FROM_USB)
-		SetIO32(&pReg_RstCon->REGRST[RESETINDEX_OF_WDT_MODULE_PRESETn >> 5], 1 << (RESETINDEX_OF_WDT_MODULE_PRESETn & 0x1F));
-		SetIO32(&pReg_RstCon->REGRST[RESETINDEX_OF_WDT_MODULE_nPOR >> 5], 1 << (RESETINDEX_OF_WDT_MODULE_nPOR & 0x1F));
-		WriteIO32(&pReg_WDT->WTCON,
-				0xFF << 8 |		// prescaler value
-				0x03 << 3 |		// division factor (3:128)
-				0x01 << 2);		// watchdog reset enable
-		WriteIO32(&pReg_WDT->WTCNT, 0xFFFF);	// 200MHz/256/128 = 6103.515625, 65536/6103.5 = 10.74 sec
-//		SetIO32  ( &pReg_WDT->WTCON, 0x01<<5);          // watchdog timer enable
-#endif
-	//--------------------------------------------------------------------------
-	// Get resume information.
-	//--------------------------------------------------------------------------
-	signature = ReadIO32(&pReg_Alive->ALIVESCRATCHREADREG);
-	if ((SUSPEND_SIGNATURE == (signature & 0xFFFFFF00)) && ReadIO32(&pReg_Alive->WAKEUPSTATUS)) {
-		isResume = 1;
-	}
-
-	/* Arm Trusted Firmware */
-	signature = ReadIO32(&pReg_Alive->ALIVESCRATCHVALUE4);
-	if ((ATF_SUSPEND_SIGNATURE == (signature & 0xFFFFFF00)) && ReadIO32(&pReg_Alive->WAKEUPSTATUS)) {
-		isResume = 1;
-	}
+	/* step xx. check the suspend, resume */
+	is_resume = s5p6818_resume_check();
 
 	/*
 	 * SD/MMC,SPI - port number stored for u-boot.
@@ -238,11 +215,11 @@ void BootMain(U32 CPUID)
 	//--------------------------------------------------------------------------
 	printClkInfo();
 
-	SYSMSG("\r\nDDR3 POR Init Start %d\r\n", isResume);
+	SYSMSG("\r\nDDR3 POR Init Start %d\r\n", is_resume);
 #ifdef MEM_TYPE_DDR3
 #if 0
-	if (ddr3_initialize(isResume) == CFALSE)
-		ddr3_initialize(isResume);
+	if (ddr3_initialize(is_resume) == CFALSE)
+		ddr3_initialize(is_resume);
 #else
 	/*
 	 * DDR initialization fails, a temporary code
@@ -264,7 +241,7 @@ void BootMain(U32 CPUID)
 		init_LPDDR3(0);
 #endif
 
-	if (isResume)
+	if (is_resume)
 		exit_self_refresh();
 
 	SYSMSG("DDR3 Init Done!\r\n");
@@ -291,10 +268,10 @@ void BootMain(U32 CPUID)
 	SubCPUBringUp(CPUID);
 #endif
 
-	if (isResume) {
+	if (is_resume) {
 		SYSMSG(" DDR3 SelfRefresh exit Done!\r\n0x%08X\r\n", 
 			ReadIO32(&pReg_Alive->WAKEUPSTATUS));
-		dowakeup();
+		s5p6818_resume();
 	}
 	WriteIO32(&pReg_Alive->ALIVEPWRGATEREG, 0);
 
