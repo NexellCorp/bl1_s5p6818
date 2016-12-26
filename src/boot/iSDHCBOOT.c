@@ -69,7 +69,7 @@ CBOOL   NX_SDMMC_GetClkParam( NX_CLKINFO_SDMMC *pClkInfo )
     U32 nRetry = 1, nTemp = 0;
     CBOOL   fRet = CFALSE;
 
-    srcFreq = NX_CLKPWR_GetPLLFreq(pClkInfo->nPllNum);
+    srcFreq = clkpwr_get_pllfreq(pClkInfo->nPllNum);
 
 retry_getparam:
     for (pClkInfo->nClkDiv = 2; ; pClkInfo->nClkDiv += 2)
@@ -163,7 +163,7 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
 								| (0UL<<1);							// set clock invert
 #else
 
-    clkInfo.nPllNum = NX_CLKSRC_SDMMC;
+    clkInfo.nPllNum = CLKSRC_SDMMC;
     clkInfo.nFreqHz = nFreq;
     ret = NX_SDMMC_GetClkParam( &clkInfo );
     if (ret == CTRUE)
@@ -715,7 +715,7 @@ CBOOL	NX_SDMMC_Init( SDXCBOOTSTATUS * pSDXCBootStatus )
     NX_CLKINFO_SDMMC clkInfo;
     CBOOL ret;
 
-    clkInfo.nPllNum = NX_CLKSRC_SDMMC;
+    clkInfo.nPllNum = CLKSRC_SDMMC;
     clkInfo.nFreqHz = 25000000;
 
     ret = NX_SDMMC_GetClkParam( &clkInfo );

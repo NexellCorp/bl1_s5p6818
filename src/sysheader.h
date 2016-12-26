@@ -20,7 +20,6 @@
 
 #include <s5p6818.h>
 #include <type.h>
-#include "cfgFreqDefine.h"
 
 #if defined(ARCH_NXP4330) || defined(ARCH_S5P4418)
 #include <nx_pyrope.h>

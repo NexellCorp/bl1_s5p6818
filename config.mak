@@ -37,8 +37,8 @@ MEMTYPE				?= DDR3
 MEMTEST				?= n
 
 # power management ic(pmic) on/off
-#INITPMIC			?= YES
-INITPMIC			?= NO
+INITPMIC			?= YES
+#INITPMIC			?= NO
 
 CRC_CHECK			?= n
 
@@ -61,7 +61,7 @@ KERNEL_VER			?= 3
 #KERNEL_VER			?= 4
 
 # system log message
-SYSLOG				?= y
+SYSLOG				?= n
 
 # secure Boot
 SECURE_ON			?= 0

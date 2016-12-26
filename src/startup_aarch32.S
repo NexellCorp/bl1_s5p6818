@@ -33,7 +33,7 @@
 /*
  * entry point of main function
  */
-.global BootMain
+.global main
 .global s5p6818_subcpu_on
 
 //;==================================================================
@@ -165,7 +165,7 @@ CPUBRINGUP:
 
         movs    r0, r12
 
-        bleq    BootMain                            //; save this in register for possible long jump
+        bleq    main                            //; save this in register for possible long jump
         blne    s5p6818_subcpu_on
         b       .
 

@@ -34,6 +34,20 @@
 #define MEM_TYPE_LPDDR23
 #endif
 
+/* Clock (PLLx) Configuration */
+#define OSC_HZ					(24000000)
+#define OSC_KHZ					(OSC_HZ/1000)
+#define OSC_MHZ					(OSC_KHZ/1000)
+
+#define CLKSRC_PLL_0				0
+#define CLKSRC_PLL_1				1
+#define CLKSRC_PLL_2				2
+#define CLKSRC_PLL_3				3
+
+#define CLKSRC_UART				CLKSRC_PLL_2
+#define CLKSRC_SDMMC				CLKSRC_PLL_2
+#define CLKSRC_SPI				CLKSRC_PLL_0
+
 /* Serial Console Configuration */
 #define CONFIG_S5P_SERIAL
 #define CONFIG_S5P_SERIAL_INDEX			0

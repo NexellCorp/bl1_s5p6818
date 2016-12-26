@@ -16,32 +16,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sysheader.h"
-//------------------------------------------------------------------------------
-CBOOL buildinfo(void)
+#include <sysheader.h>
+
+int build_information(void)
 {
-	CBOOL ret = CTRUE;
-	U32 *pNsih_BuildInfo = (U32 *)(0xFFFF0000 + 0x1F8);
-	U32 *p2nd_BuildInfo = (U32 *)(0xFFFF0200 + 0x024);
-	U32 tmp;
+	unsigned int *pNsih_BuildInfo = (unsigned int *)(0xFFFF0000 + 0x1F8);
+	unsigned int *p2nd_BuildInfo = (unsigned int *)(0xFFFF0200 + 0x024);
+	unsigned int temp;
+	int ret = 0;
 
 	// Read Build Infomation.
-	tmp = ReadIO32(p2nd_BuildInfo) & 0xFFFF;
+	temp = (mmio_read_32(p2nd_BuildInfo) & 0xFFFF);
 
 	SYSMSG("\r\n");
 	SYSMSG("---------------------------------------------------------------"
 	       "-----------------\r\n");
 	SYSMSG(" Second Boot by Nexell Co. : Ver%d.%d.%d - Built on %s %s\r\n",
-	       ((tmp >> 12) & 0xF), ((tmp >> 8) & 0xF), (tmp & 0xFF), __DATE__,
+	       ((temp >> 12) & 0xF), ((temp >> 8) & 0xF), (temp & 0xFF), __DATE__,
 	       __TIME__);
 	SYSMSG("---------------------------------------------------------------"
 	       "-----------------\r\n");
 
-	tmp = ReadIO32(pNsih_BuildInfo) & 0xFFFFFF00;
-	if ((ReadIO32(p2nd_BuildInfo) & 0xFFFFFF00) != tmp) {
-		SYSMSG(" NSIH : Ver%d.%d.xx\r\n", ((tmp >> 12) & 0xF),
-		       ((tmp >> 8) & 0xF));
-		ret = CFALSE;
+	temp = mmio_read_32(pNsih_BuildInfo) & 0xFFFFFF00;
+	if ((mmio_read_32(p2nd_BuildInfo) & 0xFFFFFF00) != temp) {
+		SYSMSG(" NSIH : Ver%d.%d.xx\r\n", ((temp >> 12) & 0xF),
+		       ((temp >> 8) & 0xF));
+		ret = -1;
 	}
 
 	return ret;

@@ -27,7 +27,7 @@
 /*
  * entry point of main function
  */
-.global BootMain
+.global main
 .global s5p6818_subcpu_on
 .global GetCPUID
 
@@ -202,7 +202,7 @@ CPUBRINGUP:
 
         cmp     x0, xzr
         b.ne    1f
-        bl      BootMain                            //; save this in register for possible long jump
+        bl      main                            //; save this in register for possible long jump
         b       .
 1:
         bl      s5p6818_subcpu_on

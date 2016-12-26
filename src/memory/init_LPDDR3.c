@@ -44,7 +44,7 @@
 
 #define nop() __asm__ __volatile__("mov\tr0,r0\t@ nop\n\t");
 
-extern void setMemPLL(int);
+extern void clock_set_mem_pll(int);
 extern inline void DMC_Delay(int milisecond);
 
 U32 g_Lock_Val;
@@ -1147,7 +1147,7 @@ CBOOL init_LPDDR3(U32 isResume)
 #if defined(MEM_TYPE_LPDDR23)
 	while (!serial_done())
 		;
-	setMemPLL(0);
+	clock_set_mem_pll(0);
 #endif
 #endif
 
@@ -2032,7 +2032,7 @@ CBOOL init_LPDDR3(U32 isResume)
 #if defined(MEM_TYPE_LPDDR23)
 	while (!serial_done())
 		;
-	setMemPLL(1);
+	clock_set_mem_pll(1);
 #endif
 #endif
 
