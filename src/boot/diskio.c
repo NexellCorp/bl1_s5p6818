@@ -26,7 +26,6 @@
 #include <nx_type.h>
 #include "diskio.h"
 #include "printf.h"
-#include <nx_debug2.h>
 #include <iSDHCBOOT.h>
 
 #ifdef DEBUG

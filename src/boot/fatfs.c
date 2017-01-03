@@ -34,7 +34,6 @@
 #include "fatfs.h"			/* FatFs configurations and declarations */
 #include "diskio.h"		/* Declarations of low level disk I/O functions */
 #include "printf.h"
-#include <nx_debug2.h>
 
 #ifdef DEBUG
 #define dprintf(x, ...)	printf(x, ...)

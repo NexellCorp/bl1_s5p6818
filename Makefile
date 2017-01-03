@@ -55,6 +55,22 @@ CFLAGS		+= -DSUPPORT_SDMMC_BOOT
 SYS_OBJS	+=	iSDHCBOOT.o
 endif
 
+ifeq ($(SUPPORT_SPI_BOOT),y)
+CFLAGS		+= -DSSUPPORT_SPI_BOOT
+SYS_OBJS	+=	iSPIBOOT.o
+endif
+
+ifeq ($(SUPPORT_NAND_BOOT),y)
+CFLAGS		+= -DSUPPORT_NAND_BOOT
+SYS_OBJS	+=	iNANDBOOTEC.o
+endif
+
+ifeq ($(SUPPORT_SDFS_BOOT),y)
+CFLAGS		+= -DSUPPORT_SDFS_BOOT
+SYS_OBJS	+=	iSDHCFSBOOT.o
+SYS_OBJS	+=	diskio.o fatfs.o
+endif
+
 ifeq ($(MEMTEST),y)
 SYS_OBJS	+=	memtester.o
 endif
