@@ -25,8 +25,8 @@ LDFLAGS		=	-Bstatic							\
 			-Wl,--build-id=none						\
 			-nostdlib
 
-SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o plat_pm.o subcpu.o			\
-			clock.o cci400.o resetcon.o GPIO.o secure_manager.o lib2ndboot.o buildinfo.o				\
+SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o plat_pm.o sub_cpu.o			\
+			clock.o cci400.o resetcon.o GPIO.o secure_manager.o lib2ndboot.o build_info.o				\
 			serial.o printf.o crc.o ema.o main.o
 
 SYS_OBJS	+=	sysbus.o
@@ -63,8 +63,9 @@ SYS_OBJS_LIST	=	$(addprefix $(DIR_OBJOUTPUT)/,$(SYS_OBJS))
 
 SYS_INCLUDES	=	-I src								\
 			-I src/boot							\
-			-I src/memory							\
-			-I src/pmic							\
+			-I src/devices							\
+			-I src/devices/memory						\
+			-I src/devices/pmic						\
 			-I src/test							\
 			-I prototype/base 						\
 			-I prototype/module
@@ -82,11 +83,15 @@ $(DIR_OBJOUTPUT)/%.o: src/boot/%.c
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/memory/%.c
+$(DIR_OBJOUTPUT)/%.o: src/devices/%.c
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/pmic/%.c
+$(DIR_OBJOUTPUT)/%.o: src/devices/memory/%.c
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
+$(DIR_OBJOUTPUT)/%.o: src/devices/pmic/%.c
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################

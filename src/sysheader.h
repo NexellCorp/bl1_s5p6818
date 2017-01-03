@@ -28,7 +28,6 @@
 #include <nx_peridot.h>
 #endif
 #include <nx_type.h>
-#include <nx_debug2.h>
 #include <nx_chip.h>
 
 #include <nx_uart.h>

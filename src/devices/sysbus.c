@@ -18,7 +18,6 @@
 #include <nx_prototype.h>
 #include "nx_type.h"
 #include "printf.h"
-#include <nx_debug2.h>
 #include "nx_peridot.h"
 #include <nx_tieoff.h>
 
