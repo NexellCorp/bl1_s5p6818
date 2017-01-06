@@ -22,6 +22,8 @@
 #include "iSDHCBOOT.h"
 #include "nx_bootheader.h"
 
+#include "configs/s5p6818_avn_ref.h"
+
 #if DEVMSG_ON
 #define dev_msg         printf
 #else

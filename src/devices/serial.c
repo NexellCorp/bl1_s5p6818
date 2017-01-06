@@ -17,13 +17,14 @@
  */
 
 #include <sysheader.h>
+#include "configs/s5p6818_avn_ref.h"
 
 /* External Function */
 extern unsigned int getquotient(int dividend, int divisor);
 extern unsigned int getremainder(int dividend, int divisor);
 
 extern void clkpwr_set_oscfreq(unsigned int freq_khz);
-extern unsigned int clkpwr_get_pllfreq(unsigned int pll_num);
+extern  int clkpwr_get_pllfreq(unsigned int pll_num);
 
 extern void ResetCon(unsigned int devicenum, int en);
 extern void GPIOSetAltFunction(unsigned int AltFunc);

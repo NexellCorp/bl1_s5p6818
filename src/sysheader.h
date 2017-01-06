@@ -56,6 +56,8 @@
 #include <serial.h>
 #include <printf.h>
 
+#include "configs/s5p6818_avn_ref.h"
+
 #if defined(SYSLOG_ON)
 #define SYSMSG printf
 #else

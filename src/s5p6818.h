@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2016  Nexell Co., Ltd.
+ * Author: DeokJin, Lee <truevirtue@nexell.co.kr>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #ifndef __S5P6818_H__
 #define __S5P6818_H__
 
@@ -33,33 +50,6 @@
 #ifdef MEMTYPE_LPDDR3
 #define MEM_TYPE_LPDDR23
 #endif
-
-/* Clock (PLLx) Configuration */
-#define OSC_HZ					(24000000)
-#define OSC_KHZ					(OSC_HZ/1000)
-#define OSC_MHZ					(OSC_KHZ/1000)
-
-#define CLKSRC_PLL_0				0
-#define CLKSRC_PLL_1				1
-#define CLKSRC_PLL_2				2
-#define CLKSRC_PLL_3				3
-
-#define CLKSRC_UART				CLKSRC_PLL_2
-#define CLKSRC_SDMMC				CLKSRC_PLL_2
-#define CLKSRC_SPI				CLKSRC_PLL_0
-
-/* Serial Console Configuration */
-#define CONFIG_S5P_SERIAL
-#define CONFIG_S5P_SERIAL_INDEX			0
-#define CONFIG_S5P_SERIAL_CLOCK			50000000
-
-#define CONFIG_S5P_SERIAL_SRCCLK		0
-#define CONFIG_S5P_SERIAL_DIVID			4
-#define CONFIG_S5P_SERIAL_
-
-#define CONFIG_BAUDRATE				115200
-
-#define CONFIG_UART_CLKGEN_CLOCK_HZ		0
 
 /* CRC Check Configuration */
 #define SUPPORT_SW_CRC_CHECK			1

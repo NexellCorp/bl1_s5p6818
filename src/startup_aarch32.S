@@ -171,15 +171,15 @@ cpu_bringup:
 	/* clock(pll) change */
         .align 8					// below instruction number is 8, 32bytes
 
-.global __pllchange
-__pllchange:						//  r0:data r1:pll address r2:delay count
+.global pll_change
+pll_change:						//  r0:data r1:pll address r2:delay count
         mov     r3, #0x100				// for icache prefetch
-pllchangedelayloop:					// this code will be already within i-cache. no bus transaction will make
+pll_change_loop:					// this code will be already within i-cache. no bus transaction will make
         subs    r3, r3, #1				// wait for pll change done
         streq   r0, [r1]				// pll change start
         moveqs  r3, r2					// real delay time set
         cmpne   r3, #0x100
-        bne     pllchangedelayloop
+        bne     pll_change_loop
         bx      lr
         nop
 

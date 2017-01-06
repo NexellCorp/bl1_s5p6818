@@ -1,22 +1,53 @@
+/*
+ * Copyright (C) 2016  Nexell Co., Ltd.
+ * Author: DeokJin, Lee <truevirtue@nexell.co.kr>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #ifndef __CLOCK_H__
 #define __CLOCK_H__
 
-#define GET_PLL01(_MHz, _val) \
-    _val = (unsigned int)((PLL01_PMS_##_MHz##MHZ_P << PLL_P) | \
-    			  (PLL01_PMS_##_MHz##MHZ_M << PLL_M) | \
-    			  (PLL01_PMS_##_MHz##MHZ_S << PLL_S));
+#define PLL_P_BITPOS			18
+#define PLL_M_BITPOS			8
+#define PLL_S_BITPOS			0
+#define PLL_K_BITPOS			16
 
-#define GET_PLL23(_MHz, _val) \
-    _val = (unsigned int)((PLL23_PMS_##_MHz##MHZ_P << PLL_P) | \
-    			  (PLL23_PMS_##_MHz##MHZ_M << PLL_M) | \
-    			  (PLL23_PMS_##_MHz##MHZ_S << PLL_S));
+#define CLKSRC_BITPOS			0
+#define DVO0_BITPOS			3
+#define DVO1_BITPOS			9
+#define DVO2_BITPOS			15
+#define DVO3_BITPOS			21
+
+#define GET_PLL01(_MHz, _val)						\
+    _val = (unsigned int)((PLL01_PMS_##_MHz##MHZ_P << PLL_P_BITPOS) |	\
+    			  (PLL01_PMS_##_MHz##MHZ_M << PLL_M_BITPOS) |	\
+    			  (PLL01_PMS_##_MHz##MHZ_S << PLL_S_BITPOS));
+
+#define GET_PLL23(_MHz, _val)						\
+    _val = (unsigned int)((PLL23_PMS_##_MHz##MHZ_P << PLL_P_BITPOS) |	\
+    			  (PLL23_PMS_##_MHz##MHZ_M << PLL_M_BITPOS) |	\
+    			  (PLL23_PMS_##_MHz##MHZ_S << PLL_S_BITPOS));
+
+#define GET_PLL23K(_MHz, _val)							\
+	_val = (unsigned int)((PLL23_PMS_##_MHz##MHZ_K << PLL_K_BITPOS) | 0x0104);
 
 
-/* System Controller */
-//#define SYSPLLCH      *(volatile unsigned long *)(0xc0010268)
+#define GET_PLL01_FREQ(STR, PMS)	GET_PLL01 (STR, PMS)
+#define GET_PLL23_FREQ(STR, PMS)	GET_PLL23 (STR, PMS)
+#define GET_PLL23K_FREQ(STR, PMS)	GET_PLL23K(STR, PMS)
 
-#if 1	//(CFG_NSIH_EN == 0)
-// PMS for PLL0, 1
+/* PMS for PLL0, 1 */
 #define PLL01_PMS_1800MHZ_P		3
 #define PLL01_PMS_1800MHZ_M		450
 #define PLL01_PMS_1800MHZ_S		1
@@ -93,7 +124,7 @@
 #define PLL01_PMS_400MHZ_M		200
 #define PLL01_PMS_400MHZ_S 		2
 
-// PMS for PLL2, 3
+/* PMS for PLL 2, 3 */
 #define PLL23_PMS_933MHZ_P		4
 #define PLL23_PMS_933MHZ_M		311
 #define PLL23_PMS_933MHZ_S		1
@@ -223,17 +254,8 @@
 #define PLL23_PMS_50MHZ_M		200
 #define PLL23_PMS_50MHZ_S		5
 #define PLL23_PMS_50MHZ_K		0
-#endif
 
-#define PLL_P				18
-#define PLL_M				8
-#define PLL_S				0
-#define PLL_K				16
-
-#define CLKSRC				0
-#define DVO0				3
-#define DVO1				9
-#define DVO2				15
-#define DVO3				21
-
+/* Clock Function Define */
+ int clock_initialize(void);
+void clock_information(void);
 #endif
