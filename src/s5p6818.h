@@ -18,7 +18,7 @@
 #ifndef __S5P6818_H__
 #define __S5P6818_H__
 
-#define CFG_NSIH_EN				1
+#define CFG_NSIH_EN				0
 
 /* NXPXX30 - Chip Product */
 #define ARCH_NXP5430

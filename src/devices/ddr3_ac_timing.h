@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#ifndef __DDR3_K4B8G1646B_MCK0_H__
-#define __DDR3_K4B8G1646B_MCK0_H__
+
+#ifndef __DDR3_AC_TIMING_H__
+#define __DDR3_AC_TIMING_H__
 
 /* Support the DDR3 Clock*/
 #define DDR3_MEMCLK_533MHZ	0
@@ -156,28 +156,28 @@
 #endif  //#if (MEM_CLK == DDR3_MEMCLK_533MHZ)
 
 /* User Define - DDR3 Device Mode Registers */
-#define MR1_nAL         0               // Posted CAS additive latency.  0 : Disable, 1 : CL - 1, 2 : CL - 2
+#define MR1_nAL         	0               // Posted CAS additive latency.  0 : Disable, 1 : CL - 1, 2 : CL - 2
 
 #if (MR1_nAL > 0)
-#define nAL             (nCL - MR1_nAL)
+#define nAL             	(nCL - MR1_nAL)
 #else
-#define nAL             0
+#define nAL             	0
 #endif
 
-#define nWL             (nAL + nCWL)
-#define nRL             (nAL + nCL)
+#define nWL             	(nAL + nCWL)
+#define nRL             	(nAL + nCL)
 
 /*
   * Cas Latency for
   * 0:5ck(tCK>2.5ns), 1:6ck(2.5ns>tCK>1.875ns), 2:7ck(1.875ns>tCK>2.5ns), 3:8ck(1.5ns>tCK>1.25ns),
   * 4:9ck(1.25ns>tCK>1.07ns), 5:10ck(1.07ns>tCK>0.935ns), 6:11ck(0.935ns>tCK>0.833ns), 7:12ck(0.833ns>tCK>0.75ns)
   */
-#define MR2_nCWL        (nCWL - 5)      // CAS Write Latency(CWL).
+#define MR2_nCWL        	(nCWL - 5)      // CAS Write Latency(CWL).
 
-#define	nMR1_AL		0
-#define nMR1_ODS	0
-#define nMR1_RTT_Nom	2
+#define	nMR1_AL			0
+#define nMR1_ODS		0
+#define nMR1_RTT_Nom		2
 
-#define nMR2_RTT_WR	1
+#define nMR2_RTT_WR		1
 
 #endif  //#ifndef __DDR3_AC_TIMING_H__
