@@ -19,6 +19,7 @@
 #define __SYS_HEADER_H__
 
 #include <s5p6818.h>
+#include <freq.h>
 #include <type.h>
 
 #if defined(ARCH_NXP4330) || defined(ARCH_S5P4418)
@@ -27,23 +28,25 @@
 #if defined(ARCH_NXP5430)
 #include <nx_peridot.h>
 #endif
-#include <nx_type.h>
+
+/* The prototype header that defines the register. Gradually reduce dependencies. */
 #include <nx_chip.h>
 
-#include <nx_uart.h>
-#include <nx_cci400.h>
-#include <nx_gic400.h>
 #include <nx_rstcon.h>
 #include <nx_clkpwr.h>
-#include <nx_ecid.h>
+
 #include <nx_gpio.h>
-#include <nx_alive.h>
+
 #include <nx_tieoff.h>
-#include <nx_intc.h>
+#include <nx_alive.h>
+#include <nx_ecid.h>
 #include <nx_clkgen.h>
 #include <nx_ssp.h>
 #include <nx_wdt.h>
 #include <nx_rtc.h>
+
+#include <nx_cci400.h>
+#include <nx_gic400.h>
 #include <nx_tzpc.h>
 #include <nx_tzc380.h>
 
@@ -51,10 +54,24 @@
 #include <clkgen.h>
 #include <gpio.h>
 
+#include <pmic.h>
+
 #include <serial.h>
 #include <printf.h>
 
-#include "configs/s5p6818_avn_ref.h"
+#if defined(AVN)
+#include <s5p6818_avn_ref.h>
+#elif defined(DRONE)
+#include <s5p6818_drone.h>
+#elif defined(SVT)
+#include <s5p6818_svt.h>
+#elif defined(ASB)
+#include <s5p6818_asb.h>
+#elif defined(BF700)
+#include <s5p6818_bf700.h>
+#elif defined(RAPTOR)
+#include <s5p6818_raptor.h>
+#endif
 
 #if defined(SYSLOG_ON)
 #define SYSMSG printf

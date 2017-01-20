@@ -15,26 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef __RAPTOR_H__
+#define __RAPTOR_H__
 
-#include <sysheader.h>
-#include <pmic.h>
+#define NXE2000_I2C_GPIO_GRP 			3
+#define NXE2000_I2C_SCL 			6
+#define NXE2000_I2C_SDA 			7
+#define NXE2000_I2C_SCL_ALT 			0
+#define NXE2000_I2C_SDA_ALT 			0
 
-extern void DMC_Delay(int milisecond);
-
-void pmic_initalize(void)
-{
-#if defined(DRONE_PMIC)
-	pmic_drone();
-#elif defined(AVN_PMIC)
-	pmic_avn();
-#elif defined(ASB_PMIC)
-	pmic_asb();
-#elif defined(SVT_PMIC)
-	pmic_svt();
-#elif defined(BF700_PMIC)
-	pmic_bf700();
-#elif defined(RAPTOR_PMIC)
-	pmic_raptor();
-#endif
-	DMC_Delay(100 * 1000);
-}
+#endif // __RAPTOR_H__

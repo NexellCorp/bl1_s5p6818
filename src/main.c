@@ -20,27 +20,6 @@
 #include <main.h>
 #include "nx_bootheader.h"
 
-#if defined(RAPTOR)
-/*
- * Raptor board - revision check. (H/W: GPIOE 4,5,6)
- * GPIOE4 (Least Bit), GPIOE6(Most Bit)
- */
-unsigned int raptor_check_hw_revision(void)
-{
-	volatile unsigned int *reg = 0;
-	unsigned int val = 0;
-
-	/*
-	 * Check to GPIOE PORT
-	 * Read to GPIOPAD Status Register
-	 */
-	reg = (volatile unsigned int*)(0xC001E000 + 0x18);
-	val = (*reg & (0x7 << 4)) >> 4;
-
-        return val;
-}
-#endif
-
 /* s5p6818 - pwm module reset */
 void s5p6818_pwm_reset(void)
 {
@@ -98,8 +77,8 @@ void main(unsigned int cpu_id)
 	is_resume = s5p6818_resume_check();
 
 	/* step 02. set the pmic(power management ic) */
-#if defined(INITPMIC_YES)
-	initPMIC();
+#if defined(PMIC_ON)
+	pmic_initalize();
 #endif
 
 	/* step 03. clock(pll) intialize */

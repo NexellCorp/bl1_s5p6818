@@ -27,7 +27,7 @@ LDFLAGS		=	-Bstatic							\
 
 SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o plat_pm.o sub_cpu.o			\
 			clock.o cci400.o resetcon.o GPIO.o secure_manager.o lib2ndboot.o build_info.o				\
-			serial.o printf.o crc.o ema.o clkpwr.o main.o
+			serial.o printf.o crc.o ema.o clkpwr.o board_$(BOARD).o main.o
 
 SYS_OBJS	+=	sysbus.o
 
@@ -41,8 +41,8 @@ endif
 SYS_OBJS	+=	CRYPTO.o
 #SYS_OBJS	+=	nx_tieoff.o
 
-ifeq ($(INITPMIC),YES)
-SYS_OBJS	+=	i2c_gpio.o pmic.o
+ifeq ($(PMIC_ON),y)
+SYS_OBJS	+=	i2c_gpio.o pmic.o nxe2000.o mp8845.o axp228.o
 endif
 
 ifeq ($(SUPPORT_USB_BOOT),y)
@@ -81,8 +81,9 @@ SYS_INCLUDES	=	-I src								\
 			-I src/boot							\
 			-I src/devices							\
 			-I src/devices/memory						\
-			-I src/configs							\
 			-I src/devices/pmic						\
+			-I src/board							\
+			-I src/configs							\
 			-I src/test							\
 			-I prototype/base 						\
 			-I prototype/module
@@ -112,6 +113,11 @@ $(DIR_OBJOUTPUT)/%.o: src/devices/pmic/%.c
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
+$(DIR_OBJOUTPUT)/%.o: src/board/%.c
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
+
 $(DIR_OBJOUTPUT)/%.o: src/test/%.c
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)

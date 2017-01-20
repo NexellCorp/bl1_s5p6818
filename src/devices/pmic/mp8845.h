@@ -16,24 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CFG_FREQ_DEFINE_H__
-#define __CFG_FREQ_DEFINE_H__
+#ifndef __MP8845_H__
+#define __MP8845_H__
 
-//------------------------------------------------------------------------------
-//	oscilator
-//------------------------------------------------------------------------------
-#define OSC_HZ			(24000000)
-#define OSC_KHZ			(OSC_HZ/1000)
-#define OSC_MHZ			(OSC_KHZ/1000)
+#define MP8845C_REG_VSEL                0x00
+#define MP8845C_REG_SYSCNTL1            0x01
+#define MP8845C_REG_SYSCNTL2            0x02
+#define MP8845C_REG_ID1                 0x03
+#define MP8845C_REG_ID2                 0x04
+#define MP8845C_REG_STATUS              0x05
 
-#define NX_CLKSRC_PLL_0		(0)
-#define NX_CLKSRC_PLL_1		(1)
-#define NX_CLKSRC_PLL_2		(2)
-#define NX_CLKSRC_PLL_3		(3)
+#define I2C_ADDR_MP8845                 (0x38 >> 1)  // SVT & ASB
 
-//------------------------------------------------------------------------------
-#define NX_CLKSRC_UART		(NX_CLKSRC_PLL_2)
-#define NX_CLKSRC_SDMMC		(NX_CLKSRC_PLL_2)
-#define NX_CLKSRC_SPI		(NX_CLKSRC_PLL_0)
+/* Function Define */
+ int get_asv_index(U32 ecid_1);
 
-#endif /* __CFG_FREQ_DEFINE_H__ */
+ int mp8845_write(char addr, char *pdata, int size);
+ int mp8845_read(char addr, char *pdata, int size);
+
+inline void pmic_mp8845(void);
+
+#endif	// ifdef __PMIC_MP8845_H__

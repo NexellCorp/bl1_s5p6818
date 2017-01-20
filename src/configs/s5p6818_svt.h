@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __S5P6818_AVN_REF_H__
-#define __S5P6818_AVN_REF_H__
+#ifndef __S5P6818_SVT_H__
+#define __S5P6818_SVT_H__
 
 #include <clock.h>
 #include <freq.h>
@@ -75,15 +75,15 @@
 #define CONFIG_DDR3_BUS_WIDTH			16
 
 /* device(dram) drive strength configuration */
-#define CONFIG_DRAM_MR1_ODS			0				// MR1_ODS - 0: RZQ/6, 1 : RZQ/7
-#define CONFIG_DRAM_MR1_RTT_Nom			3				// MR1_RTT_Nom - 001: RZQ/4, 010: RZQ/2, 011: RZQ/6, 100: RZQ/12, 101: RZQ/8
-#define CONFIG_DRAM_MR2_RTT_WR			1				// MR2_RTT_WR - 0: ODT disable, 1: RZQ/4, 2: RZQ/2
+#define CONFIG_DRAM_MR1_ODS			2				// MR1_ODS - 0: RZQ/6, 1 : RZQ/7
+#define CONFIG_DRAM_MR1_RTT_Nom			1				// MR1_RTT_Nom - 001: RZQ/4, 010: RZQ/2, 011: RZQ/6, 100: RZQ/12, 101: RZQ/8
+#define CONFIG_DRAM_MR2_RTT_WR			2				// MR2_RTT_WR - 0: ODT disable, 1: RZQ/4, 2: RZQ/2
 
 /* memory controller(dphy) drive strengh configuration  */
-#define CONFIG_DPHY_DRVDS_BYTE0			4
-#define CONFIG_DPHY_DRVDS_BYTE1			4
-#define CONFIG_DPHY_DRVDS_BYTE2			4
-#define CONFIG_DPHY_DRVDS_BYTE3			4
+#define CONFIG_DPHY_DRVDS_BYTE0			6
+#define CONFIG_DPHY_DRVDS_BYTE1			6
+#define CONFIG_DPHY_DRVDS_BYTE2			6
+#define CONFIG_DPHY_DRVDS_BYTE3			6
 #define CONFIG_DPHY_DRVDS_CK			6
 #define CONFIG_DPHY_DRVDS_CKE			6
 #define CONFIG_DPHY_DRVDS_CS			6
@@ -94,8 +94,8 @@
 
 /* ddr3 leveling & training configuration */
 #define CONFIG_DDR3_WRITE_LVL_EN		0				// 0: Disable, 1: Enable
-#define CONFIG_DDR3_READ_DQ_EN			1				// 0: Disable, 1: Enable
-#define CONFIG_DDR3_WRITE_DQ_EN			1				// 0: Disable, 1: Enable
+#define CONFIG_DDR3_READ_DQ_EN			0				// 0: Disable, 1: Enable
+#define CONFIG_DDR3_WRITE_DQ_EN			0				// 0: Disable, 1: Enable
 #define CONFIG_DDR3_GATE_LVL_EN			1				// 0: Disable, 1: Enable
 
 #define CONFIG_DDR3_LVLTR_EN			(CONFIG_DDR3_WRITE_LVL_EN << 0) |	\
@@ -120,5 +120,9 @@
 
 /* pmic(power management ic) configuration */
 #define NXE2000_PMIC_ENABLE
+#define MP8845_PMIC_ENABLE
 
-#endif // #ifndef __S5P6818_AVN_REF_H__
+#define AUTO_VOLTAGE_CONTROL			1
+#define ARM_VOLTAGE_CONTROL_SKIP		0
+
+#endif // #ifndef __S5P6818_SVT_H__

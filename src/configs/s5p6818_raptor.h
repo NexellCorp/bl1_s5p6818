@@ -76,20 +76,20 @@
 
 /* device(dram) drive strength configuration */
 #define CONFIG_DRAM_MR1_ODS			0				// MR1_ODS - 0: RZQ/6, 1 : RZQ/7
-#define CONFIG_DRAM_MR1_RTT_Nom			3				// MR1_RTT_Nom - 001: RZQ/4, 010: RZQ/2, 011: RZQ/6, 100: RZQ/12, 101: RZQ/8
+#define CONFIG_DRAM_MR1_RTT_Nom			2				// MR1_RTT_Nom - 001: RZQ/4, 010: RZQ/2, 011: RZQ/6, 100: RZQ/12, 101: RZQ/8
 #define CONFIG_DRAM_MR2_RTT_WR			1				// MR2_RTT_WR - 0: ODT disable, 1: RZQ/4, 2: RZQ/2
 
 /* memory controller(dphy) drive strengh configuration  */
-#define CONFIG_DPHY_DRVDS_BYTE0			4
-#define CONFIG_DPHY_DRVDS_BYTE1			4
-#define CONFIG_DPHY_DRVDS_BYTE2			4
-#define CONFIG_DPHY_DRVDS_BYTE3			4
+#define CONFIG_DPHY_DRVDS_BYTE0			6
+#define CONFIG_DPHY_DRVDS_BYTE1			6
+#define CONFIG_DPHY_DRVDS_BYTE2			6
+#define CONFIG_DPHY_DRVDS_BYTE3			6
 #define CONFIG_DPHY_DRVDS_CK			6
 #define CONFIG_DPHY_DRVDS_CKE			6
 #define CONFIG_DPHY_DRVDS_CS			6
 #define CONFIG_DPHY_DRVDS_CA			6
 
-#define CONFIG_DPHY_ZQ_DDS			4
+#define CONFIG_DPHY_ZQ_DDS			5
 #define CONFIG_DPHY_ZQ_ODT			1
 
 /* ddr3 leveling & training configuration */

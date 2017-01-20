@@ -15,26 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifndef __DRONE_H__
+#define __DRONE_H__
 
-#include <sysheader.h>
-#include <pmic.h>
+#define AUTO_VOLTAGE_CONTROL			1
+#define ARM_VOLTAGE_CONTROL_SKIP		0
 
-extern void DMC_Delay(int milisecond);
+#define AXP_I2C_GPIO_GRP 			3 				// GPIOD
+#define AXP_I2C_SCL 				20				// SCL : GPIOD 20
+#define AXP_I2C_SDA 				16				// SDA : GPIOD 16
+#define AXP_I2C_SCL_ALT				0				// SCL : ALT0
+#define AXP_I2C_SDA_ALT				0				// SDA: ALT0
 
-void pmic_initalize(void)
-{
-#if defined(DRONE_PMIC)
-	pmic_drone();
-#elif defined(AVN_PMIC)
-	pmic_avn();
-#elif defined(ASB_PMIC)
-	pmic_asb();
-#elif defined(SVT_PMIC)
-	pmic_svt();
-#elif defined(BF700_PMIC)
-	pmic_bf700();
-#elif defined(RAPTOR_PMIC)
-	pmic_raptor();
-#endif
-	DMC_Delay(100 * 1000);
-}
+#endif // __DRONE_H__

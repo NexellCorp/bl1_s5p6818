@@ -29,7 +29,7 @@ void cache_setup_ema(void);
 void ema_information(void);
 
 /* PMIC(power management ic) Function */
-void initPMIC(void);
+void pmic_initalize(void);
 
 /* CCI400, Bus, Drex Fuction */
 void cci400_initialize(void);

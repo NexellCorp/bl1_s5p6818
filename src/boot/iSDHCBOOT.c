@@ -22,8 +22,6 @@
 #include "iSDHCBOOT.h"
 #include "nx_bootheader.h"
 
-#include "configs/s5p6818_avn_ref.h"
-
 #if DEVMSG_ON
 #define dev_msg         printf
 #else
@@ -165,7 +163,7 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
 								| (0UL<<1);							// set clock invert
 #else
 
-    clkInfo.nPllNum = CLKSRC_SDMMC;
+    clkInfo.nPllNum = CONFIG_S5P_SDMMC_SRCLK;
     clkInfo.nFreqHz = nFreq;
     ret = NX_SDMMC_GetClkParam( &clkInfo );
     if (ret == CTRUE)
@@ -717,7 +715,7 @@ CBOOL	NX_SDMMC_Init( SDXCBOOTSTATUS * pSDXCBootStatus )
     NX_CLKINFO_SDMMC clkInfo;
     CBOOL ret;
 
-    clkInfo.nPllNum = CLKSRC_SDMMC;
+    clkInfo.nPllNum = CONFIG_S5P_SDMMC_SRCLK;
     clkInfo.nFreqHz = 25000000;
 
     ret = NX_SDMMC_GetClkParam( &clkInfo );

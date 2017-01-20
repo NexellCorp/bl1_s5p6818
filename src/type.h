@@ -18,6 +18,31 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
+typedef char				int8_t;					///< 8bit signed integer(s.7) value
+typedef short				int16_t;				///< 16bit signed integer(s.15) value
+typedef int				int32_t;				///< 32bit signed integer(s.31) value
+typedef long long			int64_t;				///< 64bit signed integer(s.63) value
+typedef unsigned char			uint8_t;				///< 8bit unsigned integer value
+typedef unsigned short			uint16_t;				///< 16bit unsigned integer value
+typedef unsigned int			uint32_t;				///< 32bit unsigned integer value
+typedef unsigned long long		uint64_t;				///< 64bit unsigned integer vlaue
+
+#define u8				unsigned char
+#define u16				unsigned short
+#define u32				unsigned int
+#define u64				unsigned long long
+
+#define s8				char
+#define s16				short
+#define s32				int
+#define s64				long long
+
+#define true				0
+#define false				-1
+
+#define TRUE				1
+#define FALSE				0
+
 #define IO_ADDRESS(x)			(x)
 
 #define mmio_read_32(addr)		(*(volatile unsigned int  *)(addr))
@@ -44,20 +69,4 @@
 #define writew(data, addr)		({unsigned short *_v = (unsigned short *)addr; mmio_write_16(_v, data);})
 #define writel(data, addr)		({unsigned int *_v = (unsigned int *)addr; mmio_write_32(_v, data);})
 
-#define u8				unsigned char
-#define u16				unsigned short
-#define u32				unsigned int
-#define u64				unsigned long long
-
-#define s8				char
-#define s16				short
-#define s32				int
-#define s64				long long
-
-#define true				0
-#define false				-1
-
-#define TRUE				1
-#define FALSE				0
-
-#endif
+#endif	// __TYPE_H__

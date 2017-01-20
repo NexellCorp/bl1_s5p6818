@@ -37,8 +37,8 @@ MEMTYPE				?= DDR3
 MEMTEST				?= n
 
 # power management ic(pmic) on/off
-INITPMIC			?= YES
-#INITPMIC			?= NO
+PMIC_ON				?= y
+#PMIC_ON				?= n
 
 CRC_CHECK			?= n
 
@@ -49,12 +49,12 @@ SUPPORT_SPI_BOOT		?= n
 SUPPORT_NAND_BOOT		?= n
 SUPPORT_SDFS_BOOT		?= n
 
-#BOARD				?= SVT
-#BOARD				?= ASB
-#BOARD				?= DRONE
-BOARD				?= AVN
-#BOARD				?= BF700
-#BOARD				?= RAPTOR
+#BOARD				?= svt
+#BOARD				?= asb
+#BOARD				?= drone
+BOARD				?= avn
+#BOARD				?= bf700
+#BOARD				?= raptor
 
 # supported kernel version (3.18-3.4/4.1-4.4)
 KERNEL_VER			?= 3
@@ -157,15 +157,16 @@ ARLIBFLAGS			= -v -s
 
 ASFLAG				= -D__ASSEMBLY__ -D$(OPMODE)
 
-CFLAGS				+=	-g -Wall				\
-					-Wextra -ffreestanding -fno-builtin	\
-					-mlittle-endian				\
-					-mcpu=$(CPU)				\
-					$(CODE_MAIN_INCLUDE)			\
-					-D__arm -DLOAD_FROM_$(BOOTFROM)		\
-					-DMEMTYPE_$(MEMTYPE)			\
-					-DINITPMIC_$(INITPMIC)			\
-					-D$(OPMODE) -D$(BOARD)
+CFLAGS				+=	-g -Wall						\
+					-Wextra -ffreestanding -fno-builtin			\
+					-mlittle-endian						\
+					-mcpu=$(CPU)						\
+					$(CODE_MAIN_INCLUDE)					\
+					-D__arm -DLOAD_FROM_$(BOOTFROM)				\
+					-DMEMTYPE_$(MEMTYPE)					\
+					-DPMIC_ON						\
+					-D$(OPMODE) -D$(shell echo $(BOARD) | tr a-z A-Z)
+
 ifeq ($(OPMODE) , aarch32)
 CFLAGS				+=	-msoft-float				\
 					-mstructure-size-boundary=32
@@ -194,8 +195,8 @@ CFLAGS				+=	-DSYSLOG_ON
 endif
 
 # power managemnt ic(pmic) on/off
-ifeq ($(INITPMIC), YES)
-CFLAGS				+=	-D$(BOARD)_PMIC_INIT
+ifeq ($(PMIC_ON), y)
+CFLAGS				+=	-D$(shell echo $(BOARD) | tr a-z A-Z)_PMIC
 endif
 
 # memory test
