@@ -44,27 +44,28 @@ vectors:
         b       .					// 18 - irq interrupts
         b       .					// 1C - fiq interrupts
 
+	.skip	0x20, 0x00				//20 : Reserved (0x20 ~ 0x40)
+
+header_info:
+	.word	0x00008000				// 40 : Device Address
+	.word	0x00008000				// 44 : Next Bootloader Load Size
+	.word	0xFFFF0000				// 48 : Load Address
+	.word	0xFFFF0000				// 4C : Launch Address
+
+	.skip	0xB0, 0x00				// 50 : Reserved (0x50 ~ 0x100)
+	.skip	0x100, 0x00				// 100 : Reserved (0x100 ~ 0x200)
+
+#if (SUPPORT_KERNEL_3_4 == 0)
+	.skip	0x200, 0x00				// 200 : secure reserved (0x200 ~ 0x400)
+#endif
+	.skip	0x20, 0x00				// 200/400: support the kernel 3.4 suspend
+
 .global sleep
 sleep:
         b       system_sleep				// 20 : System Sleep
 
 build_info:
         .word   0x68180306				//24 : Chip name - 6818, Build num - v0.3.06
-
-	.skip	0x18, 0x00				//28 : Reserved (0x28 ~ 0x40)
-
-hader_info:
-	.word	0x00008000				// 40 : Device Address
-	.word	0x00008000				// 44 : Next Bootloader Load Size
-	.word	0xFFFF0000				// 48 : Load Address
-	.word	0xFFFF0000				// 4C : Launch Address
-
-	.skip	0x000000B0				// 50 : Reserved (0x50 ~ 0x100)
-	.skip	0x00000100				// 100 : Reserved (0x100 ~ 0x200)
-
-#if (SUPPORT_KERNEL_3_4 == 0)
-	.skip 0x200, 0x00				// 200 : secure reserved (0x200 ~ 0x400)
-#endif
 
 reset_handler:
 //	mcr     p15, 0 r0, c8, c9, 0			// set debug break;

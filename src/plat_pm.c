@@ -65,7 +65,7 @@ void suspend_mark(unsigned int state, unsigned int entrypoint, unsigned int crc,
 int s5p6818_resume_check(void)
 {
 	int signature;
-	int is_resume = 1;		// 0: no resume, 1:resume
+	int is_resume = 0;		// 0: no resume, 1:resume
 
 	/* Get resume information. */
 
@@ -73,16 +73,17 @@ int s5p6818_resume_check(void)
 	signature = mmio_read_32(&pReg_Alive->ALIVESCRATCHREADREG);
 	if ((SUSPEND_SIGNATURE == (signature & 0xFFFFFF00))
 		&& mmio_read_32(&pReg_Alive->WAKEUPSTATUS)) {
-		return is_resume;
+		is_resume = 1;
 	}
 
 	/* Arm Trusted Firmware */
 	signature = mmio_read_32(&pReg_Alive->ALIVESCRATCHVALUE4);
 	if ((ATF_SUSPEND_SIGNATURE == (signature & 0xFFFFFF00))
 		&& mmio_read_32(&pReg_Alive->WAKEUPSTATUS)) {
-		return is_resume;
+		is_resume= 1;
 	}
-	return 0;
+
+	return is_resume;
 }
 
 void s5p6818_resume(void)
@@ -233,7 +234,7 @@ void s5p6818_suspend(void)
 		       ((1 << 24) | (1 << 21) | (1 << 18));
 	} while (temp);
 
-	NOTICE("Enter Self Refresh !!\r\n");
+	NOTICE("enter the self refresh !!\r\n");
 	while (!serial_empty());
 	while (serial_busy());
 	enter_self_refresh();
@@ -243,7 +244,7 @@ void s5p6818_suspend(void)
 
 	exit_self_refresh();
 	DMC_Delay(50);
-	NOTICE("Exit Self Refresh !!\r\n");
+	NOTICE("exit the self refresh !!\r\n");
 
 	mmio_set_32(&pReg_Tieoff->TIEOFFREG[76], (7 << 6));			// Unlock Drex port
 	do {
