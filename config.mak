@@ -56,6 +56,11 @@ BOARD				?= avn
 #BOARD				?= bf700
 #BOARD				?= raptor
 
+# sd/mmc, spi, sdfs boot configuration
+DEVICE_PORT			?= 2
+#DEVICE_PORT			?= 1
+#DEVICE_PORT			?= 0
+
 # supported kernel version (3.18-3.4/4.1-4.4)
 KERNEL_VER			?= 3
 #KERNEL_VER			?= 4
@@ -64,7 +69,7 @@ KERNEL_VER			?= 3
 SYSLOG				?= n
 
 # secure Boot
-SECURE_ON			?= 0
+SECURE_ON			?= y
 
 # cross-tool pre-header
 ifeq ($(OPMODE), aarch32)
@@ -180,7 +185,7 @@ CFLAGS				+=	-mcmodel=small				\
 endif
 
 # secure boot - (thirdboot) decrypt
-ifeq ($(SECURE_ON), 1)
+ifeq ($(SECURE_ON), y)
 CFLAGS				+=	-DSECURE_ON
 endif
 

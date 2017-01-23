@@ -71,6 +71,8 @@
 #include <s5p6818_bf700.h>
 #elif defined(RAPTOR)
 #include <s5p6818_raptor.h>
+#else
+#include <s5p6818_general.h>
 #endif
 
 #if defined(SYSLOG_ON)
