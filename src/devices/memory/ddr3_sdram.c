@@ -80,10 +80,6 @@ unsigned int g_WR_vwmc;
 
 struct dram_device_info g_ddr3_info;
 
-#if (CFG_NSIH_EN == 1)
-struct ddr3_init_info g_ddr3_spec;
-#endif
-
 static int _pow(int num, int count)
 {
 	int ret = 1;
@@ -97,19 +93,11 @@ static int _pow(int num, int count)
 static void get_dram_information(struct dram_device_info *me)
 {
 	/* Nexell Step XX. Memory Address (for Write Training (DRAM)) */
-#if (CFG_NSIH_EN == 1)
-	me->bank_num	= _pow(2, 3);
-	me->row_num	= (g_ddr3_spec.chip_row + 12);
-	me->column_num	= (g_ddr3_spec.chip_col +  7);
-
-	me->column_size	= (_pow(2, me->column_num) * g_ddr3_spec.bus_width) ;
-#else
 	me->bank_num	= DDR3_CS_NUM;
 	me->row_num	= (DDR3_ROW_NUM + 12);
 	me->column_num	= (DDR3_COL_NUM +  7);
 
 	me->column_size	= (_pow(2, me->column_num) * DDR_BUS_WIDTH) ;
-#endif
 	me->row_size	= _pow(2, me->row_num);
 	me->bank_size	= (me->row_size * me->column_size);
 	me->chip_size	= (me->bank_size * _pow(2, me->bank_num));
@@ -120,7 +108,7 @@ static void get_dram_information(struct dram_device_info *me)
 	MEMMSG("[Bit] Bank Address   : %d \r\n", me->bank_num);
 	MEMMSG("[Bit] Column Address : %d \r\n", me->column_num);
 	MEMMSG("[Bit] Row Address    : %d \r\n", me->row_num);
-	MEMMSG("[Bit] Data Line      : %d \r\n", g_ddr3_spec.bus_width);
+	MEMMSG("[Bit] Data Line      : %d \r\n", DDR_BUS_WIDTH);
 	MEMMSG("[Bit] Column    Size : %d \r\n", me->column_size);
 	MEMMSG("[Bit] Row(Page) Size : %d \r\n", me->row_size);
 	MEMMSG("[Bit] Bank      Size : %d \r\n", me->bank_size);
@@ -239,32 +227,18 @@ void enter_self_refresh(void)
 	unsigned int nTemp;
 	unsigned int nChips = 0;
 
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	nChips = 0x3;
 #else
 	nChips = 0x1;
 #endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		nChips = 0x3;
-	else
-		nChips = 0x1;
-#endif
-
 	while (mmio_read_32(&g_drex_reg->CHIPSTATUS) & 0xF)
 		nop();
 
 	/* Step 01. Send PALL Command */
 	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
-				  CNULL);
 #endif
 	DMC_Delay(100);
 
@@ -273,30 +247,16 @@ void enter_self_refresh(void)
 	MR.MR2.RTT_WR = 0;							// 0: disable, 1: RZQ/4 (60ohm), 2: RZQ/2 (120ohm)
 	MR.MR2.SRT = 0;								// self refresh normal range, if (ASR == 1) SRT = 0;
 	MR.MR2.ASR = 1;								// auto self refresh enable
-#if (CFG_NSIH_EN == 0)
 	MR.MR2.CWL = (nCWL - 5);
-#else
-	MR.MR2.CWL = (g_ddr3_spec.cwl - 5);
-#endif
-
 	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR2, MR.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR2, MR.Reg);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR2, MR.Reg);
 #endif
 
 	/* Step 03. (DRAM) Set the Drive Strength */
 	MR.Reg = 0;
 	MR.MR1.DLL = 1;								// 0: Enable, 1 : Disable
-#if (CFG_NSIH_EN == 0)
 	MR.MR1.AL = MR1_nAL;
-#else
-	MR.MR1.AL = g_ddr3_spec.mr1_al;
-#endif
 	MR.MR1.ODS1 = (CONFIG_DRAM_MR1_ODS >> 1) & 1;
 	MR.MR1.ODS0 = (CONFIG_DRAM_MR1_ODS >> 0) & 1;
 	MR.MR1.RTT_Nom2 = (CONFIG_DRAM_MR1_RTT_Nom >> 2) & 1;
@@ -306,33 +266,18 @@ void enter_self_refresh(void)
 	MR.MR1.WL = 0;
 
 #if 0
-#if (CFG_NSIH_EN == 0)
 	MR.MR1.TDQS     = (_DDR_BUS_WIDTH>>3) & 1;
-#else
-	MR.MR1.TDQS     = (g_ddr3_spec.bus_width>>3) & 1;
-#endif
 #endif
 
 	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1, MR.Reg);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1, MR.Reg);
 #endif
 
 	/* Step 04. Enter Self-Refresh Command */
 	send_directcmd(SDRAM_CMD_REFS, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_REFS, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_REFS, 1, (SDRAM_MODE_REG)CNULL,
-				  CNULL);
 #endif
 
 	/*  Step 05. Check the Busy State */
@@ -366,24 +311,14 @@ void exit_self_refresh(void)
 
 	/* Step 03. Send PALL command */
 	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
-				  CNULL);
 #endif
 
 	/* Step 04. Set the Drive Strength */
 	MR.Reg = 0;
 	MR.MR1.DLL = 0;								// 0: Enable, 1 : Disable
-#if (CFG_NSIH_EN == 0)
 	MR.MR1.AL = MR1_nAL;
-#else
-	MR.MR1.AL = g_ddr3_spec.mr1_al;
-#endif
 	MR.MR1.ODS1 = (CONFIG_DRAM_MR1_ODS >> 1) & 1;
 	MR.MR1.ODS0 = (CONFIG_DRAM_MR1_ODS >> 0) & 1;
 	MR.MR1.RTT_Nom2 = (CONFIG_DRAM_MR1_RTT_Nom >> 2) & 1;
@@ -392,21 +327,12 @@ void exit_self_refresh(void)
 	MR.MR1.QOff = 0;
 	MR.MR1.WL = 0;
 #if 0
-#if (CFG_NSIH_EN == 0)
 	MR.MR1.TDQS     = (_DDR_BUS_WIDTH>>3) & 1;
-#else
-	MR.MR1.TDQS     = (g_ddr3_spec.bus_width>>3) & 1;
-#endif
 #endif
 
 	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1, MR.Reg);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1, MR.Reg);
 #endif
 
 	/* Step 05. Set the ODT On */
@@ -414,31 +340,16 @@ void exit_self_refresh(void)
 	MR.MR2.RTT_WR = CONFIG_DRAM_MR2_RTT_WR;
 	MR.MR2.SRT = 0;								// self refresh normal range
 	MR.MR2.ASR = 0;								// auto self refresh disable
-#if (CFG_NSIH_EN == 0)
 	MR.MR2.CWL = (nCWL - 5);
-#else
-	MR.MR2.CWL = (g_ddr3_spec.cwl - 5);
-#endif
-
 	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR2, MR.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR2, MR.Reg);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR2, MR.Reg);
 #endif
 
 	/* Step 06. Exit the Self-Refresh Command */
 	send_directcmd(SDRAM_CMD_REFSX, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_REFSX, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_REFSX, 1, (SDRAM_MODE_REG)CNULL, CNULL);
 #endif
 
 	/* Step 07. Check the Self-Refresh State (FSM) */
@@ -515,11 +426,7 @@ int ddr_hw_write_leveling(void)
 	/* Step 02. Set the MR1 Register for Write Leveling Mode */
 	MR1.Reg		 = 0;
 	MR1.MR1.DLL	 = 0;							// 0: Enable, 1 : Disable
-#if (CFG_NSIH_EN == 0)
 	MR1.MR1.AL	 = MR1_nAL;
-#else
-	MR1.MR1.AL	 = g_ddr3_spec.mr1_al;
-#endif
 #if 1
 	MR1.MR1.ODS1 	 = 0;							// 00: RZQ/6, 01 : RZQ/7
 	MR1.MR1.ODS0	 = 1;
@@ -665,14 +572,8 @@ int ddr_gate_leveling(void)
 
 	/* Step 01. Send ALL Precharge command. */
 	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
-				  CNULL);
 #endif
 
 	/* Step 02. Set the Memory in MPR Mode (MR3:A2=1) */
@@ -871,14 +772,8 @@ int ddr_read_dq_calibration(void)
 
 	/* Step 01. Send Precharge ALL Command */
 	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
-				  CNULL);
 #endif
 
 	/* Step 02. Set the Memory in MPR Mode (MR3:A2=1) */
@@ -994,19 +889,11 @@ int ddr_write_latency_calibration(void)
 
 #if 0	/* Step 01. Set Write Latency(=ctrl_wrlat) before Write Latency Calibration.*/
 	int DDR_AL = 0, DDR_WL, DDR_RL;
-#if (CFG_NSIH_EN == 0)
 	if (MR1_nAL > 0)
 		DDR_AL = nCL - MR1_nAL;
 
 	DDR_WL = (DDR_AL + nCWL);
 	DDR_RL = (DDR_AL + nCL);
-#else
-	if (g_ddr3_spec.mr1_al > 0)
-		DDR_AL = g_ddr3_spec.cl - g_ddr3_spec.mr1_al;
-
-	DDR_WL = (DDR_AL + g_ddr3_spec.cwl);
-	DDR_RL = (DDR_AL + g_ddr3_spec.cl);
-#endif
 	DDR_RL = DDR_RL;
 	mmio_set_32(&g_ddrphy_reg->PHY_CON[4], (DDR_WL << 16));
 #endif // Step 00.
@@ -1206,16 +1093,9 @@ int ddr_write_dq_calibration(void)
 
 	/* Step XX. Send All Precharge Command */
 	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
 #endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
-				  CNULL);
-#endif
-
 	MEMMSG("\r\n########## Write DQ Calibration - Start ##########\r\n");
 
 #if (CFG_8BIT_DESKEW == 1)
@@ -1224,19 +1104,11 @@ int ddr_write_dq_calibration(void)
 
 #if 0	/* Step 01. Set Write Latency(=ctrl_wrlat) before Write Latency Calibration.*/
 	int DDR_AL = 0, DDR_WL, DDR_RL;
-#if (CFG_NSIH_EN == 0)
 	if (MR1_nAL > 0)
 		DDR_AL = nCL - MR1_nAL;
 
 	DDR_WL = (DDR_AL + nCWL);
 	DDR_RL = (DDR_AL + nCL);
-#else
-	if (g_ddr3_spec.mr1_al > 0)
-		DDR_AL = g_ddr3_spec.cl - g_ddr3_spec.mr1_al;
-
-	DDR_WL = (DDR_AL + g_ddr3_spec.cwl);
-	DDR_RL = (DDR_AL + g_ddr3_spec.cl);
-#endif
 	DDR_RL = DDR_RL;
 	mmio_set_32(&g_ddrphy_reg->PHY_CON[4], (DDR_WL << 16));
 #endif //
@@ -1477,13 +1349,10 @@ int ddr3_initialize(unsigned int is_resume)
 		return -1;
 	}
 
-#if (CFG_NSIH_EN == 0)
 	DDR3_LvlTr = CONFIG_DDR3_LVLTR_EN;
-#endif
 
 	DDR_AL1 = 0;
 	DDR_AL2 = 0;
-#if (CFG_NSIH_EN == 0)
 	if (MR1_nAL > 0) {
 		DDR_AL1 = nCL - MR1_nAL;
 		DDR_AL2 = nCWL - MR1_nAL;
@@ -1491,15 +1360,6 @@ int ddr3_initialize(unsigned int is_resume)
 
 	DDR_WL = (DDR_AL2 + nCWL);
 	DDR_RL = (DDR_AL1 + nCL);
-#else
-	if (g_ddr3_spec.mr1_al > 0) {
-		DDR_AL1 = (g_ddr3_spec.cl  - g_ddr3_spec.mr1_al);
-		DDR_AL2 = (g_ddr3_spec.cwl - g_ddr3_spec.mr1_al);
-	}
-
-	DDR_RL = DDR_AL1 + g_ddr3_spec.cl;
-	DDR_WL = DDR_AL2 + g_ddr3_spec.cwl;
-#endif
 
 	/* temporary code according to suspend/resume policy. */
 //	if (is_resume == 0) {
@@ -1508,11 +1368,8 @@ int ddr3_initialize(unsigned int is_resume)
 		MR2.MR2.RTT_WR	= CONFIG_DRAM_MR2_RTT_WR;
 		MR2.MR2.SRT	= 0;						// self refresh normal range
 		MR2.MR2.ASR	= 0;						// auto self refresh disable
-#if (CFG_NSIH_EN == 0)
+
 		MR2.MR2.CWL	= (nCWL - 5);
-#else
-		MR2.MR2.CWL	= (g_ddr3_spec.cwl - 5);
-#endif
 
 		MR3.Reg 	 = 0;
 		MR3.MR3.MPR 	 = 0;
@@ -1520,11 +1377,9 @@ int ddr3_initialize(unsigned int is_resume)
 
 		MR1.Reg		 = 0;
 		MR1.MR1.DLL 	 = 0;						// 0: Enable, 1 : Disable
-#if (CFG_NSIH_EN == 0)
+
 		MR1.MR1.AL	 = MR1_nAL;
-#else
-		MR1.MR1.AL	 = g_ddr3_spec.mr1_al;
-#endif
+
 		MR1.MR1.ODS1	 = CONFIG_DRAM_MR1_ODS & (1 << 1);
 		MR1.MR1.ODS0	 = CONFIG_DRAM_MR1_ODS & (1 << 0);
 		MR1.MR1.RTT_Nom2 = CONFIG_DRAM_MR1_RTT_Nom & (1 << 2);
@@ -1533,17 +1388,10 @@ int ddr3_initialize(unsigned int is_resume)
 		MR1.MR1.QOff	 = 0;
 		MR1.MR1.WL	 = 0;
 
-#if (CFG_NSIH_EN == 0)
 		if (nCL > 11)
 			temp = ((nCL - 12) << 1) + 1;
 		else
 			temp = ((nCL - 4) << 1);
-#else
-		if (g_ddr3_spec.cl > 11)
-			temp = ((g_ddr3_spec.cl - 12) << 1) + 1;
-		else
-			temp = ((g_ddr3_spec.cl - 4) << 1);
-#endif
 
 		MR0.Reg		= 0;
 		MR0.MR0.BL	= 0;
@@ -1551,11 +1399,8 @@ int ddr3_initialize(unsigned int is_resume)
 		MR0.MR0.CL0	= (temp & 0x1);
 		MR0.MR0.CL1	= ((temp >> 1) & 0x7);
 		MR0.MR0.DLL	= 0; // 1;
-#if (CFG_NSIH_EN == 0)
 		MR0.MR0.WR	= MR0_nWR;
-#else
-		MR0.MR0.WR	= g_ddr3_spec.mr0_wr;
-#endif
+
 		MR0.MR0.PD	= 0; // 1;
 	} // if (is_resume == 0)
 
@@ -1564,12 +1409,10 @@ int ddr3_initialize(unsigned int is_resume)
 	temp = ((0x17 << 24) |							// [28:24] T_WrWrCmd
 		(0x1  << 22) |							// [23:22] ctrl_upd_mode. DLL Update control 0:always, 1: depending on ctrl_flock, 2: depending on ctrl_clock, 3: don't update
 		(0x0  << 20) |							// [21:20] ctrl_upd_range
-#if (CFG_NSIH_EN == 0)
 #if (tWTR == 3)									// 6 cycles
 		(0x7  << 17) |							// [19:17] T_WrRdCmd. 6:tWTR=4cycle, 7:tWTR=6cycle
 #elif(tWTR == 2)								// 4 cycles
 		(0x6  << 17) |							// [19:17] T_WrRdCmd. 6:tWTR=4cycle, 7:tWTR=6cycle
-#endif
 #endif
 		(0x0  << 16) |							// [   16] wrlvl_mode. Write Leveling Enable. 0:Disable, 1:Enable
 		(0x0  << 14) |							// [   14] p0_cmd_en. 0:Issue Phase1 Read command during Read Leveling. 1:Issue Phase0
@@ -1583,17 +1426,11 @@ int ddr3_initialize(unsigned int is_resume)
 		(0x0  <<  3) |							// [    3] ctrl_twpre
 		(0x0  <<  0));							// [ 2: 0] ctrl_fnc_fb. 000:Normal operation.
 
-#if (CFG_NSIH_EN == 1)
-	if ((g_ddr3_spec.timing_data >> 28) == 3)		// 6 cycles
-		temp |= (0x7 << 17);
-	else if ((g_ddr3_spec.timing_data >> 28) == 2)	// 4 cycles
-		temp |= (0x6 << 17);
-#endif
 	mmio_write_32(&g_ddrphy_reg->PHY_CON[0], temp);
 
 #if 0
-	mmio_set_32  ( &g_ddrphy_reg->OFFSETD_CON, (0x1 << 28) );  // upd_mode[28]=1, DREX-initiated Update Mode
-	mmio_clear_32( &g_ddrphy_reg->OFFSETD_CON, (0x1 << 28) );  // upd_mode[28]=0, PHY-initiated Update Mode
+	mmio_set_32  ( &g_ddrphy_reg->OFFSETD_CON, (0x1 << 28) );		// upd_mode[28]=1, DREX-initiated Update Mode
+	mmio_clear_32( &g_ddrphy_reg->OFFSETD_CON, (0x1 << 28) );		// upd_mode[28]=0, PHY-initiated Update Mode
 #endif
 
 	temp = mmio_read_32(&g_ddrphy_reg->LP_DDR_CON[3]) & ~0x3FFF;
@@ -1695,11 +1532,7 @@ int ddr3_initialize(unsigned int is_resume)
 			(0x0 << 24) |						// [   24] pzq_en       : DDR3 periodic ZQ(ZQCS) enable
 //			(0x0  <<  23) |						// [   23] reserved     :SBZ
 			(0x3 << 20) |						// [22:20] bl : Memory Burst Length :: 3'h3  - 8
-#if (CFG_NSIH_EN == 0)
-			((_DDR_CS_NUM - 1) << 16) |				// [19:16] num_chip : Number of Memory Chips :: 4'h0  - 1chips
-#else
-			((g_ddr3_spec.chip_num - 1) << 16) |			// [19:16] num_chip : Number of Memory Chips :: 4'h0  - 1chips
-#endif
+			((DDR3_CS_NUM - 1) << 16) |				// [19:16] num_chip : Number of Memory Chips :: 4'h0  - 1chips
 			(0x2 << 12) |						// [15:12] mem_width    : Width of Memory Data Bus :: 4'h2  - 32bits
 			(0x6 <<  8) |						// [11: 8] mem_type     : Type of Memory :: 4'h6  - ddr3
 			(0x0 <<  6) |						// [ 7: 6] add_lat_pall : Additional Latency for PALL in cclk cycle :: 2'b00 - 0 cycle
@@ -1730,21 +1563,10 @@ int ddr3_initialize(unsigned int is_resume)
 	/* [Drex] Step 10. Memory Base Config */
 	mmio_write_32(&g_drextz_reg->MEMBASECONFIG[0],
 			(DDR3_CS0_BASEADDR << 16) |				// chip_base[26:16]. AXI Base Address. if 0x20 ==> AXI base addr of memory : 0x2000_0000
-#if (CFG_NSIH_EN == 0)
 			(DDR3_MEM_MASK << 0));					// 256MB:0x7F0, 512MB: 0x7E0, 1GB:0x7C0, 2GB: 0x780, 4GB:0x700
-#else
-			(g_ddr3_spec.chip_mask << 0));
-#endif
-
-#if (CFG_NSIH_EN == 0)
 	mmio_write_32(&g_drextz_reg->MEMBASECONFIG[1],
 			(DDR3_CS1_BASEADDR << 16) |				// chip_base[26:16]. AXI Base Address. if 0x40 ==> AXI base addr of memory:  0x4000_0000, 16MB unit
 			(DDR3_MEM_MASK << 0));					// chip_mask[10:0]. 2048 - chip size
-#else
-	mmio_write_32(&g_drextz_reg->MEMBASECONFIG[1],
-			((0x40 + g_ddr3_spec.chip_size) << 16) |			// chip_base[26:16]. AXI Base Address. if 0x40 ==> AXI base addr of memory : 0x4000_0000, 16MB unit
-			(g_ddr3_spec.chip_mask << 0));				// chip_mask[10:0]. 2048 - chip size
-#endif
 
 	/* [Drex] Step 11. Memory Config */
 	mmio_write_32(&g_drextz_reg->MEMCONFIG[0],
@@ -1753,16 +1575,10 @@ int ddr3_initialize(unsigned int is_resume)
 				(0x0 << 18) |					// bit sel en, Enable Bit Selection for Randomized interleaved Address Mapping
 				(0x0 << 16) |					// bit sel, Bit Selection for Randomized Interleaved Address Mapping
 				(0x2 << 12) |					// [15:12] chip_map. Address Mapping Method (AXI to Memory). 0:Linear(Bank, Row, Column, Width), 1:Interleaved(Row, bank, column, width), other : reserved
-#if (CFG_NSIH_EN == 0)
 				(DDR3_COL_NUM << 8) |				// [11: 8] chip_col. Number of Column Address Bit. others:Reserved, 2:9bit, 3:10bit,
 				(DDR3_ROW_NUM << 4) |				// [ 7: 4] chip_row. Number of  Row Address Bit. others:Reserved, 0:12bit, 1:13bit,  2:14bit, 3:15bit, 4:16bit
-#else
-				(g_ddr3_spec.chip_col << 8) |			// [11: 8] chip_col. Number of Column Address Bit. others:Reserved, 2:9bit, 3:10bit,
-				(g_ddr3_spec.chip_row << 4) |			// [ 7: 4] chip_row. Number of  Row Address Bit. others:Reserved, 0:12bit, 1:13bit, 2:14bit, 3:15bit, 4:16bit
-#endif
 				(DDR3_BANK_NUM << 0));				// [ 3: 0] chip_bank. Number of  Bank Address Bit. others:Reserved, 2:4bank, 3:8banks
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	mmio_write_32(&g_drextz_reg->MEMCONFIG[1],
 				(0x0 << 20) |					// bank lsb, LSB of Bank Bit Position in Complex Interleaved Mapping 0:8, 1: 9, 2:10, 3:11, 4:12, 5:13
 				(0x0 << 19) |					// rank inter en, Rank Interleaved Address Mapping
@@ -1772,19 +1588,6 @@ int ddr3_initialize(unsigned int is_resume)
 				(DDR3_COL_NUM << 8) |				// [11: 8] chip_col. Number of Column Address Bit. others:Reserved, 2:9bit, 3:10bit,
 				(DDR3_ROW_NUM << 4) |				 // [ 7: 4] chip_row. Number of  Row Address Bit. others:Reserved, 0:12bit, 1:13bit, 2:14bit, 3:15bit, 4:16bit
 				(0x3 << 0));					// [ 3: 0] chip_bank. Number of  Row Address Bit.  others:Reserved, 2:4bank, 3:8banks
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1) {
-		mmio_write_32(&g_drextz_reg->MEMCONFIG[1],
-			    	(0x0 << 20) |					// bank lsb, LSB of Bank Bit Position in Complex Interleaved Mapping 0:8, 1: 9, 2:10, 3:11, 4:12, 5:13
-				(0x0 << 19) |					// rank inter en, Rank Interleaved Address Mapping
-				(0x0 << 18) |					// bit sel en, Enable Bit Selection for Randomized interleaved Address Mapping
-				(0x0 << 16) |					// bit sel, Bit Selection for Randomized Interleaved Address Mapping
-				(0x2 << 12) |					// [15:12] chip_map. Address Mapping Method (AXI to Memory). 0 :Linear(Bank, Row, Column, Width), 1 : Interleaved(Row, bank, column, width), other : reserved
-				(g_ddr3_spec.chip_col << 8) |			// [11: 8] chip_col. Number of Column Address  Bit. others:Reserved, 2:9bit, 3:10bit,
-				(g_ddr3_spec.chip_row << 4) |			// [ 7: 4] chip_row. Number of  Row Address Bit. others:Reserved, 0:12bit, 1:13bit,  2:14bit, 3:15bit, 4:16bit
-				(DDR3_BANK_NUM << 0));				// [ 3: 0] chip_bank. Number of  Row Address Bit. others:Reserved, 2:4bank, 3:8banks
-	}
 #endif
 
 	/* [Drex] Step 12. Precharge Configuration */
@@ -1799,7 +1602,6 @@ int ddr3_initialize(unsigned int is_resume)
 	mmio_write_32(&g_drex_reg->PWRDNCONFIG,  0xFF);				//- low power counter
 
 	/* [Drex] Step 13.  Set the Access(AC) Timing */
-#if (CFG_NSIH_EN == 0)
 	mmio_write_32(&g_drex_reg->TIMINGAREF,
 			(tREFIPB << 16) |					//- rclk (MPCLK)
 			(tREFI   << 0));					//- refresh counter, 800MHz : 0x618
@@ -1816,7 +1618,7 @@ int ddr3_initialize(unsigned int is_resume)
 	mmio_write_32(&g_drex_reg->ACTIMING0.TIMINGPOWER,
 			(tFAW << 26) | (tXSR << 16) | (tXP << 8) | (tCKE << 4) |
 			(tMRD << 0));
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	mmio_write_32(&g_drex_reg->ACTIMING1.TIMINGROW,
 			(tRFC << 24) | (tRRD << 20) | (tRP << 16) | (tRCD << 12) |
 			(tRC << 6) | (tRAS << 0));
@@ -1838,91 +1640,40 @@ int ddr3_initialize(unsigned int is_resume)
 
 	mmio_write_32(&g_drex_reg->WRLVL_CONFIG[0], (2 << 4));			// tWLO[7:4]
 //	mmio_write_32( &g_drex_reg->WRLVL_CONFIG[0], (tWLO <<  4));		// tWLO[7:4]
-#else
-
-	/* [Drex] Step 15.  Set the Access(AC) Timing */
-	mmio_write_32(&g_drex_reg->TIMINGAREF, g_ddr3_spec.tiing_aref);		//- refresh counter, 800MHz : 0x618
-
-	mmio_write_32(&g_drex_reg->ACTIMING0.TIMINGROW, g_ddr3_spec.timing_row);
-	mmio_write_32(&g_drex_reg->ACTIMING0.TIMINGDATA, g_ddr3_spec.timing_data);
-	mmio_write_32(&g_drex_reg->ACTIMING0.TIMINGPOWER, g_ddr3_spec.timing_power);
-
-	if (g_ddr3_spec.chip_num > 1) {
-		mmio_write_32(&g_drex_reg->ACTIMING1.TIMINGROW,   g_ddr3_spec.timing_row);
-		mmio_write_32(&g_drex_reg->ACTIMING1.TIMINGDATA,  g_ddr3_spec.timing_data);
-		mmio_write_32(&g_drex_reg->ACTIMING1.TIMINGPOWER, g_ddr3_spec.timing_power);
-	}
-
-//	mmio_write_32(&g_drex_reg->TIMINGPZQ,   0x00004084);			//- average periodic ZQ interval. Max:0x4084
-	mmio_write_32(&g_drex_reg->TIMINGPZQ, g_ddr3_spec.timing_pzq);		//- average periodic ZQ interval. Max:0x4084
-
-	mmio_write_32(&g_drex_reg->WRLVL_CONFIG[0], (2 << 4));			// tWLO[7:4]
-//	mmio_write_32( &g_drex_reg->WRLVL_CONFIG[0], (tWLO   <<   4) );         // tWLO[7:4]
-#endif
 
 	/* temporary code according to suspend/resume policy. */
 //	if (is_resume == 0) {
 	{
 		/* Step 18 :  Send NOP command. */
 		send_directcmd(SDRAM_CMD_NOP, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 		send_directcmd(SDRAM_CMD_NOP, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-		if (g_ddr3_spec.chip_num > 1)
-			send_directcmd(SDRAM_CMD_NOP, 1, (SDRAM_MODE_REG)CNULL, CNULL);
 #endif
 		/* Step 19 :  Send MR2 command. */
 		send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR2, MR2.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 		send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR2, MR2.Reg);
-#endif
-#else
-		if (g_ddr3_spec.chip_num > 1)
-			send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR2, MR2.Reg);
 #endif
 		/* Step 20 :  Send MR3 command. */
 		send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR3, MR3.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 		send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR3.Reg);
-#endif
-#else
-		if (g_ddr3_spec.chip_num > 1)
-			send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR3, MR3.Reg);
 #endif
 		/* Step 21 :  Send MR1 command. */
 		send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR1.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 		send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1,  MR1.Reg);
-#endif
-#else
-		if (g_ddr3_spec.chip_num > 1)
-			send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR1, MR1.Reg);
 #endif
 		/* Step 22 :  Send MR0 command. */
 		send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR0, MR0.Reg);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 		send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR0, MR0.Reg);
-#endif
-#else
-		if (g_ddr3_spec.chip_num > 1)
-			send_directcmd(SDRAM_CMD_MRS, 1, SDRAM_MODE_REG_MR0, MR0.Reg);
 #endif
 
 		/* Step 23 : Send ZQ Init command */
 		send_directcmd(SDRAM_CMD_ZQINIT, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 		send_directcmd(SDRAM_CMD_ZQINIT, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-		if (g_ddr3_spec.chip_num > 1)
-			send_directcmd(SDRAM_CMD_ZQINIT, 1, (SDRAM_MODE_REG)CNULL, CNULL);
 #endif
 		DMC_Delay(100);
 	} // if (is_resume)
@@ -2081,14 +1832,8 @@ int ddr3_initialize(unsigned int is_resume)
 
 	/* Step 38. Send PALL command */
 	send_directcmd(SDRAM_CMD_PALL, 0, (SDRAM_MODE_REG)CNULL, CNULL);
-#if (CFG_NSIH_EN == 0)
-#if (_DDR_CS_NUM > 1)
+#if (DDR3_CS_NUM > 1)
 	send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL, CNULL);
-#endif
-#else
-	if (g_ddr3_spec.chip_num > 1)
-		send_directcmd(SDRAM_CMD_PALL, 1, (SDRAM_MODE_REG)CNULL,
-				  CNULL);
 #endif
 
 #if 0	// Set the MemControl0 & PhyControl0 (Optional)
@@ -2101,11 +1846,7 @@ int ddr3_initialize(unsigned int is_resume)
 			(0x0 << 24) |						// [   24] pzq_en       : DDR3 periodic ZQ(ZQCS) enable
 //			(0x0 << 23) |						// [   23] reserved     :SBZ
 			(0x3 << 20) |						// [22:20] bl : Memory Burst Length :: 3'h3  - 8
-#if (CFG_NSIH_EN == 0)
-			((_DDR_CS_NUM - 1) << 16) |				// [19:16] num_chip : Number of Memory Chips :: 4'h0  - 1chips
-#else
-			((g_ddr3_spec.chip_num - 1) << 16) |			// [19:16] num_chip : Number of Memory Chips :: 4'h0  - 1chips
-#endif
+			((DDR3_CS_NUM - 1) << 16) |				// [19:16] num_chip : Number of Memory Chips :: 4'h0  - 1chips
 			(0x2 << 12) |						// [15:12] mem_width    : Width of Memory Data Bus :: 4'h2  - 32bits
 			(0x6 <<  8) |						// [11: 8] mem_type     : Type of Memory :: 4'h6  - ddr3
 			(0x0 <<  6) |						// [ 7: 6] add_lat_pall : Additional Latency for PALL in cclk cycle :: 2'b00 - 0 cycle
