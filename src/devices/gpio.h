@@ -1,7 +1,7 @@
 #ifndef __GPIO_H__
 #define __GPIO_H__
 
-struct	s5p4418_gpio_reg {
+struct	s5p6818_gpio_reg {
 	volatile unsigned int out;			///< 0x00 : Output Register
 	volatile unsigned int outenb;			///< 0x04 : Output Enable Register
 	volatile unsigned int detmode[2];		///< 0x08 : Event Detect Mode Register
