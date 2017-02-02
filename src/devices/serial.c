@@ -27,7 +27,7 @@ extern void clkpwr_set_oscfreq(unsigned int freq_khz);
 extern  int clkpwr_get_pllfreq(unsigned int pll_num);
 
 extern void reset_con(unsigned int devicenum, int en);
-extern void GPIOSetAltFunction(unsigned int AltFunc);
+extern void gpio_set_alt_function(unsigned int alt_num);
 
 /* Global Variables */
 static struct s5p6818_uart_reg *g_uart_reg;
@@ -131,8 +131,8 @@ int serial_init(unsigned int channel)
 	mmio_clear_32(&pReg_Tieoff->TIEOFFREG[((g_uart_smc[channel * 3 + 2]) & 0xFFFF) >> 5], reg_value);
 
 	/* step xx. change the (tx, rx)io gpio-alternate  */
-	GPIOSetAltFunction(g_alt_num[channel * 2 + 0]);
-	GPIOSetAltFunction(g_alt_num[channel * 2 + 1]);
+	gpio_set_alt_function(g_alt_num[channel * 2 + 0]);
+	gpio_set_alt_function(g_alt_num[channel * 2 + 1]);
 
 	/* step xx. change the reset state in uart block */
 	reset_con(serial_get_resetnum(channel), 1);				// reset on

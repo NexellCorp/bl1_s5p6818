@@ -26,7 +26,7 @@ LDFLAGS		=	-Bstatic							\
 			-nostdlib
 
 SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o plat_pm.o sub_cpu.o			\
-			clock.o cci400.o resetcon.o GPIO.o secure_manager.o lib2ndboot.o build_info.o				\
+			clock.o cci400.o resetcon.o gpio.o secure_manager.o lib2ndboot.o build_info.o				\
 			serial.o printf.o crc.o ema.o clkpwr.o board_$(BOARD).o main.o
 
 SYS_OBJS	+=	sysbus.o
