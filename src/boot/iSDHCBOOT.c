@@ -30,7 +30,7 @@
 
 extern U32 getquotient(U32 dividend, U32 divisor);
 
-void ResetCon(U32 devicenum, CBOOL en);
+void reset_con(U32 devicenum, CBOOL en);
 void GPIOSetAltFunction(U32 AltFunc);
 
 
@@ -738,8 +738,8 @@ CBOOL	NX_SDMMC_Init( SDXCBOOTSTATUS * pSDXCBootStatus )
 #endif
 	pSDClkGenReg->CLKENB |= 0x1UL<<2;			// clock generation enable
 
-	ResetCon(SDResetNum[pSDXCBootStatus->SDPort], CTRUE);	// reset on
-	ResetCon(SDResetNum[pSDXCBootStatus->SDPort], CFALSE);	// reset negate
+	reset_con(SDResetNum[pSDXCBootStatus->SDPort], CTRUE);	// reset on
+	reset_con(SDResetNum[pSDXCBootStatus->SDPort], CFALSE);	// reset negate
 
 	pSDXCReg->PWREN = 0<<0;	// Set Power Disable
 
@@ -800,7 +800,7 @@ CBOOL	NX_SDMMC_Terminate( SDXCBOOTSTATUS * pSDXCBootStatus )
 	// Disable CLKGEN
 	pgSDClkGenReg[pSDXCBootStatus->SDPort]->CLKENB = 0;
 
-	ResetCon(SDResetNum[pSDXCBootStatus->SDPort], CTRUE);	// reset on
+	reset_con(SDResetNum[pSDXCBootStatus->SDPort], CTRUE);	// reset on
 
 	return CTRUE;
 }

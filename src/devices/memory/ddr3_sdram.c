@@ -61,8 +61,10 @@
 #endif
 
 /* External Function */
-extern inline void ResetCon(unsigned int devicenum, int en);
+extern inline void reset_con(unsigned int devicenum, int en);
 extern inline void DMC_Delay(int milisecond);
+
+extern struct s5p6818_resetgen_reg *const g_rstgen_reg;
 
 struct s5p6818_drex_sdram_reg *const g_drex_reg =
     (struct s5p6818_drex_sdram_reg * const)PHY_BASEADDR_DREX_MODULE_CH0_APB;
@@ -1188,32 +1190,32 @@ static int resetgen_sequence(void)
 	/* Step 01. Reset (DPHY, DREX, DRAM)  (Min: 10ns, Typ: 200us) */
 	do {
 #if 0
-		ResetCon(RESETINDEX_OF_DREX_MODULE_CRESETn, CTRUE);
-		ResetCon(RESETINDEX_OF_DREX_MODULE_ARESETn, CTRUE);
-		ResetCon(RESETINDEX_OF_DREX_MODULE_nPRST,   CTRUE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_CRESETn, CTRUE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_ARESETn, CTRUE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_nPRST,   CTRUE);
 		DMC_Delay(0x100);                           // wait 300ms
-		ResetCon(RESETINDEX_OF_DREX_MODULE_CRESETn, CFALSE);
-		ResetCon(RESETINDEX_OF_DREX_MODULE_ARESETn, CFALSE);
-		ResetCon(RESETINDEX_OF_DREX_MODULE_nPRST,   CFALSE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_CRESETn, CFALSE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_ARESETn, CFALSE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_nPRST,   CFALSE);
 		DMC_Delay(0x1000);                          // wait 300ms
 
-		ResetCon(RESETINDEX_OF_DREX_MODULE_CRESETn, CTRUE);
-		ResetCon(RESETINDEX_OF_DREX_MODULE_ARESETn, CTRUE);
-		ResetCon(RESETINDEX_OF_DREX_MODULE_nPRST,   CTRUE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_CRESETn, CTRUE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_ARESETn, CTRUE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_nPRST,   CTRUE);
 		DMC_Delay(0x100);                           // wait 300ms
-		ResetCon(RESETINDEX_OF_DREX_MODULE_CRESETn, CFALSE);
-		ResetCon(RESETINDEX_OF_DREX_MODULE_ARESETn, CFALSE);
-		ResetCon(RESETINDEX_OF_DREX_MODULE_nPRST,   CFALSE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_CRESETn, CFALSE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_ARESETn, CFALSE);
+		reset_con(RESETINDEX_OF_DREX_MODULE_nPRST,   CFALSE);
 		DMC_Delay(0x1000);                          // wait 300ms
 		DMC_Delay(0xF000);
 #else
-		mmio_clear_32(&pReg_RstCon->REGRST[0], (0x7 << 26));
+		mmio_clear_32(&g_rstgen_reg->regrst[0], (0x7 << 26));
 		DMC_Delay(0x1000);						// wait 300ms
-		mmio_set_32(&pReg_RstCon->REGRST[0], (0x7 << 26));
+		mmio_set_32(&g_rstgen_reg->regrst[0], (0x7 << 26));
 		DMC_Delay(0x1000);						// wait 300ms
-		mmio_clear_32(&pReg_RstCon->REGRST[0], (0x7 << 26));
+		mmio_clear_32(&g_rstgen_reg->regrst[0], (0x7 << 26));
 		DMC_Delay(0x1000);						// wait 300ms
-		mmio_set_32(&pReg_RstCon->REGRST[0], (0x7 << 26));
+		mmio_set_32(&g_rstgen_reg->regrst[0], (0x7 << 26));
 	//	DMC_Delay(0x10000);						// wait 300ms
 #if 0
 		mmio_clear_32(&pReg_Tieoff->TIEOFFREG[3], (0x1 << 31));
@@ -1805,6 +1807,7 @@ int ddr3_initialize(unsigned int is_resume)
 	        mmio_write_32(&pReg_Alive->ALIVEPWRGATEREG,     0);		// close alive power gate
 #endif
 	}
+
 	/* Nexell Step XX. (Must need step?) */
 	mmio_set_32  (&g_ddrphy_reg->OFFSETD_CON, (0x1 << 24));			// ctrl_resync[24]=0x1 (HIGH)
 	mmio_clear_32(&g_ddrphy_reg->OFFSETD_CON, (0x1 << 24));			// ctrl_resync[24]=0x0 (LOW)

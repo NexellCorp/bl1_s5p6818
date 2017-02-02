@@ -336,7 +336,7 @@ void Decrypt(U32 *SrcAddr, U32 *DestAddr, U32 Size)
 	}
 }
 #else
-void ResetCon(U32 devicenum, CBOOL en);
+void reset_con(U32 devicenum, CBOOL en);
 
 static struct NX_ECID_RegisterSet *const pECIDReg =
     (struct NX_ECID_RegisterSet *)PHY_BASEADDR_ECID_MODULE;
@@ -348,13 +348,13 @@ static NX_CRYPTO_RegisterSet *const pCrypto =
 void Decrypt(U32 *SrcAddr, U32 *DestAddr, U32 Size)
 {
 	register U32 i=0, DataSize = ((Size+15) & 0xFFFFFFF0);
-	ResetCon(RESETINDEX_OF_ECID_MODULE_i_nRST, CTRUE);	// reset on
-	ResetCon(RESETINDEX_OF_ECID_MODULE_i_nRST, CFALSE);	// reset negate
+	reset_con(RESETINDEX_OF_ECID_MODULE_i_nRST, CTRUE);	// reset on
+	reset_con(RESETINDEX_OF_ECID_MODULE_i_nRST, CFALSE);	// reset negate
 
 	while(!(pECIDReg->EC[2] & 0x1<<15));    // wait for ecid ready
 
-	ResetCon(RESETINDEX_OF_CRYPTO_MODULE_i_nRST, CTRUE);	// reset on
-	ResetCon(RESETINDEX_OF_CRYPTO_MODULE_i_nRST, CFALSE);	// reset negate
+	reset_con(RESETINDEX_OF_CRYPTO_MODULE_i_nRST, CTRUE);	// reset on
+	reset_con(RESETINDEX_OF_CRYPTO_MODULE_i_nRST, CFALSE);	// reset negate
 
 	pCryptoClkGenReg->CLKENB = 1<<3;    // pclk always mode.
 

@@ -26,7 +26,7 @@ extern unsigned int getremainder(int dividend, int divisor);
 extern void clkpwr_set_oscfreq(unsigned int freq_khz);
 extern  int clkpwr_get_pllfreq(unsigned int pll_num);
 
-extern void ResetCon(unsigned int devicenum, int en);
+extern void reset_con(unsigned int devicenum, int en);
 extern void GPIOSetAltFunction(unsigned int AltFunc);
 
 /* Global Variables */
@@ -135,8 +135,8 @@ int serial_init(unsigned int channel)
 	GPIOSetAltFunction(g_alt_num[channel * 2 + 1]);
 
 	/* step xx. change the reset state in uart block */
-	ResetCon(serial_get_resetnum(channel), 1);				// reset on
-	ResetCon(serial_get_resetnum(channel), 0);				// reset negate
+	reset_con(serial_get_resetnum(channel), 1);				// reset on
+	reset_con(serial_get_resetnum(channel), 0);				// reset negate
 
 	/* step xx. set the (ext:uart clock)clock in uart block*/
 	mmio_write_32(&clkgen_reg->clkenb, (1<<3));				// PCLKMODE : always, Clock Gen Disable

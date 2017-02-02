@@ -69,7 +69,7 @@ KERNEL_VER			?= 3
 SYSLOG				?= n
 
 # secure Boot
-SECURE_ON			?= y
+SECURE_ON			?= n
 
 # cross-tool pre-header
 ifeq ($(OPMODE), aarch32)

@@ -30,7 +30,7 @@
 extern U32 iget_fcs(U32 fcs, U32 data);
 extern void Decrypt(U32 *SrcAddr, U32 *DestAddr, U32 Size);
 
-void ResetCon(U32 devicenum, CBOOL en);
+void reset_con(U32 devicenum, CBOOL en);
 
 static NX_USB20OTG_APB_RegisterSet *const pUSB20OTGAPBReg =
     (NX_USB20OTG_APB_RegisterSet *)PHY_BASEADDR_USB20OTG_MODULE_APB;
@@ -827,8 +827,8 @@ CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
 	struct nx_tbbinfo *tbi = (struct nx_tbbinfo *)pTBI;
 	USBBOOTSTATUS USBBootStatus;
 	USBBOOTSTATUS *pUSBBootStatus = &USBBootStatus;
-	ResetCon(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CTRUE);  // reset on
-	ResetCon(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CFALSE); // reset negate
+	reset_con(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CTRUE);  // reset on
+	reset_con(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CFALSE); // reset negate
 
 	/* CRC Check for variables */
 	g_TBI = pTBI;
@@ -902,7 +902,7 @@ CBOOL iUSBBOOT(struct NX_SecondBootInfo *pTBI)
     pReg_Tieoff->TIEOFFREG[13] &= ~(1<<3);                  //nUtmiResetSync = 0
     pReg_Tieoff->TIEOFFREG[13] &= ~(1<<2);                  //nResetSync = 0
     pReg_Tieoff->TIEOFFREG[13] |= 3<<7;                     //POR_ENB=1, POR=1
-    ResetCon(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CTRUE);  // reset on
+    reset_con(RESETINDEX_OF_USB20OTG_MODULE_i_nRST, CTRUE);  // reset on
 
 #if (SUPPORT_KERNEL_3_4 == 0)
 	/* post process */

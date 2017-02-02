@@ -25,8 +25,8 @@ void s5p6818_pwm_reset(void)
 {
 	int reset_number = RESETINDEX_OF_PWM_MODULE_PRESETn;
 
-	ResetCon(reset_number, CTRUE);	// reset on
-	ResetCon(reset_number, CFALSE); // reset negate
+	reset_con(reset_number, CTRUE);	// reset on
+	reset_con(reset_number, CFALSE); // reset negate
 }
 
 /* s5p6818 - timer module reset */
@@ -34,8 +34,8 @@ void s5p6818_timer_reset(void)
 {
 	int reset_number = RESETINDEX_OF_TIMER_MODULE_PRESETn;
 
-	ResetCon(reset_number, CTRUE);	// reset on
-	ResetCon(reset_number, CFALSE); // reset negate
+	reset_con(reset_number, CTRUE);	// reset on
+	reset_con(reset_number, CFALSE); // reset negate
 }
 
 static void s5p6818_set_device_env(void)

@@ -26,7 +26,6 @@ struct nx_subcpu_bringup_info {
 };
 
 /* External Function */
-extern void ResetCon(unsigned int devicenum, int en);
 extern void DMC_Delay(int milisecond);
 
 extern void SwitchToEL2(void);

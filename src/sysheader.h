@@ -32,7 +32,6 @@
 /* The prototype header that defines the register. Gradually reduce dependencies. */
 #include <nx_chip.h>
 
-#include <nx_rstcon.h>
 #include <nx_clkpwr.h>
 
 #include <nx_gpio.h>
@@ -52,6 +51,7 @@
 
 #include "secondboot.h"
 #include <clkgen.h>
+#include <resetcon.h>
 #include <gpio.h>
 
 #include <pmic.h>
@@ -157,8 +157,6 @@ struct NX_ECID_RegisterSet *const pReg_ECID =
     (struct NX_ECID_RegisterSet * const)PHY_BASEADDR_ECID_MODULE;
 struct NX_CLKPWR_RegisterSet *const pReg_ClkPwr =
     (struct NX_CLKPWR_RegisterSet * const)PHY_BASEADDR_CLKPWR_MODULE;
-struct NX_RSTCON_RegisterSet *const pReg_RstCon =
-    (struct NX_RSTCON_RegisterSet * const)PHY_BASEADDR_RSTCON_MODULE;
 
 struct NX_WDT_RegisterSet *const pReg_WDT =
     (struct NX_WDT_RegisterSet * const)PHY_BASEADDR_WDT_MODULE;
@@ -184,8 +182,6 @@ extern struct NX_ALIVE_RegisterSet *const pReg_Alive;
 extern struct NX_TIEOFF_RegisterSet *const pReg_Tieoff;
 extern struct NX_ECID_RegisterSet *const pReg_ECID;
 extern struct NX_CLKPWR_RegisterSet *const pReg_ClkPwr;
-extern struct NX_RSTCON_RegisterSet *const pReg_RstCon;
-
 
 extern struct NX_WDT_RegisterSet *const pReg_WDT;
 extern struct NX_RTC_RegisterSet *const pReg_RTC;

@@ -21,9 +21,6 @@
 /* Extern Function Define */
 void DMC_Delay(int milisecond);
 
-/* Set the Reset Generatior (IP Block) */
-void ResetCon(U32 devicenum, CBOOL en);
-
 /* EMA(Extra Margin Adjustments) Function */
 void cache_setup_ema(void);
 void ema_information(void);

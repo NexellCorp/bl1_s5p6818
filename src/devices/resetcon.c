@@ -16,14 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sysheader.h"
+#include <sysheader.h>
 
-void ResetCon(U32 devicenum, CBOOL en)
+struct s5p6818_resetgen_reg *const g_rstgen_reg =
+	(struct s5p6818_resetgen_reg * const)PHY_BASEADDR_RSTCON_MODULE;
+
+void reset_con(unsigned int device_num, int enable)
 {
-	if (en)
-		ClearIO32(&pReg_RstCon->REGRST[(devicenum >> 5) & 0x3],
-			  (0x1 << (devicenum & 0x1F))); // reset
-	else
-		SetIO32(&pReg_RstCon->REGRST[(devicenum >> 5) & 0x3],
-			(0x1 << (devicenum & 0x1F))); // reset negate
+	if (enable) {
+		mmio_clear_32(&g_rstgen_reg->regrst[(device_num >> 5) & 0x3],
+			  (0x1 << (device_num & 0x1F)));			// reset
+	} else {
+		mmio_set_32(&g_rstgen_reg->regrst[(device_num >> 5) & 0x3],
+			(0x1 << (device_num & 0x1F)));				// reset negate
+	}
 }
