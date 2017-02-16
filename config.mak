@@ -25,15 +25,15 @@ CFLAGS				:=
 DEBUG				?= n
 
 # chip name
-CHIPNAME			= S5P6818
+CHIPNAME			= s5p6818
 
 # archtecture type
 #OPMODE				?= aarch64
 OPMODE				?= aarch32
 
 # (ddr3/lpddr3) memory type
-MEMTYPE				?= DDR3
-#MEMTYPE			?= LPDDR3
+MEMTYPE				?= ddr3
+#MEMTYPE			?= lpddr3
 MEMTEST				?= n
 
 # power management ic(pmic) on/off
@@ -168,9 +168,9 @@ CFLAGS				+=	-g -Wall						\
 					-mcpu=$(CPU)						\
 					$(CODE_MAIN_INCLUDE)					\
 					-D__arm -DLOAD_FROM_$(BOOTFROM)				\
-					-DMEMTYPE_$(MEMTYPE)					\
-					-DPMIC_ON						\
-					-D$(OPMODE) -D$(shell echo $(BOARD) | tr a-z A-Z)
+					-DMEMTYPE_$(shell echo $(MEMTYPE) | tr a-z A-Z)		\
+					-D$(OPMODE) -D$(shell echo $(BOARD) | tr a-z A-Z)	\
+					-DPMIC_ON
 
 ifeq ($(OPMODE) , aarch32)
 CFLAGS				+=	-msoft-float				\

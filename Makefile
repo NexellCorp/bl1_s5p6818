@@ -27,16 +27,9 @@ LDFLAGS		=	-Bstatic							\
 
 SYS_OBJS	=	startup_$(OPMODE).o $(OPMODE)_libs.o $(OPMODE)_exception_handler.o plat_pm.o sub_cpu.o			\
 			clock.o cci400.o resetcon.o gpio.o secure_manager.o lib2ndboot.o build_info.o				\
-			serial.o printf.o crc.o ema.o clkpwr.o board_$(BOARD).o main.o
+			serial.o printf.o crc.o ema.o clkpwr.o board_$(BOARD).o ${MEMTYPE}_sdram.o memory.o main.o
 
 SYS_OBJS	+=	sysbus.o
-
-ifeq ($(MEMTYPE),DDR3)
-SYS_OBJS	+=	ddr3_sdram.o
-endif
-ifeq ($(MEMTYPE),LPDDR3)
-SYS_OBJS	+=	init_LPDDR3.o
-endif
 
 SYS_OBJS	+=	CRYPTO.o
 #SYS_OBJS	+=	nx_tieoff.o
@@ -81,6 +74,8 @@ SYS_INCLUDES	=	-I src								\
 			-I src/boot							\
 			-I src/devices							\
 			-I src/devices/memory						\
+			-I src/devices/memory/ddr3					\
+			-I src/devices/memory/lpddr3					\
 			-I src/devices/pmic						\
 			-I src/board							\
 			-I src/configs							\
@@ -106,6 +101,14 @@ $(DIR_OBJOUTPUT)/%.o: src/devices/%.c
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
 $(DIR_OBJOUTPUT)/%.o: src/devices/memory/%.c
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
+$(DIR_OBJOUTPUT)/%.o: src/devices/memory/ddr3/%.c
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
+$(DIR_OBJOUTPUT)/%.o: src/devices/memory/lpddr3/%.c
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################

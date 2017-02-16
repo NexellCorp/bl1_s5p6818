@@ -22,19 +22,15 @@
 #include <freq.h>
 #include <type.h>
 
-#if defined(ARCH_NXP4330) || defined(ARCH_S5P4418)
-#include <nx_pyrope.h>
-#endif
-#if defined(ARCH_NXP5430)
 #include <nx_peridot.h>
-#endif
 
-/* The prototype header that defines the register. Gradually reduce dependencies. */
+/*
+  * The prototype header that defines the register.
+  * Gradually reduce dependencies.
+  */
 #include <nx_chip.h>
 
 #include <nx_clkpwr.h>
-
-#include <nx_gpio.h>
 
 #include <nx_tieoff.h>
 #include <nx_alive.h>
@@ -58,6 +54,8 @@
 
 #include <serial.h>
 #include <printf.h>
+
+#include <memory.h>
 
 #if defined(AVN)
 #include <s5p6818_avn_ref.h>
@@ -147,8 +145,7 @@ struct NX_SecondBootInfo *const pSBI =
     (struct NX_SecondBootInfo * const)BASEADDR_SRAM;
 struct NX_SecondBootInfo *const pTBI =
     (struct NX_SecondBootInfo * const)BASEADDR_SRAM;
-struct NX_GPIO_RegisterSet (*const pReg_GPIO)[1] =
-    (struct NX_GPIO_RegisterSet (*const)[])PHY_BASEADDR_GPIOA_MODULE;
+
 struct NX_ALIVE_RegisterSet *const pReg_Alive =
     (struct NX_ALIVE_RegisterSet * const)PHY_BASEADDR_ALIVE_MODULE;
 struct NX_TIEOFF_RegisterSet *const pReg_Tieoff =
@@ -177,7 +174,7 @@ struct NX_TZC380_RegisterSet *const pReg_TZC380 =
 
 extern struct NX_SecondBootInfo *const pSBI; // second boot info
 extern struct NX_SecondBootInfo *const pTBI; // third boot info
-extern struct NX_GPIO_RegisterSet (*const pReg_GPIO)[1];
+
 extern struct NX_ALIVE_RegisterSet *const pReg_Alive;
 extern struct NX_TIEOFF_RegisterSet *const pReg_Tieoff;
 extern struct NX_ECID_RegisterSet *const pReg_ECID;

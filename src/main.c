@@ -18,8 +18,9 @@
 #define __SET_GLOBAL_VARIABLES
 #include <sysheader.h>
 #include <main.h>
-#include "nx_bootheader.h"
+#include <nx_bootheader.h>
 
+#if (SUPPORT_KERNEL_3_4 == 0)
 /* s5p6818 - pwm module reset */
 void s5p6818_pwm_reset(void)
 {
@@ -43,6 +44,7 @@ static void s5p6818_set_device_env(void)
 	/* (device port number) for u-boot  */
 	mmio_write_32(&pReg_ClkPwr->SCRATCH[1], (pSBI->DBI.SDMMCBI.PortNumber));
 }
+#endif
 
 void main(unsigned int cpu_id)
 {
@@ -62,7 +64,7 @@ void main(unsigned int cpu_id)
 	/* step xx. remove the warining message */
 	cpu_id = cpu_id;
 
-#if 1	/* (early) low level - log message */
+#if 0	/* (early) low level - log message */
 	/* step xx. serial console(uartX) initialize. */
 	serial_init(serial_ch);
 #endif
@@ -98,30 +100,7 @@ void main(unsigned int cpu_id)
 	clock_information();
 
 	/* step 05. (ddr3/lpddr3) sdram memory initialize */
-	SYSMSG("\r\n(LPDDR3/DDR3) POR Intialize Start!! (%d)\r\n", is_resume);
-
-#ifdef MEM_TYPE_DDR3
-	/*
-	 * DDR initialization fails, a temporary code
-	 * code for the defense.
-	 */
-	int mem_retry = 3;
-	while (mem_retry--) {
-		if (ddr3_initialize(is_resume) >= 0)
-			break;
-	}
-#endif	// #ifdef MEM_TYPE_DDR3
-
-#ifdef MEM_TYPE_LPDDR23
-	if (init_LPDDR3(0) == CFALSE)
-		init_LPDDR3(0);
-#endif	// #ifdef MEM_TYPE_LPDDR23
-
-	/* step 06-1. exit the (sdram) self-refresh  */
-	if (is_resume)
-		exit_self_refresh();
-
-	SYSMSG("(LPDDR3/DDR3) Initialize Done!\r\n");
+	memory_initialize(is_resume);
 
 	/* step 07-1. set the system bus configuration */
 	set_bus_config();
@@ -145,8 +124,8 @@ void main(unsigned int cpu_id)
 	secure_set_state();
 #endif
 
+#if (SUPPORT_KERNEL_3_4 == 1)
 	/* step 08-3. set the secondary-core */
-#if (MULTICORE_BRING_UP == 1)
 	s5p6818_subcpu_bringup(cpu_id);
 #endif
 

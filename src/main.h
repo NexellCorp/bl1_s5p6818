@@ -33,13 +33,6 @@ void cci400_initialize(void);
 void set_bus_config(void);
 void set_drex_qos(void);
 
-/* (ddr3/lpdde3) sdram memory function define */
-#ifdef MEM_TYPE_DDR3
- int ddr3_initialize(unsigned int);
-#endif
-#ifdef MEM_TYPE_LPDDR23
- int init_LPDDR3(unsigned int);
-#endif
 void enter_self_refresh(void);
 void exit_self_refresh(void);
 

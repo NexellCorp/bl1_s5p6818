@@ -48,10 +48,6 @@
 #define MEM_CALIBRATION_BITINFO		(0)
 #define DM_CALIBRATION_INFO		(0)
 
-#if (CFG_NSIH_EN == 0)
-#include <ddr3_ac_timing.h>
-#endif
-
 #ifdef aarch32
 #define nop() __asm__ __volatile__("mov\tr0,r0\t@ nop\n\t");
 #endif
@@ -95,30 +91,30 @@ static int _pow(int num, int count)
 static void get_dram_information(struct dram_device_info *me)
 {
 	/* Nexell Step XX. Memory Address (for Write Training (DRAM)) */
-	me->bank_num	= DDR3_CS_NUM;
+	me->bank_num	= (DDR3_BANK_NUM);
 	me->row_num	= (DDR3_ROW_NUM + 12);
 	me->column_num	= (DDR3_COL_NUM +  7);
 
-	me->column_size	= (_pow(2, me->column_num) * DDR_BUS_WIDTH) ;
+	me->column_size	= (_pow(2, me->column_num) * DDR3_BUS_WIDTH) ;
 	me->row_size	= _pow(2, me->row_num);
 	me->bank_size	= (me->row_size * me->column_size);
 	me->chip_size	= (me->bank_size * _pow(2, me->bank_num));
-	me->sdram_size	= (me->chip_size * 32);
+	me->sdram_size	= (me->chip_size * DDR3_CS_NUM);
 
 #if 0
-	MEMMSG("\r\n############## [SDRAM] Memory Specification ###############\r\n");
+	MEMMSG("############## [SDRAM] Memory Specification ###############\r\n");
 	MEMMSG("[Bit] Bank Address   : %d \r\n", me->bank_num);
 	MEMMSG("[Bit] Column Address : %d \r\n", me->column_num);
 	MEMMSG("[Bit] Row Address    : %d \r\n", me->row_num);
-	MEMMSG("[Bit] Data Line      : %d \r\n", DDR_BUS_WIDTH);
+	MEMMSG("[Bit] Data Line      : %d \r\n", DDR3_BUS_WIDTH);
 	MEMMSG("[Bit] Column    Size : %d \r\n", me->column_size);
 	MEMMSG("[Bit] Row(Page) Size : %d \r\n", me->row_size);
-	MEMMSG("[Bit] Bank      Size : %d \r\n", me->bank_size);
-#if 0
+	MEMMSG("[Bit] Bank      Size : %f \r\n", me->bank_size);
+#if 1
 	MEMMSG("[Bit] Chip      Size : %f \r\n", me->chip_size);
-	MEMMSG("[TOTAL] SDRAM   Size : %f \r\n", me->chip_size);
+	MEMMSG("[TOTAL] SDRAM   Size : %f \r\n", me->sdram_size);
 #endif
-	MEMMSG("\r\n############################################################\r\n");
+	MEMMSG("############################################################\r\n");
 #endif
 }
 
@@ -268,7 +264,7 @@ void enter_self_refresh(void)
 	MR.MR1.WL = 0;
 
 #if 0
-	MR.MR1.TDQS     = (_DDR_BUS_WIDTH>>3) & 1;
+	MR.MR1.TDQS     = (_DDR3_BUS_WIDTH>>3) & 1;
 #endif
 
 	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR.Reg);
@@ -329,7 +325,7 @@ void exit_self_refresh(void)
 	MR.MR1.QOff = 0;
 	MR.MR1.WL = 0;
 #if 0
-	MR.MR1.TDQS     = (_DDR_BUS_WIDTH>>3) & 1;
+	MR.MR1.TDQS     = (_DDR3_BUS_WIDTH>>3) & 1;
 #endif
 
 	send_directcmd(SDRAM_CMD_MRS, 0, SDRAM_MODE_REG_MR1, MR.Reg);
@@ -1382,11 +1378,11 @@ int ddr3_initialize(unsigned int is_resume)
 
 		MR1.MR1.AL	 = MR1_nAL;
 
-		MR1.MR1.ODS1	 = CONFIG_DRAM_MR1_ODS & (1 << 1);
-		MR1.MR1.ODS0	 = CONFIG_DRAM_MR1_ODS & (1 << 0);
-		MR1.MR1.RTT_Nom2 = CONFIG_DRAM_MR1_RTT_Nom & (1 << 2);
-		MR1.MR1.RTT_Nom1 = CONFIG_DRAM_MR1_RTT_Nom & (1 << 1);
-		MR1.MR1.RTT_Nom0 = CONFIG_DRAM_MR1_RTT_Nom & (1 << 0);
+		MR1.MR1.ODS1	 = (CONFIG_DRAM_MR1_ODS & 0x2 >> 1);
+		MR1.MR1.ODS0	 = (CONFIG_DRAM_MR1_ODS & 0x1 >> 0);
+		MR1.MR1.RTT_Nom2 = (CONFIG_DRAM_MR1_RTT_Nom & 0x4 >> 2);
+		MR1.MR1.RTT_Nom1 = (CONFIG_DRAM_MR1_RTT_Nom & 0x2 >> 1);
+		MR1.MR1.RTT_Nom0 = (CONFIG_DRAM_MR1_RTT_Nom & 0x1 >> 0);
 		MR1.MR1.QOff	 = 0;
 		MR1.MR1.WL	 = 0;
 
@@ -1565,10 +1561,10 @@ int ddr3_initialize(unsigned int is_resume)
 	/* [Drex] Step 10. Memory Base Config */
 	mmio_write_32(&g_drextz_reg->MEMBASECONFIG[0],
 			(DDR3_CS0_BASEADDR << 16) |				// chip_base[26:16]. AXI Base Address. if 0x20 ==> AXI base addr of memory : 0x2000_0000
-			(DDR3_MEM_MASK << 0));					// 256MB:0x7F0, 512MB: 0x7E0, 1GB:0x7C0, 2GB: 0x780, 4GB:0x700
+			(DDR3_CS_MEMMASK   << 0));				// 256MB:0x7F0, 512MB: 0x7E0, 1GB:0x7C0, 2GB: 0x780, 4GB:0x700
 	mmio_write_32(&g_drextz_reg->MEMBASECONFIG[1],
 			(DDR3_CS1_BASEADDR << 16) |				// chip_base[26:16]. AXI Base Address. if 0x40 ==> AXI base addr of memory:  0x4000_0000, 16MB unit
-			(DDR3_MEM_MASK << 0));					// chip_mask[10:0]. 2048 - chip size
+			(DDR3_CS_MEMMASK   << 0));				// chip_mask[10:0]. 2048 - chip size
 
 	/* [Drex] Step 11. Memory Config */
 	mmio_write_32(&g_drextz_reg->MEMCONFIG[0],
@@ -1589,7 +1585,7 @@ int ddr3_initialize(unsigned int is_resume)
 				(0x2 << 12) |					// [15:12] chip_map. Address Mapping Method (AXI to Memory). 0 : Linear(Bank, Row, Column, Width), 1 : Interleaved(Row, bank, column, width), other : reserved
 				(DDR3_COL_NUM << 8) |				// [11: 8] chip_col. Number of Column Address Bit. others:Reserved, 2:9bit, 3:10bit,
 				(DDR3_ROW_NUM << 4) |				 // [ 7: 4] chip_row. Number of  Row Address Bit. others:Reserved, 0:12bit, 1:13bit, 2:14bit, 3:15bit, 4:16bit
-				(0x3 << 0));					// [ 3: 0] chip_bank. Number of  Row Address Bit.  others:Reserved, 2:4bank, 3:8banks
+				(DDR3_BANK_NUM << 0));				// [ 3: 0] chip_bank. Number of  Row Address Bit.  others:Reserved, 2:4bank, 3:8banks
 #endif
 
 	/* [Drex] Step 12. Precharge Configuration */
@@ -1597,8 +1593,8 @@ int ddr3_initialize(unsigned int is_resume)
 	mmio_write_32( &g_drex_reg->PRECHCONFIG0,
 			(0xF <<  28) |						// Timeout Precharge per Port
 			(0x0 <<  16));						// open page policy
-	mmio_write_32( &g_drex_reg->PRECHCONFIG1, 0xFFFFFFFF );			//- precharge cycle
-	mmio_write_32( &g_drex_reg->PWRDNCONFIG,  0xFFFF00FF );			//- low power counter
+	mmio_write_32( &g_drex_reg->PRECHCONFIG1, 0xFFFFFFFF);			//- precharge cycle
+	mmio_write_32( &g_drex_reg->PWRDNCONFIG,  0xFFFF00FF);			//- low power counter
 #endif
 	mmio_write_32(&g_drex_reg->PRECHCONFIG1, 0x00);				//- precharge cycle
 	mmio_write_32(&g_drex_reg->PWRDNCONFIG,  0xFF);				//- low power counter

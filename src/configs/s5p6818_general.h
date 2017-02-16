@@ -15,25 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __S5P6818_AVN_REF_H__
-#define __S5P6818_AVN_REF_H__
+#ifndef __S5P6818_GENERAL_H__
+#define __S5P6818_GENERAL_H__
 
 #include <clock.h>
 #include <freq.h>
-
-/* clock (PLLx) configuration */
-#define OSC_HZ					(24000000)
-#define OSC_KHZ					(OSC_HZ/1000)
-#define OSC_MHZ					(OSC_KHZ/1000)
-
-#define CLKSRC_PLL_0				0
-#define CLKSRC_PLL_1				1
-#define CLKSRC_PLL_2				2
-#define CLKSRC_PLL_3				3
-
-#define CLKSRC_UART				CLKSRC_PLL_2
-#define CLKSRC_SDMMC				CLKSRC_PLL_2
-#define CLKSRC_SPI				CLKSRC_PLL_0
 
 /* system clock macro */
 #define CONFIG_S5P_PLL0_FREQ			800
@@ -81,12 +67,28 @@
 						((2 - 1) << DVO1_BITPOS))		/* FAST BUS PCLK ==> FAST BUS control if (max 200MHz) */
 
 /* sdram ddr3 configuration */
+#define CONFIG_DDR3_MEMCLK			800				// 533, 666, 800
+
 #define CONFIG_DDR3_CS_NUM			 2				// 1 : 1CS, 2: 2CS
 #define CONFIG_DDR3_BANK_NUM			 3				// 3: 8 Bank
 #define CONFIG_DDR3_ROW_NUM			15
 #define CONFIG_DDR3_COLUMN_NUM			10
 
-#define CONFIG_DDR3_BUS_WIDTH			16
+#define CONFIG_DDR3_BUS_WIDTH			16UL
+
+/* The memory chip size was calculated. */
+/* The macro is divided into 8 bits for calculation within 4 bytes. */
+#define CONFIG_DDR3_CHIP_PERSIZE		((((1 << CONFIG_DDR3_ROW_NUM)/8) *	\
+						  (1 << CONFIG_DDR3_COLUMN_NUM) * 	\
+						  (1 << CONFIG_DDR3_BANK_NUM) *		\
+						  CONFIG_DDR3_BUS_WIDTH))	// Chip Per Byte Size
+
+#define CONFIG_DDR3_CS_PERSIZE			(CONFIG_DDR3_CHIP_PERSIZE *	\
+						 (32/CONFIG_DDR3_BUS_WIDTH))	// CS Per Byte Size
+#define CONFIG_DDR3_MEMSIZE			((((1 << CONFIG_DDR3_ROW_NUM)/8) *	\
+						  (1 << CONFIG_DDR3_COLUMN_NUM) * 	\
+						  (1 << CONFIG_DDR3_BANK_NUM) *		\
+						  (CONFIG_DDR3_CS_NUM * 32)))	// Total Byte Size
 
 /* device(dram) drive strength configuration */
 #define CONFIG_DRAM_MR1_ODS			0				// MR1_ODS - 0: RZQ/6, 1 : RZQ/7
@@ -140,4 +142,4 @@
 #define AUTO_VOLTAGE_CONTROL			1
 #define ARM_VOLTAGE_CONTROL_SKIP		0
 
-#endif // #ifndef __S5P6818_AVN_REF_H__
+#endif // #ifndef __S5P6818_GENERAL_H__

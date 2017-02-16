@@ -67,12 +67,28 @@
 						((2 - 1) << DVO1_BITPOS))
 
 /* sdram ddr3 configuration */
+#define CONFIG_DDR3_MEMCLK			800				// 533, 666, 800
+
 #define CONFIG_DDR3_CS_NUM			 1				// 1 : 1CS, 2: 2CS
 #define CONFIG_DDR3_BANK_NUM			 3				// 3: 8 Bank
 #define CONFIG_DDR3_ROW_NUM			15
 #define CONFIG_DDR3_COLUMN_NUM			10
 
 #define CONFIG_DDR3_BUS_WIDTH			16
+
+/* The memory chip size was calculated. */
+/* The macro is divided into 8 bits for calculation within 4 bytes. */
+#define CONFIG_DDR3_CHIP_PERSIZE		((((1 << CONFIG_DDR3_ROW_NUM)/8) *	\
+						  (1 << CONFIG_DDR3_COLUMN_NUM) * 	\
+						  (1 << CONFIG_DDR3_BANK_NUM) *		\
+						  CONFIG_DDR3_BUS_WIDTH))	// Chip Per Byte Size
+
+#define CONFIG_DDR3_CS_PERSIZE			(CONFIG_DDR3_CHIP_PERSIZE *	\
+						 (32/CONFIG_DDR3_BUS_WIDTH))	// CS Per Byte Size
+#define CONFIG_DDR3_MEMSIZE			((((1 << CONFIG_DDR3_ROW_NUM)/8) *	\
+						  (1 << CONFIG_DDR3_COLUMN_NUM) * 	\
+						  (1 << CONFIG_DDR3_BANK_NUM) *		\
+						  (CONFIG_DDR3_CS_NUM * 32)))	// Total Byte Size
 
 /* device(dram) drive strength configuration */
 #define CONFIG_DRAM_MR1_ODS			2				// MR1_ODS - 0: RZQ/6, 1 : RZQ/7
