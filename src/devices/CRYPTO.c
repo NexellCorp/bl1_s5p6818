@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <nx_peridot.h>
 #include <nx_type.h>
 
@@ -24,6 +23,9 @@
 #include <nx_crypto.h>
 #include <nx_clkgen.h>
 #include <nx_ecid.h>
+
+#include <gpio.h>
+#include <resetcon.h>
 
 #ifdef SW_CRYPTO_EMUL
 U32 erk[64];
@@ -336,8 +338,6 @@ void Decrypt(U32 *SrcAddr, U32 *DestAddr, U32 Size)
 	}
 }
 #else
-void reset_con(U32 devicenum, CBOOL en);
-
 static struct NX_ECID_RegisterSet *const pECIDReg =
     (struct NX_ECID_RegisterSet *)PHY_BASEADDR_ECID_MODULE;
 static struct NX_CLKGEN_RegisterSet *const pCryptoClkGenReg =

@@ -169,8 +169,7 @@ CFLAGS				+=	-g -Wall						\
 					$(CODE_MAIN_INCLUDE)					\
 					-D__arm -DLOAD_FROM_$(BOOTFROM)				\
 					-DMEMTYPE_$(shell echo $(MEMTYPE) | tr a-z A-Z)		\
-					-D$(OPMODE) -D$(shell echo $(BOARD) | tr a-z A-Z)	\
-					-DPMIC_ON
+					-D$(OPMODE) -D$(shell echo $(BOARD) | tr a-z A-Z)
 
 ifeq ($(OPMODE) , aarch32)
 CFLAGS				+=	-msoft-float				\
@@ -201,6 +200,7 @@ endif
 
 # power managemnt ic(pmic) on/off
 ifeq ($(PMIC_ON), y)
+CFLAGS				+=	-DPMIC_ON
 CFLAGS				+=	-D$(shell echo $(BOARD) | tr a-z A-Z)_PMIC
 endif
 

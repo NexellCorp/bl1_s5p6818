@@ -17,15 +17,15 @@
  */
 #include <sysheader.h>
 
-void *memcpy(void *dest, const void *src, size_t n)
+void *memcpy(void *dst, const void *src, size_t n)
 {
 	const char *s = src;
-	char *d = dest;
+	char *d = dst;
 
 	while (n--)
 		*d++ = *s++;
 
-	return dest;
+	return dst;
 }
 void *memset(void *str, int c, size_t n)
 {

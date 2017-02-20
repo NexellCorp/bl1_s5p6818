@@ -56,6 +56,7 @@
 #include <printf.h>
 
 #include <memory.h>
+#include <libstd.h>
 
 #if defined(AVN)
 #include <s5p6818_avn_ref.h>
@@ -63,10 +64,6 @@
 #include <s5p6818_drone.h>
 #elif defined(SVT)
 #include <s5p6818_svt.h>
-#elif defined(ASB)
-#include <s5p6818_asb.h>
-#elif defined(BF700)
-#include <s5p6818_bf700.h>
 #elif defined(RAPTOR)
 #include <s5p6818_raptor.h>
 #else
@@ -74,22 +71,22 @@
 #endif
 
 #if defined(SYSLOG_ON)
-#define SYSMSG printf
+#define SYSMSG		printf
 #else
-#define SYSMSG(x, ...)
+#define SYSMSG		empty_printf
 #endif
 
 // Memory debug message
 #if defined(SYSLOG_ON)
-#define MEMMSG printf
+#define MEMMSG		printf
 #else
-#define MEMMSG(x, ...)
+#define MEMMSG		empty_printf
 #endif
 
 #if 0
-#define MEMINF printf
+#define MEMINF		printf
 #else
-#define MEMINF(x, ...)
+#define MEMINF		empty_printf
 #endif
 
 #define DEVMSG_ON	0
@@ -108,31 +105,31 @@
 #if (LOG_LEVEL >= LOG_LEVEL_NOTICE) && defined(SYSLOG_ON)
 # define NOTICE(...)	printf("NOTICE:  " __VA_ARGS__)
 #else
-# define NOTICE(...)
+# define NOTICE(...)	empty_printf("NOTICE:  " __VA_ARGS__)
 #endif
 
 #if (LOG_LEVEL >= LOG_LEVEL_ERROR) && defined(SYSLOG_ON)
 # define ERROR(...)	printf("ERROR:   " __VA_ARGS__)
 #else
-# define ERROR(...)
+# define ERROR(...)	empty_printf("ERROR:   " __VA_ARGS__)
 #endif
 
 #if (LOG_LEVEL >= LOG_LEVEL_WARNING) && defined(SYSLOG_ON)
 # define WARN(...)	printf("WARNING: " __VA_ARGS__)
 #else
-# define WARN(...)
+# define WARN(...)	empty_printf("WARNING: " __VA_ARGS__)
 #endif
 
 #if (LOG_LEVEL >= LOG_LEVEL_INFO) && defined(SYSLOG_ON)
 # define INFO(...)	printf("INFO:    " __VA_ARGS__)
 #else
-# define INFO(...)
+# define INFO(...)	empty_printf("INFO:    " __VA_ARGS__)
 #endif
 
 #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE) && defined(SYSLOG_ON)
 # define VERBOSE(...)	printf("VERBOSE: " __VA_ARGS__)
 #else
-# define VERBOSE(...)
+# define VERBOSE(...)	empty_printf("VERBOSE: " __VA_ARGS__)
 #endif
 
 //------------------------------------------------------------------------------

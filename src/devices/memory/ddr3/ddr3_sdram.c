@@ -57,7 +57,6 @@
 #endif
 
 /* External Function */
-extern inline void reset_con(unsigned int devicenum, int en);
 extern inline void DMC_Delay(int milisecond);
 
 extern struct s5p6818_resetgen_reg *const g_rstgen_reg;

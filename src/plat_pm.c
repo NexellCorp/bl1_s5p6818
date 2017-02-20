@@ -46,6 +46,8 @@ void suspend_mark(unsigned int state, unsigned int entrypoint, unsigned int crc,
 	unsigned int crc;
 	unsigned int mem = 0x40000000, size = (512*1024*1024);
 #endif
+	state = state;
+
 	mmio_write_32(&pReg_Alive->ALIVEPWRGATEREG, 1);
 
 	mmio_write_32(&pReg_Alive->ALIVESCRATCHRSTREG, 0xFFFFFFFF);

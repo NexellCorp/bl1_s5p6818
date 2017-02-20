@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sysheader.h"
+#include <sysheader.h>
 
+#include <clkpwr.h>
 #include <nx_sdmmc.h>
-#include "iSDHCBOOT.h"
-#include "nx_bootheader.h"
+#include <iSDHCBOOT.h>
+#include <nx_bootheader.h>
 
 #if DEVMSG_ON
 #define dev_msg         printf
@@ -30,11 +31,6 @@
 
 static struct s5p6818_gpio_reg (*const g_gpio_reg)[1] =
     (struct s5p6818_gpio_reg(*)[])(PHY_BASEADDR_GPIOA_MODULE);
-extern U32 getquotient(U32 dividend, U32 divisor);
-
-void reset_con(U32 devicenum, CBOOL en);
-void gpio_set_alt_function(unsigned int alt_num);
-
 
 //------------------------------------------------------------------------------
 struct NX_CLKGEN_RegisterSet * const pgSDClkGenReg[3] =
@@ -1036,9 +1032,12 @@ static	int SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 	int	result = CFALSE;
 	register struct NX_SDMMC_RegisterSet * const pSDXCReg =
 					pgSDXCReg[pSDXCBootStatus->SDPort];
-
+#if (SUPPORT_KERNEL_3_4 == 0)
 	struct nx_bootheader *ptbh = (struct nx_bootheader *)pTBI;
+#if defined(SECURE_ON)
 	struct nx_bootheader *psbh = (struct nx_bootheader *)pSBI;
+#endif
+#endif
 
 	if (CTRUE != NX_SDMMC_Open(pSDXCBootStatus)) {
 		printf("Cannot Detect SDMMC\r\n");
@@ -1097,7 +1096,7 @@ static	int SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 	for (i = 0; i< sizeof(struct nx_bootheader)/sizeof(unsigned int)/4; i++)
 		*dst++ = *src++;
 #endif
-	ptbh = (struct nx_bootheader *)ptbh->tbbi.loadaddr;
+	ptbh = (struct nx_bootheader *)(ptbh->tbbi.loadaddr);
 
 	ptbh->tbbi.loadsize += sizeof(struct nx_bootheader);
 	dev_msg("Load Addr :0x%08X,  Load Size :0x%08X,  Launch Addr :0x%08X\r\n",

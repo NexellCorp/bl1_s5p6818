@@ -19,7 +19,8 @@
 #include <clkpwr.h>
 
 /* Global Varaiables */
-struct s5p6818_clkpwr_reg* g_clkpwr_reg;
+struct s5p6818_clkpwr_reg* g_clkpwr_reg
+	= ((struct s5p6818_clkpwr_reg*)PHY_BASEADDR_CLKPWR_MODULE);
 static unsigned int g_osc_khz;
 
 int clkpwr_get_baseaddr(void)

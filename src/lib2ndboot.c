@@ -19,12 +19,12 @@
 #include "nx_peridot.h"
 
 #ifdef aarch32
-U32 getquotient(U32 dividend, U32 divisor)
+unsigned int getquotient(unsigned int dividend, unsigned int divisor)
 {
-	U32 quotient, remainder;
-	U32 t, num_bits;
-	U32 q, bit, d = 0;
-	U32 i;
+	unsigned int quotient, remainder;
+	unsigned int t, num_bits;
+	unsigned int q, bit, d = 0;
+	unsigned int i;
 
 	remainder = 0;
 	quotient = 0;
@@ -68,12 +68,12 @@ U32 getquotient(U32 dividend, U32 divisor)
 	return quotient;
 }
 
-U32 getremainder(U32 dividend, U32 divisor)
+unsigned int getremainder(unsigned int dividend, unsigned int divisor)
 {
-	U32 quotient, remainder;
-	U32 t, num_bits;
-	U32 q, bit, d = 0;
-	U32 i;
+	unsigned int quotient, remainder;
+	unsigned int t, num_bits;
+	unsigned int q, bit, d = 0;
+	unsigned int i;
 
 	remainder = 0;
 	quotient = 0;
@@ -119,8 +119,14 @@ U32 getremainder(U32 dividend, U32 divisor)
 #endif
 
 #ifdef aarch64
-U32 getquotient(U32 dividend, U32 divisor) { return dividend / divisor; }
-U32 getremainder(U32 dividend, U32 divisor) { return dividend % divisor; }
+unsigned int getquotient(unsigned int dividend, unsigned int divisor)
+{
+	return dividend / divisor
+}
+unsigned int getremainder(unsigned int dividend, unsigned int divisor)
+{
+	return dividend % divisor;
+}
 #endif
 
 inline void DMC_Delay(int milisecond)

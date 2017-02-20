@@ -18,6 +18,12 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
+#ifdef aarch32
+#define PTR unsigned int
+#else
+#define PTR unsigned int
+#endif
+
 typedef char				int8_t;					///< 8bit signed integer(s.7) value
 typedef short				int16_t;				///< 16bit signed integer(s.15) value
 typedef int				int32_t;				///< 32bit signed integer(s.31) value

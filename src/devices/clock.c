@@ -23,9 +23,6 @@
 extern struct s5p6818_clkpwr_reg* g_clkpwr_reg;
 
 /* External Function */
-extern unsigned int getquotient(int dividend, int divisor);
-extern unsigned int getremainder(int dividend, int divisor);
-
 extern void pll_change(volatile unsigned int data,
 		volatile unsigned int* addr,unsigned int delay);
 
@@ -44,13 +41,14 @@ static int clock_is_stable(void)
 		ERROR("PLL does not Locked\r\nSystem halt!\r\r\n");		// in this point, it's not initialized uart debug port yet
 		while (1);							// system reset code need.
 	}
+
+	return ret;
 }
 
 int clock_initialize(void)
 {
 	unsigned int PLL[4], PLL_SPREAD_K[4];
 	unsigned int PLL_PMS, PLL_SPREAD;
-	unsigned int delay;
 
 	g_clkpwr_reg = (struct s5p6818_clkpwr_reg*)clkpwr_get_baseaddr();
 

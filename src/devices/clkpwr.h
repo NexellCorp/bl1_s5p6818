@@ -54,6 +54,8 @@ struct	s5p6818_clkpwr_reg
 };
 
 /* Function Define */
+ int clkpwr_get_baseaddr(void);
+
  int clock_set_mem_pll(int ca_after);
 
 void clkpwr_set_oscfreq(unsigned int freq_khz);

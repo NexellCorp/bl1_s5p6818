@@ -26,8 +26,8 @@ void s5p6818_pwm_reset(void)
 {
 	int reset_number = RESETINDEX_OF_PWM_MODULE_PRESETn;
 
-	reset_con(reset_number, CTRUE);	// reset on
-	reset_con(reset_number, CFALSE); // reset negate
+	reset_con(reset_number, TRUE);	// reset on
+	reset_con(reset_number, FALSE); // reset negate
 }
 
 /* s5p6818 - timer module reset */
@@ -35,8 +35,8 @@ void s5p6818_timer_reset(void)
 {
 	int reset_number = RESETINDEX_OF_TIMER_MODULE_PRESETn;
 
-	reset_con(reset_number, CTRUE);	// reset on
-	reset_con(reset_number, CFALSE); // reset negate
+	reset_con(reset_number, TRUE);	// reset on
+	reset_con(reset_number, FALSE); // reset negate
 }
 
 static void s5p6818_set_device_env(void)
@@ -201,13 +201,13 @@ void main(unsigned int cpu_id)
 	if (ret) {
 	#if (SUPPORT_KERNEL_3_4 == 1)
 		void (*pLaunch)(unsigned int, unsigned int)
-			= (void(*)(unsigned int, unsigned int))((MPTRS)pTBI->LAUNCHADDR);
+			= (void(*)(unsigned int, unsigned int))((PTR)pTBI->LAUNCHADDR);
 	#else
 		struct nx_tbbinfo *tbi = (struct nx_tbbinfo *)&TBI;
-		void (*pLaunch)() = (void (*)())(tbi->startaddr);
+		void (*pLaunch)() = (void (*)(void))((PTR)(tbi->startaddr));
 	#endif
 		SYSMSG(" Image Loading Done!\r\n");
-		SYSMSG("Launch to 0x%08X\r\n", (MPTRS)pLaunch);
+		SYSMSG("Launch to 0x%08X\r\n", (PTR)pLaunch);
 		temp = 0x10000000;
 
 		while (!serial_done() && temp--);

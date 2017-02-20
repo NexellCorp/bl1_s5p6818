@@ -93,7 +93,7 @@ static void set_vector_location(unsigned int cpu_id, int LowHigh)
 
 void s5p6818_subcpu_on(unsigned int cpu_id)
 {
-	register struct nx_subcpu_bringup_info *pcpu_start_info =
+	register struct nx_subcpu_bringup_info *info =
 	    (struct nx_subcpu_bringup_info *)CPU_ALIVE_FLAG_ADDR;
 
 #if (SUPPORT_KERNEL_3_4 == 1)
@@ -108,7 +108,7 @@ void s5p6818_subcpu_on(unsigned int cpu_id)
 #endif
 
 //	printf("Hello World. I'm CPU %d!\r\n", cpu_id);
-	pcpu_start_info->wakeup_flag = 1;
+	info->wakeup_flag = 1;
 	putchar('0' + cpu_id);
 
 #ifdef aarch64
@@ -121,20 +121,16 @@ void s5p6818_subcpu_on(unsigned int cpu_id)
 //		mmio_write_32(&pReg_GIC400->GICD.ICPENDR[0], 1<<cpu_id);
 //		mmio_write_32(&pReg_GIC400->GICC.EOIR, mmio_read_32(&pReg_GIC400->GICC.IAR));
 //		_asm__ __volatile__ ("wfe");
-		pLaunch = (void (*)(void))((MPTRS)pcpu_start_info->jump_addr);
+		pLaunch = (void (*)(void))((MPTRS)info->jump_addr);
 		if ((MPTRS)pLaunch != (MPTRS)0xFFFFFFFF) {
-			if (cpu_id == pcpu_start_info->cpu_id)
+			if (cpu_id == info->cpu_id)
 				pLaunch();
 		}
 	} while (1);
 }
 
-//------------------------------------------------------------------------------
 int s5p6818_subcpu_bringup(unsigned int cpu_id)
 {
-	register struct nx_subcpu_bringup_info *pcpu_start_info =
-	    (struct nx_subcpu_bringup_info *)CPU_ALIVE_FLAG_ADDR;
-	int cpu_num, retry = 0;
 	int result = cpu_id;
 
 	mmio_write_32(&pReg_GIC400->GICC.CTLR, 0x07);				// enable cpu interface
@@ -144,17 +140,23 @@ int s5p6818_subcpu_bringup(unsigned int cpu_id)
 	NOTICE("Wakeup Sub CPU ");
 
 #if (MULTICORE_BRING_UP == 1)
-	pcpu_start_info->jump_addr = (unsigned int)0xFFFFFFFF;			// set cpu jump info to invalid
+	register struct nx_subcpu_bringup_info *info =
+	    (struct nx_subcpu_bringup_info *)CPU_ALIVE_FLAG_ADDR;
+	int cpu_num, retry = 0;
+
+	info->jump_addr = (unsigned int)0xFFFFFFFF;			// set cpu jump info to invalid
 
 	for (cpu_num = 1; cpu_num < 8; ) {
 		register volatile unsigned int delay;
 
-		pcpu_start_info->wakeup_flag = 0;
+		info->wakeup_flag = 0;
 		delay = 0x10000;
-		set_vector_location(cpu_num, CTRUE);				// CTRUE: High Vector(0xFFFF0000), CFALSE: Low Vector (0x0)
+		set_vector_location(cpu_num, TRUE);				// TRUE: High Vector(0xFFFF0000), CFALSE: Low Vector (0x0)
 		bringup_slave_cpu(cpu_num);
 		DMC_Delay(10000);
-		while((pcpu_start_info->wakeup_flag == 0) && (--delay));
+
+		while((info->wakeup_flag == 0) && (--delay));
+
 		if(delay == 0) {
 			if(retry > 3) {
 				ERROR("maybe cpu %d is dead. -_-;\r\n", cpu_num);
@@ -171,6 +173,12 @@ int s5p6818_subcpu_bringup(unsigned int cpu_id)
 			cpu_num++;    // try next cpu bringup
 		}
 		DMC_Delay(10000);
+	}
+#else
+	int i;
+	for (i = 0; i < 8; i++) {
+		s5p6818_subcpu_on(i);
+		DMC_Delay(0xFF);
 	}
 #endif  // #if (MULTICORE_BRING_UP == 1)
 	printf("\r\n");

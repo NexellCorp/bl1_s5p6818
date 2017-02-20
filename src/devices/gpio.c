@@ -23,7 +23,7 @@
 static struct s5p6818_gpio_reg (*const g_gpio_reg)[1] =
     (struct s5p6818_gpio_reg(*)[])(PHY_BASEADDR_GPIOA_MODULE);
 
-inline void gpio_set_alt_function(unsigned int alt_num)
+void gpio_set_alt_function(unsigned int alt_num)
 {
 	register struct s5p6818_gpio_reg *gpio_reg =
 		(struct s5p6818_gpio_reg *)(&g_gpio_reg[(alt_num >> 8) & 0x7]);
