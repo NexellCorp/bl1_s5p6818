@@ -23,11 +23,18 @@
 #include <iSDHCBOOT.h>
 #include <nx_bootheader.h>
 
+#define CONFIG_S5P_SDMMC_SRCCLK			2
+#define CONFIG_S5P_SDMMC_CLOCK			25000000
+
 #if DEVMSG_ON
 #define dev_msg         printf
 #else
 #define dev_msg(x, ...) {}
 #endif
+
+/* (sd/emmc) configuration */
+#define CONFIG_S5P_SDMMC_SRCCLK			2
+#define CONFIG_S5P_SDMMC_CLOCK			25000000
 
 static struct s5p6818_gpio_reg (*const g_gpio_reg)[1] =
     (struct s5p6818_gpio_reg(*)[])(PHY_BASEADDR_GPIOA_MODULE);
@@ -161,7 +168,7 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
 								| (0UL<<1);							// set clock invert
 #else
 
-    clkInfo.nPllNum = CONFIG_S5P_SDMMC_SRCLK;
+    clkInfo.nPllNum = CONFIG_S5P_SDMMC_SRCCLK;
     clkInfo.nFreqHz = nFreq;
     ret = NX_SDMMC_GetClkParam( &clkInfo );
     if (ret == CTRUE)
@@ -713,8 +720,8 @@ CBOOL	NX_SDMMC_Init( SDXCBOOTSTATUS * pSDXCBootStatus )
     NX_CLKINFO_SDMMC clkInfo;
     CBOOL ret;
 
-    clkInfo.nPllNum = CONFIG_S5P_SDMMC_SRCLK;
-    clkInfo.nFreqHz = 25000000;
+    clkInfo.nPllNum = CONFIG_S5P_SDMMC_SRCCLK;
+    clkInfo.nFreqHz = CONFIG_S5P_SDMMC_CLOCK;
 
     ret = NX_SDMMC_GetClkParam( &clkInfo );
     if (ret == CFALSE)
@@ -820,7 +827,7 @@ CBOOL	NX_SDMMC_Open( SDXCBOOTSTATUS * pSDXCBootStatus )//U32 option )
 	if( CFALSE == NX_SDMMC_SetClock( pSDXCBootStatus, CTRUE, SDXC_CLKGENDIV) )
 		return CFALSE;
 #else
-	if( CFALSE == NX_SDMMC_SetClock( pSDXCBootStatus, CTRUE, 25000000) )
+	if( CFALSE == NX_SDMMC_SetClock( pSDXCBootStatus, CTRUE, CONFIG_S5P_SDMMC_CLOCK) )
 		return CFALSE;
 #endif
 	if( CFALSE == NX_SDMMC_SelectCard(pSDXCBootStatus) )
