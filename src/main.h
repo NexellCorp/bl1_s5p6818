@@ -28,10 +28,9 @@ void ema_information(void);
 /* PMIC(power management ic) Function */
 void pmic_initalize(void);
 
-/* CCI400, Bus, Drex Fuction */
-void cci400_initialize(void);
-void set_bus_config(void);
-void set_drex_qos(void);
+/* Bus, Drex Fuction */
+void system_bus_initalize(void);
+void system_qos_initialize(void);
 
 void enter_self_refresh(void);
 void exit_self_refresh(void);

@@ -18,45 +18,8 @@
 #ifndef __SYS_BUS_H__
 #define __SYS_BUS_H__
 
-#include "nx_type.h"
-#include "printf.h"
-#include "nx_peridot.h"
-#include <nx_tieoff.h>
-
-#include <nx_drex.h>
-#include "secondboot.h"
-
-//------------------------------------------------------------------------------
-// MISC
-//
-#define IO_ADDRESS(x)           (x)
-#if 0
-#define readb(addr)             ({U8  _v = ReadIO8(addr);  _v;})
-#define readw(addr)             ({U16 _v = ReadIO16(addr); _v;})
-#define readl(addr)             ({U32 _v = ReadIO32(addr); _v;})
-#else
-#define readb(addr)             ReadIO8(addr)
-#define readw(addr)             ReadIO16(addr)
-#define readl(addr)             ReadIO32(addr)
-#endif
-#if 0
-#define writeb(data, addr)      ({U8  *_v = (U8 *)addr;  WriteIO8(_v, data);})
-#define writew(data, addr)      ({U16 *_v = (U16 *)addr; WriteIO16(_v, data);})
-#define writel(data, addr)      ({U32 *_v = (U32 *)addr; WriteIO32(_v, data);})
-#else
-#define writeb(data, addr)      WriteIO8(addr, data)
-#define writew(data, addr)      WriteIO16(addr, data)
-#define writel(data, addr)      WriteIO32(addr, data)
-#endif
-#define u8                      U8
-#define u16                     U16
-#define u32                     U32
-#define u64                     U64
-
-//------------------------------------------------------------------------------
 // DREX BRB
-//
-#define NX_DREX_PORT_3_W_BRB_EN_SHFT    (7)
+#define NX_DREX_PORT_3_W_BRB_EN_SHFT	(7)
 #define NX_DREX_PORT_2_W_BRB_EN_SHFT    (6)
 #define NX_DREX_PORT_1_W_BRB_EN_SHFT    (5)
 #define NX_DREX_PORT_0_W_BRB_EN_SHFT    (4)
@@ -74,8 +37,6 @@
 #define NX_DREX_PORT_1_R_BRB_TH_SHFT    (4)
 #define NX_DREX_PORT_0_R_BRB_TH_SHFT    (0)
 
-
-//------------------------------------------------------------------------------
 //  TIEOFF
 //
 

@@ -37,10 +37,7 @@
 #include <nx_ecid.h>
 #include <nx_clkgen.h>
 #include <nx_ssp.h>
-#include <nx_wdt.h>
-#include <nx_rtc.h>
 
-#include <nx_cci400.h>
 #include <nx_gic400.h>
 #include <nx_tzpc.h>
 #include <nx_tzc380.h>
@@ -53,6 +50,7 @@
 #include <pmic.h>
 
 #include <serial.h>
+#include <cci400.h>
 #include <printf.h>
 
 #include <memory.h>
@@ -152,13 +150,6 @@ struct NX_ECID_RegisterSet *const pReg_ECID =
 struct NX_CLKPWR_RegisterSet *const pReg_ClkPwr =
     (struct NX_CLKPWR_RegisterSet * const)PHY_BASEADDR_CLKPWR_MODULE;
 
-struct NX_WDT_RegisterSet *const pReg_WDT =
-    (struct NX_WDT_RegisterSet * const)PHY_BASEADDR_WDT_MODULE;
-struct NX_RTC_RegisterSet *const pReg_RTC =
-    (struct NX_RTC_RegisterSet * const)PHY_BASEADDR_RTC_MODULE;
-
-struct NX_CCI400_RegisterSet *const pReg_CCI400 =
-    (struct NX_CCI400_RegisterSet * const)PHY_BASEADDR_CCI400_MODULE;
 struct NX_GIC400_RegisterSet *const pReg_GIC400 =
     (struct NX_GIC400_RegisterSet * const)PHY_BASEADDR_INTC_MODULE;
 struct NX_TZPC_RegisterSet (*const pReg_TZPC)[1] =
@@ -177,15 +168,9 @@ extern struct NX_TIEOFF_RegisterSet *const pReg_Tieoff;
 extern struct NX_ECID_RegisterSet *const pReg_ECID;
 extern struct NX_CLKPWR_RegisterSet *const pReg_ClkPwr;
 
-extern struct NX_WDT_RegisterSet *const pReg_WDT;
-extern struct NX_RTC_RegisterSet *const pReg_RTC;
-#if defined(ARCH_NXP5430)
-
-extern struct NX_CCI400_RegisterSet *const pReg_CCI400;
 extern struct NX_GIC400_RegisterSet *const pReg_GIC400;
 extern struct NX_TZPC_RegisterSet (*const pReg_TZPC)[1];
 extern struct NX_TZC380_RegisterSet *const pReg_TZC380;
-#endif
 
 #endif
 

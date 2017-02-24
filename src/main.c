@@ -102,10 +102,9 @@ void main(unsigned int cpu_id)
 	/* step 05. (ddr3/lpddr3) sdram memory initialize */
 	memory_initialize(is_resume);
 
-	/* step 07-1. set the system bus configuration */
-	set_bus_config();
-	/* step 07-2. set the drex configuration */
-	set_drex_qos();
+	/* step 07-1. set the system (bus, qos) configuration */
+	system_bus_initalize();
+	system_qos_initialize();
 
 #if (SUPPORT_KERNEL_3_4 == 0)
 	/* step xx. s5p6818 - device reset (temporary) */

@@ -15,32 +15,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <sysheader.h>
+#include <cci400.h>
 
 #if (CCI400_COHERENCY_ENABLE == 1)
+
+struct s5p6818_cci400_reg *const g_cci400_reg =
+    (struct s5p6818_cci400_reg * const)PHY_BASEADDR_CCI400_MODULE;
+
 void cci400_initialize(void)
 {
-	// before set barrier instruction.
-	SetIO32(&pReg_CCI400->SCR, 1 << 0);					// static bus disable speculative fetches
-	SetIO32(&pReg_CCI400->SCR, 1 << 1);					// SFR bus disable speculative fetches
+	/* before set barrier instruction. */
+	mmio_set_32(&g_cci400_reg->scr, 1 << 0);				// static bus disable speculative fetches
+	mmio_set_32(&g_cci400_reg->scr, 1 << 1);				// SFR bus disable speculative fetches
 
-	mmio_write_32(&pReg_CCI400->COR, (1UL << 3));				// protect to send barrier command to drex
+	mmio_write_32(&g_cci400_reg->cor, (1UL << 3));				// protect to send barrier command to drex
 
-	mmio_write_32(&pReg_CCI400->CSI[BUSID_CS].SCR, 0);			// snoop request disable
-	mmio_write_32(&pReg_CCI400->CSI[BUSID_CODA].SCR, 0);			// snoop request disable
-	mmio_write_32(&pReg_CCI400->CSI[BUSID_TOP].SCR, 0);			// snoop request disable
+	mmio_write_32(&g_cci400_reg->csi[BUSID_CS].scr, 0);			// snoop request disable
+	mmio_write_32(&g_cci400_reg->csi[BUSID_CODA].scr, 0);			// snoop request disable
+	mmio_write_32(&g_cci400_reg->csi[BUSID_TOP].scr, 0);			// snoop request disable
 
 #if (MULTICORE_BRING_UP == 1)
-	mmio_write_32(&pReg_CCI400->CSI[BUSID_CPUG0].SCR, 0x3);			// cpu 0~3 Snoop & DVM Req
-	while (mmio_read_32(&pReg_CCI400->STSR) & 0x1);
+	mmio_write_32(&g_cci400_reg->csi[BUSID_CPUG0].scr, 0x3);		// cpu 0~3 Snoop & DVM Req
+	while (mmio_read_32(&g_cci400_reg->stsr) & 0x1);
 
-	mmio_write_32(&pReg_CCI400->CSI[BUSID_CPUG1].SCR, 0x3);			// cpu 4~7 Snoop & DVM Req
-	while (mmio_read_32(&pReg_CCI400->STSR) & 0x1);
+	mmio_write_32(&g_cci400_reg->csi[BUSID_CPUG1].scr, 0x3);		// cpu 4~7 Snoop & DVM Req
+	while (mmio_read_32(&g_cci400_reg->stsr) & 0x1);
 #else
-	mmio_write_32(&pReg_CCI400->CSI[BUSID_CPUG0].SCR, 0x0);
-	mmio_write_32(&pReg_CCI400->CSI[BUSID_CPUG1].SCR, 0x0);
+	mmio_write_32(&g_cci400_reg->csi[BUSID_CPUG0].scr, 0x0);
+	mmio_write_32(&g_cci400_reg->csi[BUSID_CPUG1].scr, 0x0);
 #endif
 
 }
+
 #endif // #if (CCI400_COHERENCY_ENABLE == 1)
