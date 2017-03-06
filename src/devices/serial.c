@@ -15,12 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <sysheader.h>
 
-/* External Function */
-extern void clkpwr_set_oscfreq(unsigned int freq_khz);
-extern  int clkpwr_get_pllfreq(unsigned int pll_num);
+#define CONFIG_S5P_SERIAL_SRCCLK		0
+#define CONFIG_S5P_SERIAL_DIVID			4
 
 /* Global Variables */
 static struct s5p6818_uart_reg *g_uart_reg;
@@ -132,19 +130,19 @@ int serial_init(unsigned int channel)
 	reset_con(serial_get_resetnum(channel), 0);				// reset negate
 
 	/* step xx. set the (ext:uart clock)clock in uart block*/
-	mmio_write_32(&clkgen_reg->clkenb, (1<<3));				// PCLKMODE : always, Clock Gen Disable
+	mmio_write_32(&clkgen_reg->clkenb, (1 << 3));				// PCLKMODE : always, Clock Gen Disable
 	mmio_write_32(&clkgen_reg->clkgen[0],
-		((CONFIG_S5P_SERIAL_DIVID-1)<<5) | (clk_num<<2));
+		((CONFIG_S5P_SERIAL_DIVID - 1) << 5) | (clk_num << 2));
 
 	/* step xx. set the uart config */
 	mmio_write_32(&g_uart_reg->lcon, 0x3);					// No Parrity, Word bit: 8bit, Stop bit: 1bit
 	mmio_write_32(&g_uart_reg->ucon, 0x113340);
 	mmio_write_32(&g_uart_reg->fcon, 0x441);				// [6:4] Triger Level : 40byte,  Tx, Rx FIFO Reset
-	mmio_write_32(&g_uart_reg->mcon, 0x00);	
+	mmio_write_32(&g_uart_reg->mcon, 0x00);
 
 	/* step xx. calculates an integer at the baud rate */
 	reg_value = getquotient(getquotient(clk_freq, CONFIG_S5P_SERIAL_DIVID),
-		((CONFIG_BAUDRATE / 1) * 16)) - 1;
+		((CONFIG_BAUDRATE/1)*16))-1;
 	mmio_write_32(&g_uart_reg->brdr, reg_value);
 
 	/* step xx. calculates an fractional at the baud rate */
@@ -153,7 +151,7 @@ int serial_init(unsigned int channel)
 	mmio_write_32(&g_uart_reg->fracval, reg_value);
 
 	/* step xx. enable the (ext:uart clock)clock in uart block*/
-	mmio_write_32(&clkgen_reg->clkenb, (1<<3) | (1<<2));			// PCLKMODE : always, Clock Gen Enable
+	mmio_write_32(&clkgen_reg->clkenb, (1 << 3) | (1 << 2));		// PCLKMODE : always, Clock Gen Enable
 
 	mmio_write_32(&g_uart_reg->ucon, 0x113345);
 

@@ -50,13 +50,9 @@ void main(unsigned int cpu_id)
 {
 	struct NX_SecondBootInfo TBI;
 	struct NX_SecondBootInfo *pTBI = &TBI; // third boot info
-	unsigned int serial_ch = 0;
+	unsigned int serial_ch = CONFIG_S5P_SERIAL_INDEX;
 	unsigned int is_resume = 0, temp;
 	int ret = 0;
-
-#if defined(RAPTOR) || defined(AVN)
-	serial_ch = 3;
-#endif
 
 	/* setp 01. set the ema for sram and instruction-cache */
 	cache_setup_ema();

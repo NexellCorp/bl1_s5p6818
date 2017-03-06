@@ -44,6 +44,7 @@
 
 #include "secondboot.h"
 #include <clkgen.h>
+#include <clkpwr.h>
 #include <resetcon.h>
 #include <gpio.h>
 

@@ -120,16 +120,8 @@
 						(CONFIG_DDR3_WRITE_DQ_EN  << 4)
 
 /* serial console configuration */
-#define CONFIG_S5P_SERIAL
 #define CONFIG_S5P_SERIAL_INDEX			0
-#define CONFIG_S5P_SERIAL_CLOCK			50000000
-
-#define CONFIG_S5P_SERIAL_SRCCLK		0
-#define CONFIG_S5P_SERIAL_DIVID			4
-
 #define CONFIG_BAUDRATE				115200
-
-#define CONFIG_UART_CLKGEN_CLOCK_HZ		0
 
 /* pmic(power management ic) configuration */
 #define NXE2000_PMIC_ENABLE
