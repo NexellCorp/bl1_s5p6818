@@ -33,34 +33,45 @@ void pmic_svt(void)
 {
 	char data[4];
 
-	I2C_INIT(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
-			NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
+	/* Set the Arm Voltage */
+	I2C_INIT(MP8845_I2C_ARM_GPIO_GRP, MP8845_I2C_ARM_SCL, MP8845_I2C_ARM_SDA,
+			MP8845_I2C_ARM_SCL_ALT, MP8845_I2C_ARM_SDA_ALT);
 
 	/* PFM -> PWM mode */
 	mp8845_read(MP8845C_REG_SYSCNTL1, data, 1);
 	data[0] |= 1 << 0;
 	mp8845_write(MP8845C_REG_SYSCNTL1, data, 1);
-
-	/* Set the Core Voltage */
-#if 1
+	/* Start the Vout */
 	mp8845_read(MP8845C_REG_SYSCNTL2, data, 1);
 	data[0] |= 1 << 5;
 	mp8845_write(MP8845C_REG_SYSCNTL2, data, 1);
 
-//	data[0] = 90 | 1<<7;   // 90: 1.2V
-//	data[0] = 80 | 1<<7;   // 80: 1.135V
-	data[0] = 75 | 1 << 7; // 75: 1.1V
+//	data[0] = 90 | 1<<7;							// 90: 1.2V
+//	data[0] = 80 | 1<<7;							// 80: 1.135V
+	data[0] = 75 | 1 << 7;							// 75: 1.1V
 	mp8845_write(MP8845C_REG_VSEL, data, 1);
-#else
-	data[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC2_VOL);
-	nxe2000_write(NXE2000_REG_DC2VOL, data, 1); // core - second power
-#endif
 
-	/* Set the Arm Voltage */
-#if (ARM_VOLTAGE_CONTROL_SKIP == 0)
-	data[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC1_VOL);
-	nxe2000_write(NXE2000_REG_DC1VOL, data, 1);
-#endif
+	/* Set the Core Voltage */
+	I2C_INIT(MP8845_I2C_CORE_GPIO_GRP, MP8845_I2C_CORE_SCL, MP8845_I2C_CORE_SDA,
+			MP8845_I2C_CORE_SCL_ALT, MP8845_I2C_CORE_SDA_ALT);
+
+	/* PFM -> PWM mode */
+	mp8845_read(MP8845C_REG_SYSCNTL1, data, 1);
+	data[0] |= 1 << 0;
+	mp8845_write(MP8845C_REG_SYSCNTL1, data, 1);
+	/* Start the Vout */
+	mp8845_read(MP8845C_REG_SYSCNTL2, data, 1);
+	data[0] |= 1 << 5;
+	mp8845_write(MP8845C_REG_SYSCNTL2, data, 1);
+
+//	data[0] = 90 | 1<<7;							// 90: 1.2V
+//	data[0] = 80 | 1<<7;							// 80: 1.135V
+	data[0] = 75 | 1 << 7;							// 75: 1.1V
+	mp8845_write(MP8845C_REG_VSEL, data, 1);
+
+	/* Set the NXE2000 */
+	I2C_INIT(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
+			NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
 
 	/* Set the DDR Voltage */
 	data[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC4_VOL);
