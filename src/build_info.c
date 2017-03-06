@@ -20,29 +20,24 @@
 
 int build_information(void)
 {
-	unsigned int *pNsih_BuildInfo = (unsigned int *)(0xFFFF0000 + 0x1F8);
-	unsigned int *p2nd_BuildInfo = (unsigned int *)(0xFFFF0200 + 0x024);
-	unsigned int temp;
-	int ret = 0;
+#if (SUPPORT_KERNEL_3_4 == 1)
+	unsigned int offset = 0x224;
+#else
+	unsigned int offset = 0x424;
+#endif
+	unsigned int *info = (unsigned int *)(0xFFFF0000 + offset);
+	unsigned int value = 0;
 
-	// Read Build Infomation.
-	temp = (mmio_read_32(p2nd_BuildInfo) & 0xFFFF);
+	value = (mmio_read_32(info) & 0xFFFF);
 
 	SYSMSG("\r\n");
 	SYSMSG("---------------------------------------------------------------"
 	       "-----------------\r\n");
 	SYSMSG(" Second Boot by Nexell Co. : Ver%d.%d.%d - Built on %s %s\r\n",
-	       ((temp >> 12) & 0xF), ((temp >> 8) & 0xF), (temp & 0xFF), __DATE__,
-	       __TIME__);
+	       ((value >> 12) & 0xF), ((value >> 8) & 0xF), (value & 0xFF),
+	       __DATE__, __TIME__);
 	SYSMSG("---------------------------------------------------------------"
 	       "-----------------\r\n");
 
-	temp = mmio_read_32(pNsih_BuildInfo) & 0xFFFFFF00;
-	if ((mmio_read_32(p2nd_BuildInfo) & 0xFFFFFF00) != temp) {
-		SYSMSG(" NSIH : Ver%d.%d.xx\r\n", ((temp >> 12) & 0xF),
-		       ((temp >> 8) & 0xF));
-		ret = -1;
-	}
-
-	return ret;
+	return 0;
 }

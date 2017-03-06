@@ -93,8 +93,7 @@ void main(unsigned int cpu_id)
 	ema_information();
 
 	/* step xx. build information. version, build time and date */
-	if (build_information() < 0)
-		WARN("NSIH Version(or File) Mismatch...!!\r\n");
+	build_information();
 
 	/* step xx. display the clock information */
 	clock_information();
