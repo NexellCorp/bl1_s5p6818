@@ -95,7 +95,7 @@ endif
 # Top Names
 PROJECT_NAME			= $(CHIPNAME)_2ndboot_$(OPMODE)_$(MEMTYPE)_$(VERINFO)
 TARGET_NAME			= bl1-$(shell echo $(BOARD) | tr A-Z a-z)
-LDS_NAME			= peridot_2ndboot_$(OPMODE)
+LDS_NAME			= bl1_$(OPMODE)
 
 # Directories
 DIR_PROJECT_TOP			=
