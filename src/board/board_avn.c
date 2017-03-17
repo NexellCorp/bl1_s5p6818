@@ -16,19 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <sysheader.h>
-#include <avn.h>
+#if defined(PMIC_ON)
 #include <i2c_gpio.h>
 #include <nxe2000.h>
 
-#if defined(AVN_PMIC)
+#define NXE2000_I2C_GPIO_GRP 			4				// GPIOE
+#define NXE2000_I2C_SCL 			9				// SCL : GPIOE09
+#define NXE2000_I2C_SDA 			8				// SDA: GPIOE08
+#define NXE2000_I2C_SCL_ALT 			0				// SCL : ALT0
+#define NXE2000_I2C_SDA_ALT			0				// SDA : ALT0
+
 /************************************************
   * AVN Board (PMIC: NXE2000)  - Reference 2016.04.05
   * ARM		: 1.25V
   * CORE	: 1.2V
   * DDR		: 1.5V
-  * DDR_IO	: 1.5V
+  * DDR_IO	: 1.5Vf
   ************************************************/
-void pmic_avn(void)
+void pmic_board_init(void)
 {
 	char data[4];
 
@@ -51,4 +56,4 @@ void pmic_avn(void)
 	nxe2000_write(NXE2000_REG_DC5VOL, data, 1);
 #endif
 }
-#endif
+#endif // #if defined(PMIC_ON)

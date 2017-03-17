@@ -18,10 +18,6 @@
 #ifndef __PMIC_H__
 #define __PMIC_H__
 
-void pmic_avn(void);
-void pmic_drone(void);
-void pmic_svt(void);
-void pmic_bf700(void);
-void pmic_raptor(void);
+void pmic_initalize(void);
 
 #endif

@@ -16,9 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <sysheader.h>
-#include <raptor.h>
+#if defined(PMIC_ON)
 #include <i2c_gpio.h>
 #include <nxe2000.h>
+
+#define NXE2000_I2C_GPIO_GRP 			3
+#define NXE2000_I2C_SCL 			6
+#define NXE2000_I2C_SDA 			7
+#define NXE2000_I2C_SCL_ALT 			0
+#define NXE2000_I2C_SDA_ALT 			0
 
 /*
  * Raptor board - revision check. (H/W: GPIOE 4,5,6)
@@ -39,7 +45,6 @@ unsigned int raptor_check_hw_revision(void)
         return val;
 }
 
-#if defined(RAPTOR_PMIC)
 /************************************************
   * Raptor Board (PMIC: NXE2000)  - Reference 2016.04.05
   * ARM		: 1.25V
@@ -47,7 +52,7 @@ unsigned int raptor_check_hw_revision(void)
   * DDR		: 1.5V
   * DDR_IO	: 1.5V
   ************************************************/
-void pmic_raptor(void)
+void pmic_board_init(void)
 {
 	int  board_rev = 0;
 	char data[4];
@@ -87,4 +92,4 @@ void pmic_raptor(void)
 	data[0] = nxe2000_get_ldo7_step(3300000);
 	nxe2000_write(NXE2000_REG_LDO7VOL, data, 1);
 }
-#endif
+#endif // #if defined(PMIC_ON)

@@ -20,21 +20,11 @@
 #include <pmic.h>
 
 extern void DMC_Delay(int milisecond);
+extern void pmic_board_init(void);
 
 void pmic_initalize(void)
 {
-#if defined(DRONE_PMIC)
-	pmic_drone();
-#elif defined(AVN_PMIC)
-	pmic_avn();
-#elif defined(ASB_PMIC)
-	pmic_asb();
-#elif defined(SVT_PMIC)
-	pmic_svt();
-#elif defined(BF700_PMIC)
-	pmic_bf700();
-#elif defined(RAPTOR_PMIC)
-	pmic_raptor();
-#endif
+	/* pmic (power managemnt ic) initialize */
+	pmic_board_init();
 	DMC_Delay(100 * 1000);
 }

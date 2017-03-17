@@ -16,12 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <sysheader.h>
-#include <drone.h>
+#if defined(PMIC_ON)
 #include <i2c_gpio.h>
 #include <axp228.h>
 
-#if defined(DRONE_PMIC)
-void pmic_drone(void)
+#define AUTO_VOLTAGE_CONTROL			1
+#define ARM_VOLTAGE_CONTROL_SKIP		0
+
+#define AXP_I2C_GPIO_GRP 			3 				// GPIOD
+#define AXP_I2C_SCL 				20				// SCL : GPIOD 20
+#define AXP_I2C_SDA 				16				// SDA : GPIOD 16
+#define AXP_I2C_SCL_ALT				0				// SCL : ALT0
+#define AXP_I2C_SDA_ALT				0				// SDA: ALT0
+
+void pmic_board_init(void)
 {
 	char pdata[4];
 
@@ -58,4 +66,4 @@ void pmic_drone(void)
 #endif
 	return;
 }
-#endif
+#endif // #if defined(PMIC_ON)
