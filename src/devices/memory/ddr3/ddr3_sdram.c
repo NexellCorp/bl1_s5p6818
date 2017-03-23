@@ -77,28 +77,26 @@ unsigned int g_WR_vwmc;
 
 struct dram_device_info g_ddr3_info;
 
-static int _pow(int num, int count)
-{
-	int ret = 1;
-
-	while (count--)
-		ret *= num;
-
-	return ret;
-}
-
 static void get_dram_information(struct dram_device_info *me)
 {
+	int byte = 8;
+
 	/* Nexell Step XX. Memory Address (for Write Training (DRAM)) */
 	me->bank_num	= (DDR3_BANK_NUM);
 	me->row_num	= (DDR3_ROW_NUM + 12);
 	me->column_num	= (DDR3_COL_NUM +  7);
 
-	me->column_size	= (_pow(2, me->column_num) * DDR3_BUS_WIDTH) ;
-	me->row_size	= _pow(2, me->row_num);
+	me->column_size	= (1 << me->column_num)/byte;				// Unit : Byte
+	me->row_size	= (1 << me->row_num);
 	me->bank_size	= (me->row_size * me->column_size);
-	me->chip_size	= (me->bank_size * _pow(2, me->bank_num));
-	me->sdram_size	= (me->chip_size * DDR3_CS_NUM);
+#if 1
+	me->chip_size	= (((me->bank_size * (1 << me->bank_num))
+				* DDR3_BUS_WIDTH)/ 1024 / 1024);		// Unit: MB
+	me->sdram_size	= (me->chip_size * (DDR3_CS_NUM * 32 / DDR3_BUS_WIDTH));
+#else
+	me->chip_size	= (CONFIG_DDR3_CHIP_PERSIZE/1024/1024);			// Unit: MB
+	me->sdram_size	= (CONFIG_DDR3_MEMSIZE/1024/1024);
+#endif
 
 #if 0
 	MEMMSG("############## [SDRAM] Memory Specification ###############\r\n");
@@ -106,12 +104,12 @@ static void get_dram_information(struct dram_device_info *me)
 	MEMMSG("[Bit] Column Address : %d \r\n", me->column_num);
 	MEMMSG("[Bit] Row Address    : %d \r\n", me->row_num);
 	MEMMSG("[Bit] Data Line      : %d \r\n", DDR3_BUS_WIDTH);
-	MEMMSG("[Bit] Column    Size : %d \r\n", me->column_size);
-	MEMMSG("[Bit] Row(Page) Size : %d \r\n", me->row_size);
-	MEMMSG("[Bit] Bank      Size : %f \r\n", me->bank_size);
+	MEMMSG("[BYTE] Column    Size: %d \r\n", me->column_size);
+	MEMMSG("[BYTE] Row(Page) Size: %d \r\n", me->row_size);
+	MEMMSG("[BYTE] Bank      Size: %d \r\n", me->bank_size);
 #if 1
-	MEMMSG("[Bit] Chip      Size : %f \r\n", me->chip_size);
-	MEMMSG("[TOTAL] SDRAM   Size : %f \r\n", me->sdram_size);
+	MEMMSG("[MB]   Chip      Size: %d \r\n", me->chip_size);
+	MEMMSG("[MB]   SDRAM     Size: %d \r\n", me->sdram_size);
 #endif
 	MEMMSG("############################################################\r\n");
 #endif
@@ -1710,7 +1708,7 @@ int ddr3_initialize(unsigned int is_resume)
 	} while((temp & 0x7) < 0x5);
 #else
 
-	/* 
+	/*
 	  * Step 31. Disable "ctrl_dll_on" int MDLL_CON0[5] before Leveling
 	  * Turn on if the signal is High DLL turn on/Low is turen off.
 	  */
@@ -1752,7 +1750,7 @@ int ddr3_initialize(unsigned int is_resume)
 	#endif
 
 	#if (DDR_GATE_LEVELING_EN == 1)
-		/* 
+		/*
 		  * Step 32-2. Gate Leveling
 		  * (It should be used only for DDR3 (800Mhz))
 		  */
@@ -1905,8 +1903,6 @@ int ddr3_initialize(unsigned int is_resume)
 
 	MEMMSG("Read  DQ    = 0x%08X\r\n", mmio_read_32(&g_ddrphy_reg->OFFSETR_CON[0]));
 	MEMMSG("Write DQ    = 0x%08X\r\n", mmio_read_32(&g_ddrphy_reg->OFFSETW_CON[0]));
-
-	MEMMSG("\r\n\r\n");
 
 	return 0;
 }

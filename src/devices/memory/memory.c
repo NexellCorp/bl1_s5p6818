@@ -22,8 +22,6 @@ int memory_initialize(int is_resume)
 {
 	int ret = 0;
 
-	SYSMSG("\r\nMemory Intialize. (%d) \r\n", is_resume);
-
 	/* step xx. memory initialize  */
 #if defined(MEM_TYPE_DDR3)
 	/*
@@ -40,7 +38,7 @@ int memory_initialize(int is_resume)
 
 #if  defined(MEM_TYPE_LPDDR23)
 	ret = lpddr3_initialize(0);
-	if (ret == CFALSE)
+	if (ret == 0)
 		lpddr3_initialize(0);
 #endif
 
@@ -48,7 +46,7 @@ int memory_initialize(int is_resume)
 	if (is_resume)
 		exit_self_refresh();
 
-	SYSMSG("Memory Initialize Done!\r\n");
+	SYSMSG("Memory Initialize Done! (%d:%d)\r\n\n", ret, is_resume);
 
 	return ret;
 }

@@ -206,6 +206,7 @@ endif
 
 # memory test
 ifeq ($(MEMTEST), y)
+#MEMTEST_TYPE			+=	STANDARD
 MEMTEST_TYPE			+=	SIMPLE
 CFLAGS				+=	-D$(MEMTEST_TYPE)_MEMTEST
 endif

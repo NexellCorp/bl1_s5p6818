@@ -141,8 +141,10 @@ void main(unsigned int cpu_id)
 		ERROR("2nd boot header is invalid, please check it out!\r\n");
 
 	/* step xx. check the memory test (optional) */
-#ifdef SIMPLE_MEMTEST
-	simple_memtest((unsigned int *)0x40000000UL, (unsigned int *)0xBFFF0000);
+#if defined(STANDARD_MEMTEST)
+	standard_memtester();
+#elif defined(SIMPLE_MEMTEST)
+	simple_memtest();
 #endif
 
 	/*

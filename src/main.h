@@ -53,8 +53,8 @@ void s5p6818_resume(void);
 extern void RomUSBBoot(unsigned int RomJumpAddr);
 
 /* Memory Test (Optional) */
-void simple_memtest(unsigned int *pStart, unsigned int *pEnd);
- int memtester_main(unsigned int start, unsigned int end);
+void simple_memtest(void);
+ int standard_memtester(void);
 
 /* CRC Algorithm Check Function */
  int CRC_Check(void* buf, unsigned int size, unsigned int ref_crc);
