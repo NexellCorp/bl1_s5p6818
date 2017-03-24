@@ -65,7 +65,7 @@ sleep:
         b       system_sleep				// 20 : System Sleep
 
 build_info:
-        .word   0x68181000				//24 : Chip name - 6818, Build num - v0.3.06
+        .word   0x68181000				//24 : Chip name - 6818, Build num - Ve. 1.0.0
 
 reset_handler:
 //	mcr     p15, 0 r0, c8, c9, 0			// set debug break;

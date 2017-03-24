@@ -20,24 +20,23 @@
 
 int build_information(void)
 {
+	unsigned int base = 0xFFFF0000;
+
 #if (SUPPORT_KERNEL_3_4 == 1)
 	unsigned int offset = 0x224;
 #else
 	unsigned int offset = 0x424;
 #endif
-	unsigned int *info = (unsigned int *)(0xFFFF0000 + offset);
-	unsigned int value = 0;
+	unsigned int value;
 
-	value = (mmio_read_32(info) & 0xFFFF);
+	value = (mmio_read_32(base + offset) & 0xFFFF);
 
 	SYSMSG("\r\n");
-	SYSMSG("---------------------------------------------------------------"
-	       "-----------------\r\n");
-	SYSMSG(" Second Boot by Nexell Co. : Ver%d.%d.%d - Built on %s %s\r\n",
-	       ((value >> 12) & 0xF), ((value >> 8) & 0xF), (value & 0xFF),
-	       __DATE__, __TIME__);
-	SYSMSG("---------------------------------------------------------------"
-	       "-----------------\r\n");
+	SYSMSG("----------------------------------------------------------------\r\n");
+	SYSMSG("BL1 by Nexell Co. : (Ver%d.%d.%d - Built on %s %s) \r\n",
+	       ((value >> 12) & 0xF), ((value >> 8) & 0xF), (value & 0xFF), __DATE__, __TIME__);
+	SYSMSG("----------------------------------------------------------------\r\n");
 
 	return 0;
 }
+
