@@ -55,6 +55,7 @@ SUPPORT_SDFS_BOOT		?= n
 BOARD				?= avn
 #BOARD				?= bf700
 #BOARD				?= raptor
+#BOARD				?= kick_st
 
 # sd/mmc, spi, sdfs boot configuration
 DEVICE_PORT			?= 2

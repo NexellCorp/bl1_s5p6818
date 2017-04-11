@@ -65,6 +65,8 @@
 #include <s5p6818_svt.h>
 #elif defined(RAPTOR)
 #include <s5p6818_raptor.h>
+#elif defined(KBOARD)
+#include <s5p6818_kick_st.h>
 #else
 #include <s5p6818_general.h>
 #endif
