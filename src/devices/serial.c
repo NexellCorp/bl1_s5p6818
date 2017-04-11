@@ -23,7 +23,7 @@
 /* Global Variables */
 static struct s5p6818_uart_reg *g_uart_reg;
 
-static const unsigned int g_alt_num[10] =
+static const unsigned int g_alt_num[12] =
 {
 	PADINDEX_OF_UART0_UARTRXD,
 	PADINDEX_OF_UART0_UARTTXD,
@@ -35,6 +35,8 @@ static const unsigned int g_alt_num[10] =
 	PADINDEX_OF_pl01115_Uart_nodma0_UARTTXD,
 	PADINDEX_OF_pl01115_Uart_nodma1_UARTRXD,
 	PADINDEX_OF_pl01115_Uart_nodma1_UARTTXD,
+	PADINDEX_OF_pl01115_Uart_nodma2_UARTRXD,
+	PADINDEX_OF_pl01115_Uart_nodma2_UARTTXD
 };
 
 static const unsigned int g_uart_smc[18] =
@@ -61,13 +63,14 @@ static const unsigned int g_uart_smc[18] =
 
 static int serial_clkgen_get_baseaddr(unsigned int channel)
 {
-	const unsigned int clkgen_baseaddr[5] =
+	const unsigned int clkgen_baseaddr[6] =
 	{
 		PHY_BASEADDR_CLKGEN22_MODULE,
 		PHY_BASEADDR_CLKGEN24_MODULE,
 		PHY_BASEADDR_CLKGEN23_MODULE,
 		PHY_BASEADDR_CLKGEN25_MODULE,
-		PHY_BASEADDR_CLKGEN26_MODULE
+		PHY_BASEADDR_CLKGEN26_MODULE,
+		PHY_BASEADDR_CLKGEN27_MODULE,
 	};
 
 	return clkgen_baseaddr[channel];
@@ -75,12 +78,13 @@ static int serial_clkgen_get_baseaddr(unsigned int channel)
 
 static int serial_get_baseaddr(unsigned int channel)
 {
-	const unsigned int baseaddr[5] = {
+	const unsigned int baseaddr[6] = {
 		PHY_BASEADDR_UART0_MODULE,
 		PHY_BASEADDR_pl01115_Uart_modem_MODULE,
 		PHY_BASEADDR_UART1_MODULE,
 		PHY_BASEADDR_pl01115_Uart_nodma0_MODULE,
 		PHY_BASEADDR_pl01115_Uart_nodma1_MODULE,
+		PHY_BASEADDR_pl01115_Uart_nodma2_MODULE
 	};
 
 	return baseaddr[channel];
@@ -88,13 +92,14 @@ static int serial_get_baseaddr(unsigned int channel)
 
 static int serial_get_resetnum(unsigned int channel)
 {
-	const unsigned char reset_num[5] =
+	const unsigned char reset_num[6] =
 	{
 		RESETINDEX_OF_UART0_MODULE_nUARTRST,
 		RESETINDEX_OF_pl01115_Uart_modem_MODULE_nUARTRST,
 		RESETINDEX_OF_UART1_MODULE_nUARTRST,
 		RESETINDEX_OF_pl01115_Uart_nodma0_MODULE_nUARTRST,
-		RESETINDEX_OF_pl01115_Uart_nodma1_MODULE_nUARTRST
+		RESETINDEX_OF_pl01115_Uart_nodma1_MODULE_nUARTRST,
+		RESETINDEX_OF_pl01115_Uart_nodma2_MODULE_nUARTRST
 	};
 
 	return reset_num[channel];
