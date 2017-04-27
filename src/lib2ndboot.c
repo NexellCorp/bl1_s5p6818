@@ -129,7 +129,7 @@ unsigned int getremainder(unsigned int dividend, unsigned int divisor)
 }
 #endif
 
-inline void DMC_Delay(int milisecond)
+void DMC_Delay(int milisecond)
 {
 	register volatile int count, temp;
 

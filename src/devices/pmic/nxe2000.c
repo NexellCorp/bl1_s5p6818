@@ -68,7 +68,7 @@ int nxe2000_read(char addr, char *pdata, int size)
 #if 0
 
 #if 0
-inline void nxe2000(void)
+void nxe2000(void)
 {
 	unsigned char data[4];
 
@@ -94,7 +94,7 @@ inline void nxe2000(void)
 	return;
 }
 #else
-inline void nxe2000(void)
+void nxe2000(void)
 {
 	unsigned char data[4];
 

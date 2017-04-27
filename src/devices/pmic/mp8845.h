@@ -34,6 +34,6 @@
  int mp8845_write(char addr, char *pdata, int size);
  int mp8845_read(char addr, char *pdata, int size);
 
-inline void pmic_mp8845(void);
+void pmic_mp8845(void);
 
 #endif	// ifdef __PMIC_MP8845_H__

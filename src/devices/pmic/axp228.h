@@ -54,6 +54,6 @@ unsigned char axp228_get_dcdc_step(int want_vol, int step, int min, int max);
  int axp228_write(char addr, char *pdata, int size);
  int axp228_read(char addr, char *pdata, int size);
 
-inline void axp228(void);
+void axp228(void);
 
 #endif // ifdef __PMIC_AXP228_H__

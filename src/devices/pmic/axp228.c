@@ -52,7 +52,7 @@ int axp228_read(char addr, char *pdata, int size)
 
 /* Do not use it yet. The reason is that code is not generally available. */
 #if 0
-inline void axp228(void)
+void axp228(void)
 {
 	char pdata[4];
 

@@ -417,7 +417,7 @@ static inline void secure_set_gic_master(void)
 
 }
 
-inline void secure_set_gic_all(void)
+void secure_set_gic_all(void)
 {
 //	mmio_write_32(&pReg_GIC400->GICC.PMR, 0x1<<7);	// all high priority
 	mmio_write_32(&pReg_GIC400->GICC.PMR, 0xFF);		// all high priority

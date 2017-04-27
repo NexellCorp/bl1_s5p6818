@@ -57,7 +57,7 @@
 #endif
 
 /* External Function */
-extern inline void DMC_Delay(int milisecond);
+extern void DMC_Delay(int milisecond);
 
 extern struct s5p6818_resetgen_reg *const g_rstgen_reg;
 

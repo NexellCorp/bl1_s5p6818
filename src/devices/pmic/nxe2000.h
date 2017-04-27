@@ -50,6 +50,6 @@ unsigned char nxe2000_get_dcdc_step(int want_vol);
  int nxe2000_write(char addr, char *pdata, int size);
  int nxe2000_read(char addr, char *pdata, int size);
 
-inline void pmic_nxe2000(void);
+void pmic_nxe2000(void);
 
 #endif // ifdef __PMIC_NXE2000_H__

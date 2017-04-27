@@ -117,7 +117,7 @@ int mp8845_read(char addr, char *pdata, int size)
 #define MP8845_SYSCCNTL2_CORE		1
 #endif
 
-inline void pmic_mp8845(void)
+void pmic_mp8845(void)
 {
 	unsigned char data[4];
 
