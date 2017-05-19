@@ -115,6 +115,26 @@ static void get_dram_information(struct dram_device_info *me)
 #endif
 }
 
+#if (SUPPORT_KERNEL_3_4 == 0)
+void ddr3_save_information(void)
+{
+	unsigned int value = 0;
+
+	/*
+	  * memory infomration
+	  * (4bit << 12) | (4bot << 8) | (3bit << 4) | (1bit << 2) | (2bit << 0)
+	  */
+	value = ((nCWL << 12) | (MR1_nAL << 8) | (CONFIG_DRAM_MR1_RTT_Nom << 4) |
+			(CONFIG_DRAM_MR1_ODS << 2) | (DDR3_CS_NUM << 0));
+
+	mmio_write_32(&pReg_Alive->ALIVEPWRGATEREG, 1);
+
+	/* Save the Memory information for ATF suspend */
+	mmio_write_32(&pReg_Alive->ALIVESCRATCHRST1, 0xFFFFFFFF);
+	mmio_write_32(&pReg_Alive->ALIVESCRATCHSET1, value);
+}
+#endif
+
 #if DDR_MEMINFO_SHOWLOCK
 struct phy_lock_info {
 	unsigned int val;

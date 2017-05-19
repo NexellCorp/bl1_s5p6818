@@ -24,6 +24,7 @@ void exit_self_refresh(void);
 /* (ddr3/lpdde3) sdram memory function define */
 #ifdef MEM_TYPE_DDR3
  int ddr3_initialize(unsigned int);
+void ddr3_save_information(void);
 #endif
 #ifdef MEM_TYPE_LPDDR23
  int lpddr3_initialize(unsigned int);
