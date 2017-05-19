@@ -77,11 +77,11 @@ unsigned int iget_fcs(unsigned int fcs, unsigned int data)
 
 #define CRC_POLY	0xEDB88320L		// Original
 
-unsigned int get_fcs(int fcs, unsigned char data)
+unsigned int get_fcs(unsigned int fcs, unsigned char data)
 {
 	int i;
 
-	fcs ^= (int)data;
+	fcs ^= (unsigned int)data;
 	for (i = 0; i < 8; i++) {
 		if (fcs & 0x01)
 			fcs = (fcs >> 1) ^ CRC_POLY;
@@ -106,7 +106,7 @@ unsigned int sget_fcs(int fcs, unsigned short data)
          return fcs;
 }
 
-unsigned int iget_fcs(int fcs, unsigned int data)
+unsigned int iget_fcs(unsigned int fcs, unsigned int data)
 {
 	int i;
 
