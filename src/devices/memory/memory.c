@@ -31,7 +31,9 @@ int memory_initialize(int is_resume)
 	int mem_retry = 3;
 	while (mem_retry--) {
 		ret = ddr3_initialize(is_resume);
+	#if (SUPPORT_KERNEL_3_4 == 0)
 		ddr3_save_information();
+	#endif
 		if (ret >= 0)
 			break;
 	}

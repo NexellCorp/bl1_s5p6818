@@ -130,8 +130,8 @@ void ddr3_save_information(void)
 	mmio_write_32(&pReg_Alive->ALIVEPWRGATEREG, 1);
 
 	/* Save the Memory information for ATF suspend */
-	mmio_write_32(&pReg_Alive->ALIVESCRATCHRST1, 0xFFFFFFFF);
-	mmio_write_32(&pReg_Alive->ALIVESCRATCHSET1, value);
+	mmio_write_32(&pReg_Alive->ALIVESCRATCHRST6, 0xFFFFFFFF);
+	mmio_write_32(&pReg_Alive->ALIVESCRATCHSET6, value);
 }
 #endif
 
