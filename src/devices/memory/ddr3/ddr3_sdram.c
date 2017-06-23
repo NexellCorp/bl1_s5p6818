@@ -1796,7 +1796,7 @@ int ddr3_initialize(unsigned int is_resume)
 		}
 	#endif
 
-	#if (DDR_WRITE_LEVELING_EN == 1)
+	#if (DDR_WRITE_DQ_CALIB_EN == 1)
 		/* Step 32-5. Write DQ Calibration */
 		if (DDR3_LvlTr & LVLTR_WR_CAL) {
 			if (ddr_write_dq_calibration() < 0)
