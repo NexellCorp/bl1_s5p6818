@@ -1413,7 +1413,7 @@ int ddr3_initialize(unsigned int is_resume)
 		MR0.MR0.BT	= 1;
 		MR0.MR0.CL0	= (temp & 0x1);
 		MR0.MR0.CL1	= ((temp >> 1) & 0x7);
-		MR0.MR0.DLL	= 0; // 1;
+		MR0.MR0.DLL	= 1; // 1;
 		MR0.MR0.WR	= MR0_nWR;
 
 		MR0.MR0.PD	= 0; // 1;
