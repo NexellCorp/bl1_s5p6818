@@ -371,8 +371,16 @@ void i2c_gpio_deinit(void)
 
 	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullsel, (1 << g_i2c_gpio_sda));	// pullup
 	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullenb, (1 << g_i2c_gpio_sda));	// pull enable
+	mmio_set_32(&g_gpio_reg[g_i2c_gpio_grp]->pullsel_disable_default,
+		(1 << g_i2c_gpio_sda));							// pull-sel default enable
+	mmio_set_32(&g_gpio_reg[g_i2c_gpio_grp]->pullenb_disable_default,
+		(1 << g_i2c_gpio_sda));							// pull-enb  default enable
 	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullsel, (1 << g_i2c_gpio_scl));	// pullup
 	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullenb, (1 << g_i2c_gpio_scl));	// pull enable
+	mmio_set_32(&g_gpio_reg[g_i2c_gpio_grp]->pullsel_disable_default,
+		(1 << g_i2c_gpio_scl));							// pull-sel default enable
+	mmio_set_32(&g_gpio_reg[g_i2c_gpio_grp]->pullenb_disable_default,
+		(1 << g_i2c_gpio_scl));							// pull-enb  default enable
 }
 #endif
 
@@ -400,8 +408,16 @@ void i2c_gpio_init(unsigned char gpio_grp, unsigned char gpio_scl, unsigned char
 	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->altfn[g_i2c_gpio_sda >> 4],
 		(gpio_sda_alt << ((g_i2c_gpio_sda & 0xF) << 1)));
 
-	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullsel, (1 << g_i2c_gpio_sda));	// pullup
+	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullsel, (1 << g_i2c_gpio_sda));	// pull-up
 	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullenb, (1 << g_i2c_gpio_sda));	// pull enable
-	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullsel, (1 << g_i2c_gpio_scl));	// pullup
+	mmio_set_32(&g_gpio_reg[g_i2c_gpio_grp]->pullsel_disable_default,
+		(1 << g_i2c_gpio_sda));							// pull-sel default enable
+	mmio_set_32(&g_gpio_reg[g_i2c_gpio_grp]->pullenb_disable_default,
+		(1 << g_i2c_gpio_sda));							// pull-enb  default enable
+	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullsel, (1 << g_i2c_gpio_scl));	// pull-up
 	mmio_set_32  (&g_gpio_reg[g_i2c_gpio_grp]->pullenb, (1 << g_i2c_gpio_scl));	// pull enable
+	mmio_set_32(&g_gpio_reg[g_i2c_gpio_grp]->pullsel_disable_default,
+		(1 << g_i2c_gpio_scl));							// pull-sel default enable
+	mmio_set_32(&g_gpio_reg[g_i2c_gpio_grp]->pullenb_disable_default,
+		(1 << g_i2c_gpio_scl));							// pull-enb default enable
 }
