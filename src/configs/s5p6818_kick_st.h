@@ -105,13 +105,13 @@
 #define CONFIG_DPHY_DRVDS_CS			6
 #define CONFIG_DPHY_DRVDS_CA			6
 
-#define CONFIG_DPHY_ZQ_DDS			5
-#define CONFIG_DPHY_ZQ_ODT			1
+#define CONFIG_DPHY_ZQ_DDS			6				// zq_mode_dds, driver strength - 100 : 48ohm, 101 : 40ohm, 110 : 34ohm, 111 : 30ohm
+#define CONFIG_DPHY_ZQ_ODT			3				// zq_mode_odt, odt value - 001 : 120ohm, 010 : 60ohm,  011 : 40ohm, 100 : 30ohm
 
 /* ddr3 leveling & training configuration */
-#define CONFIG_DDR3_WRITE_LVL_EN		0				// 0: Disable, 1: Enable
-#define CONFIG_DDR3_READ_DQ_EN			0				// 0: Disable, 1: Enable
-#define CONFIG_DDR3_WRITE_DQ_EN			0				// 0: Disable, 1: Enable
+#define CONFIG_DDR3_WRITE_LVL_EN		1				// 0: Disable, 1: Enable
+#define CONFIG_DDR3_READ_DQ_EN			1				// 0: Disable, 1: Enable
+#define CONFIG_DDR3_WRITE_DQ_EN			1				// 0: Disable, 1: Enable
 #define CONFIG_DDR3_GATE_LVL_EN			1				// 0: Disable, 1: Enable
 
 #define CONFIG_DDR3_LVLTR_EN			(CONFIG_DDR3_WRITE_LVL_EN << 0) |	\
