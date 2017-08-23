@@ -50,10 +50,8 @@ void pmic_board_init(void)
 	/* DDR3 voltage change */	// 1.5V
 	data[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC4_VOL);
 	nxe2000_write(NXE2000_REG_DC4VOL, data, 1);
-#if 0
 	/* DDR3 IO voltage change */	// 1.5V
 	data[0] = nxe2000_get_dcdc_step(NXE2000_DEF_DDC5_VOL);
 	nxe2000_write(NXE2000_REG_DC5VOL, data, 1);
-#endif
 }
 #endif // #if defined(PMIC_ON)
