@@ -23,9 +23,6 @@
 #include <iSDHCBOOT.h>
 #include <nx_bootheader.h>
 
-#define CONFIG_S5P_SDMMC_SRCCLK			2
-#define CONFIG_S5P_SDMMC_CLOCK			25000000
-
 #if DEVMSG_ON
 #define dev_msg         printf
 #else
