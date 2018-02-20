@@ -23,7 +23,11 @@
 
 /* system clock macro */
 #define CONFIG_S5P_PLL0_FREQ			800
+#ifdef QUICKBOOT
+#define CONFIG_S5P_PLL1_FREQ			1200
+#else
 #define CONFIG_S5P_PLL1_FREQ			800
+#endif
 #define CONFIG_S5P_PLL2_FREQ			614
 #define CONFIG_S5P_PLL3_FREQ			800
 
