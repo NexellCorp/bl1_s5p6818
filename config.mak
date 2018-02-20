@@ -217,3 +217,8 @@ ifeq ($(CRC_CHECK), y)
 CHECKSUM			+=	CRC_CHECK
 CFLAGS				+=	-D$(CHECKSUM)_ON
 endif
+
+# quickboot
+ifeq ($(QUICKBOOT), 1)
+CFLAGS += -DQUICKBOOT
+endif

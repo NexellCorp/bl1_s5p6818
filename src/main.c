@@ -85,6 +85,10 @@ void main(unsigned int cpu_id)
 	/* step 04. serial console(uartX) initialize. */
 	serial_init(serial_ch);
 
+#ifdef QUICKBOOT
+	printf("BL1\r\n");
+#endif
+
 	/* step xx. display the ema(extra margin adjustments) information. */
 	ema_information();
 

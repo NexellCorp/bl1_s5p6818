@@ -31,7 +31,11 @@
 
 /* (sd/emmc) configuration */
 #define CONFIG_S5P_SDMMC_SRCCLK			2
+#ifdef QUICKBOOT
+#define CONFIG_S5P_SDMMC_CLOCK			100000000
+#else
 #define CONFIG_S5P_SDMMC_CLOCK			25000000
+#endif
 
 static struct s5p6818_gpio_reg (*const g_gpio_reg)[1] =
     (struct s5p6818_gpio_reg(*)[])(PHY_BASEADDR_GPIOA_MODULE);
