@@ -123,7 +123,7 @@ U32 getquotient(U32 dividend, U32 divisor) { return dividend / divisor; }
 U32 getremainder(U32 dividend, U32 divisor) { return dividend % divisor; }
 #endif
 
-inline void DMC_Delay(int milisecond)
+void DMC_Delay(int milisecond)
 {
 	register volatile int count, temp;
 

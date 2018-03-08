@@ -45,7 +45,7 @@
 #define nop() __asm__ __volatile__("mov\tr0,r0\t@ nop\n\t");
 
 extern void setMemPLL(int);
-extern inline void DMC_Delay(int milisecond);
+extern void DMC_Delay(int milisecond);
 
 U32 g_Lock_Val;
 U32 g_WR_lvl;

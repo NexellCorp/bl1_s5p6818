@@ -446,7 +446,7 @@ static inline void SetGIC_Master(void)
 #endif
 }
 
-inline void SetGIC_All(void)
+void SetGIC_All(void)
 {
 	//	WriteIO32( &pReg_GIC400->GICC.PMR,	0x1<<7);	// all
 	//high priority

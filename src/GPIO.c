@@ -32,7 +32,7 @@ struct NXPYROPE_GPIO_RegSet {
 #if !DIRECT_IO
 static struct NXPYROPE_GPIO_RegSet (*const pBaseGPIOReg)[1] =
     (struct NXPYROPE_GPIO_RegSet(*)[])(PHY_BASEADDR_GPIOA_MODULE);
-inline void GPIOSetAltFunction(U32 AltFunc)
+void GPIOSetAltFunction(U32 AltFunc)
 {
 	register struct NX_GPIO_RegisterSet *pGPIOReg =
 	    &pBaseGPIOReg[(AltFunc >> 8) & 0x7]->NXGPIO;
