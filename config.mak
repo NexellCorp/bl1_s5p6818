@@ -25,7 +25,7 @@ VERINFO				= V110
 DEBUG				= n
 
 #OPMODE				= aarch64
-OPMODE				= aarch32
+OPMODE				?= aarch32
 
 MEMTYPE				= DDR3
 #MEMTYPE			= LPDDR3
@@ -60,20 +60,20 @@ SECURE_ON			?= 0
 ifeq ($(OPMODE), aarch32)
 ifeq ($(OS),Windows_NT)
 CROSS_TOOL_TOP			=
-CROSS_TOOL			= $(CROSS_TOOL_TOP)arm-none-eabi-
+CROSS_TOOL			?= $(CROSS_TOOL_TOP)arm-none-eabi-
 else
 CROSS_TOOL_TOP			=
-CROSS_TOOL			= $(CROSS_TOOL_TOP)arm-eabi-
+CROSS_TOOL			?= $(CROSS_TOOL_TOP)arm-eabi-
 endif
 endif
 
 ifeq ($(OPMODE), aarch64)
 ifeq ($(OS),Windows_NT)
 CROSS_TOOL_TOP			=
-CROSS_TOOL			= $(CROSS_TOOL_TOP)aarch64-none-elf-
+CROSS_TOOL			?= $(CROSS_TOOL_TOP)aarch64-none-elf-
 else
 CROSS_TOOL_TOP			=
-CROSS_TOOL			= $(CROSS_TOOL_TOP)aarch64-none-elf-
+CROSS_TOOL			?= $(CROSS_TOOL_TOP)aarch64-none-elf-
 #CROSS_TOOL			= $(CROSS_TOOL_TOP)aarch64-elf-
 endif
 endif
