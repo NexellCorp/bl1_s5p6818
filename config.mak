@@ -49,6 +49,7 @@ SUPPORT_SDMMC_BOOT		= y
 #BOARD				= AVN
 #BOARD				= BF700
 BOARD				?= RAPTOR
+MODULE				?= artik710
 
 # System Log Message
 SYSLOG				?= n
@@ -198,4 +199,8 @@ endif
 ifeq ($(CRC_CHECK), y)
 CHECKSUM			+=	CRC_CHECK
 CFLAGS				+=	-D$(CHECKSUM)_ON
+endif
+
+ifeq ($(MODULE), artik711s)
+CFLAGS				+=	-DARTIK711S_MODULE
 endif

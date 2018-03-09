@@ -536,6 +536,9 @@ void PMIC_RAPTOR(void)
 	U8 pData[4];
 	U32 board_rev = 0;
 
+#ifdef ARTIK711S_MODULE
+	I2C_Init(4, 22, 23, 0, 0); /* GPIOE, SCL: 22, SDA: 23 */
+#else
 	/* Raptor Board Revision Check */
 	board_rev = raptor_check_hw_revision();
 	if (board_rev >= 0x2) {
@@ -548,6 +551,7 @@ void PMIC_RAPTOR(void)
 		I2C_Init(NXE2000_I2C_GPIO_GRP, NXE2000_I2C_SCL, NXE2000_I2C_SDA,
 				NXE2000_I2C_SCL_ALT, NXE2000_I2C_SDA_ALT);
 	}
+#endif
 
 	// PFM -> PWM mode
 
