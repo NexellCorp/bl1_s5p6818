@@ -67,6 +67,8 @@
 #include <s5p6818_raptor.h>
 #elif defined(KICK_ST)
 #include <s5p6818_kick_st.h>
+#elif defined(BITMINER)
+#include <s5p6818_bitminer_ref.h>
 #endif
 
 #if defined(SYSLOG_ON)

@@ -52,10 +52,11 @@ SUPPORT_SDFS_BOOT		?= n
 #BOARD				?= svt
 #BOARD				?= asb
 #BOARD				?= drone
-BOARD				?= avn
+#BOARD				?= avn
 #BOARD				?= bf700
 #BOARD				?= raptor
 #BOARD				?= kick_st
+BOARD				?= bitminer
 
 # sd/mmc, spi, sdfs boot configuration
 DEVICE_PORT			?= 2
