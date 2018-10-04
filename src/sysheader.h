@@ -93,7 +93,7 @@
 #define DEVMSG_ON	0
 
 /* Set Log Message(Debug) Macro */
-#define LOG_LEVEL			30
+#define LOG_LEVEL			60
 
 #define LOG_LEVEL_NONE			0
 #define LOG_LEVEL_ERROR			10

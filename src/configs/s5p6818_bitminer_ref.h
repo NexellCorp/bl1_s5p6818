@@ -73,9 +73,9 @@
 /* sdram ddr3 configuration */
 #define CONFIG_DDR3_MEMCLK			800				// 533, 666, 800
 
-#define CONFIG_DDR3_CS_NUM			 2				// 1 : 1CS, 2: 2CS
+#define CONFIG_DDR3_CS_NUM			 1				// 1 : 1CS, 2: 2CS
 #define CONFIG_DDR3_BANK_NUM			 3				// 3: 8 Bank
-#define CONFIG_DDR3_ROW_NUM			15
+#define CONFIG_DDR3_ROW_NUM			13
 #define CONFIG_DDR3_COLUMN_NUM			10
 
 #define CONFIG_DDR3_BUS_WIDTH			16

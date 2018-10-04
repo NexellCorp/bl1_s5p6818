@@ -21,8 +21,8 @@
 #include <iUSBBOOT.h>
 #include <nx_bootheader.h>
 
-#if 0 //DEVMSG_ON
-#define dev_msg(x, ...) printf(x, ...)
+#if DEVMSG_ON
+#define dev_msg(...) printf("dev_msg: " __VA_ARGS__)
 #else
 #define dev_msg(x, ...)
 #endif

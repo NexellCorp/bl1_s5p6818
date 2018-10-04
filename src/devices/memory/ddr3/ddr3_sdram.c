@@ -98,7 +98,7 @@ static void get_dram_information(struct dram_device_info *me)
 	me->sdram_size	= (CONFIG_DDR3_MEMSIZE/1024/1024);
 #endif
 
-#if 0
+#if 1
 	MEMMSG("############## [SDRAM] Memory Specification ###############\r\n");
 	MEMMSG("[Bit] Bank Address   : %d \r\n", me->bank_num);
 	MEMMSG("[Bit] Column Address : %d \r\n", me->column_num);
@@ -106,10 +106,10 @@ static void get_dram_information(struct dram_device_info *me)
 	MEMMSG("[Bit] Data Line      : %d \r\n", DDR3_BUS_WIDTH);
 	MEMMSG("[BYTE] Column    Size: %d \r\n", me->column_size);
 	MEMMSG("[BYTE] Row(Page) Size: %d \r\n", me->row_size);
-	MEMMSG("[BYTE] Bank      Size: %d \r\n", me->bank_size);
+	MEMMSG("[BYTE] Bank      Size: %d \r\n", (int)me->bank_size);
 #if 1
-	MEMMSG("[MB]   Chip      Size: %d \r\n", me->chip_size);
-	MEMMSG("[MB]   SDRAM     Size: %d \r\n", me->sdram_size);
+	MEMMSG("[MB]   Chip      Size: %d \r\n", (int)me->chip_size);
+	MEMMSG("[MB]   SDRAM     Size: %d \r\n", (int)me->sdram_size);
 #endif
 	MEMMSG("############################################################\r\n");
 #endif

@@ -375,7 +375,7 @@ static inline void secure_set_tzasc(void)
 
 	/* Set TZASC region 1 as secure DRAM (from 0x7E000000, size 32MB) */
 	mmio_write_32(&pTZC380->RS[1].REGION_SETUP_HIGH, 0);
-	mmio_write_32(&pTZC380->RS[1].REGION_SETUP_LOW, 0x7E000000); // x40000000;
+	mmio_write_32(&pTZC380->RS[1].REGION_SETUP_LOW, 0x4E000000); // x40000000;
 	mmio_write_32(&pTZC380->RS[1].REGION_ATTRIBUTES,
 		  ((0x0C << 28) |			// Only secure r/w
 		   (0x200 << 4) |			// 32MB region (0x200 * 64KB)

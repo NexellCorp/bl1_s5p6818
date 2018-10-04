@@ -24,7 +24,7 @@
 #include <nx_bootheader.h>
 
 #if DEVMSG_ON
-#define dev_msg         printf
+#define dev_msg(...) printf("dev_msg: " __VA_ARGS__)
 #else
 #define dev_msg(x, ...) {}
 #endif
@@ -120,7 +120,7 @@ static CBOOL	NX_SDMMC_SetClock( SDXCBOOTSTATUS * pSDXCBootStatus, CBOOL enb, U32
     CBOOL ret;
 
 	#if defined(VERBOSE)
-	dev_msg("NX_SDMMC_SetClock : divider = %d\r\n", divider);
+	dev_msg("NX_SDMMC_SetClock : nFreq = %d\r\n", nFreq);
 	#endif
 
 //	NX_ASSERT( (1==divider) || (0==(divider&1)) );		// 1 or even number

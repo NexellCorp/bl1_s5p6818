@@ -60,7 +60,7 @@ void main(unsigned int cpu_id)
 	/* step xx. remove the warining message */
 	cpu_id = cpu_id;
 
-#if 0	/* (early) low level - log message */
+#if 1	/* (early) low level - log message */
 	/* step xx. serial console(uartX) initialize. */
 	serial_init(serial_ch);
 #endif

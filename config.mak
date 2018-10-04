@@ -68,7 +68,7 @@ KERNEL_VER			?= 3
 #KERNEL_VER			?= 4
 
 # system log message
-SYSLOG				?= n
+SYSLOG				?= y
 
 # secure Boot
 SECURE_ON			?= n
