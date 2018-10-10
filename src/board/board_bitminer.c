@@ -20,9 +20,9 @@
 #include <i2c_gpio.h>
 #include <nxe2000.h>
 
-#define NXE2000_I2C_GPIO_GRP 			4				// GPIOE
-#define NXE2000_I2C_SCL 			9				// SCL : GPIOE09
-#define NXE2000_I2C_SDA 			8				// SDA: GPIOE08
+#define NXE2000_I2C_GPIO_GRP 			3				// GPIOE
+#define NXE2000_I2C_SCL 			2				// SCL : GPIOE09
+#define NXE2000_I2C_SDA 			3				// SDA: GPIOE08
 #define NXE2000_I2C_SCL_ALT 			0				// SCL : ALT0
 #define NXE2000_I2C_SDA_ALT			0				// SDA : ALT0
 
