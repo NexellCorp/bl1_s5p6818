@@ -43,6 +43,7 @@ static void s5p6818_set_device_env(void)
 {
 	/* (device port number) for u-boot  */
 	mmio_write_32(&pReg_ClkPwr->SCRATCH[1], (pSBI->DBI.SDMMCBI.PortNumber));
+	mmio_write_32(&pReg_ClkPwr->SCRATCH[2], (pSBI->DBI.SDMMCBI.LoadDevice));
 }
 #endif
 
