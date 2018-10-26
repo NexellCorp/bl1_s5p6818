@@ -160,6 +160,7 @@ ifeq ($(KERNEL_VER), 3)
 	./tools/bingen -c $(CHIPNAME) -i $(DIR_TARGETOUTPUT)/$(TARGET_NAME).bin -o $(DIR_TARGETOUTPUT)/bl1-emmcboot.bin -l 0xFFFF0000 -e 0xFFFF0000 -d SDMMC -u $(DEVICE_PORT) -a 0x8000
 else
 	./tools/bingen -c $(CHIPNAME) -i $(DIR_TARGETOUTPUT)/$(TARGET_NAME).bin -o $(DIR_TARGETOUTPUT)/bl1-emmcboot.bin -l 0xFFFF0000 -e 0xFFFF0000 -d SDMMC -u $(DEVICE_PORT) -a 0x10200
+	./tools/bingen -c $(CHIPNAME) -i $(DIR_TARGETOUTPUT)/$(TARGET_NAME).bin -o $(DIR_TARGETOUTPUT)/bl1-sdboot.bin -l 0xFFFF0000 -e 0xFFFF0000 -d SDMMC -u 0 -a 0x10200
 endif
 
 ifeq ($(OS),Windows_NT)
