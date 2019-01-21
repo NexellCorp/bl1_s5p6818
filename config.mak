@@ -62,6 +62,9 @@ DEVICE_PORT			?= 2
 #DEVICE_PORT			?= 1
 #DEVICE_PORT			?= 0
 
+# boot device name
+BOOT_DEVICE			?= emmc
+
 # supported kernel version (3.18-3.4/4.1-4.4)
 KERNEL_VER			?= 3
 #KERNEL_VER			?= 4
