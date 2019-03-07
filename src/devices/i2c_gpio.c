@@ -18,9 +18,9 @@
 
 #include <sysheader.h>
 
-//#define dev_error			ERROR
-#define dev_error			printf
-//#define dev_error(x)
+/*#define dev_error	ERROR */
+/*#define dev_error	printf */
+#define dev_error	empty_printf
 
 #define STRETCHING_TIMEOUT		100
 #define I2C_DELAY_TIME			2
@@ -89,7 +89,37 @@ static int i2c_gpio_send_start(void)
 
 	if (sda_read() == FALSE) {
 		dev_error("(%s) sda arbitration fail! \r\n", __func__);
-		return FALSE;	// arbitration lost
+
+		timeout = STRETCHING_TIMEOUT;
+		while (sda_read() == FALSE) {
+			if (timeout-- == 0) {
+				dev_error("(%s) sda timeout arbitration fail! timeout:%d \r\n", __func__, timeout);
+				return FALSE;
+			}
+			scl_low();
+			i2c_delay(I2C_DELAY_TIME);
+			scl_read();
+			i2c_delay(I2C_DELAY_TIME);
+			dev_error("(%s) sda arbitration fail! timeout:%d \r\n", __func__, timeout);
+		}
+		dev_error("(%s) sda arbitration success! \r\n", __func__);
+
+		/* send stop condition */
+		scl_low();
+		sda_low();
+		i2c_delay(I2C_DELAY_TIME);
+		timeout = STRETCHING_TIMEOUT;
+		while (scl_read() == FALSE) {
+			if(timeout-- == 0) {
+				dev_error("(%s) stop bit clock timeout arbitration fail! timeout:%d \r\n", __func__, timeout);
+				return FALSE;
+			}
+			i2c_delay(I2C_DELAY_TIME);
+		}
+		i2c_delay(I2C_DELAY_TIME);
+		sda_read();
+		i2c_delay(I2C_DELAY_TIME);
+		dev_error("(%s) send stop condition success! \r\n", __func__);
 	}
 
 	sda_low();
