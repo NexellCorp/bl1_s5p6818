@@ -56,6 +56,7 @@ BOARD				?= avn
 #BOARD				?= bf700
 #BOARD				?= raptor
 #BOARD				?= kick_st
+#BOARD				?= con_svma
 
 # sd/mmc, spi, sdfs boot configuration
 DEVICE_PORT			?= 2
