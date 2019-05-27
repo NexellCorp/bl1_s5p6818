@@ -1032,6 +1032,149 @@ End:
 	return result;
 }
 
+#ifdef SUPPORT_OTA_AB_UPDATE
+CBOOL	NX_SDMMC_Read1Sector_misc(SDXCBOOTSTATUS *pSDXCBootStatus, U32 SectorNum, U32 *tempBuf)
+{
+	CBOOL	result = CFALSE;
+	U32	status;
+	NX_SDMMC_COMMAND cmd;
+	register struct NX_SDMMC_RegisterSet * const pSDXCReg = pgSDXCReg[pSDXCBootStatus->SDPort];
+
+	while(pSDXCReg->STATUS & (NX_SDXC_STATUS_DATABUSY | NX_SDXC_STATUS_FSMBUSY));		// wait while data busy or data transfer busy
+
+	//--------------------------------------------------------------------------
+	// wait until 'Ready for data' is set and card is in transfer state.
+	do
+	{
+		cmd.cmdidx	= SEND_STATUS;
+		cmd.arg		= pSDXCBootStatus->rca;
+		cmd.flag	= NX_SDXC_CMDFLAG_STARTCMD | NX_SDXC_CMDFLAG_CHKRSPCRC | NX_SDXC_CMDFLAG_SHORTRSP;
+		status = NX_SDMMC_SendCommand( pSDXCBootStatus, &cmd );
+		if( NX_SDMMC_STATUS_NOERROR != status )
+			goto End;
+	}while( !((cmd.response[0] & (1<<8)) && (((cmd.response[0]>>9)&0xF)==4)) );
+
+	// Set byte count
+	pSDXCReg->BYTCNT = BLOCK_LENGTH;
+
+	//--------------------------------------------------------------------------
+	// Send Command
+	cmd.cmdidx	= READ_SINGLE_BLOCK;
+	cmd.flag	= NX_SDXC_CMDFLAG_STARTCMD | NX_SDXC_CMDFLAG_WAITPRVDAT | NX_SDXC_CMDFLAG_CHKRSPCRC | NX_SDXC_CMDFLAG_SHORTRSP | NX_SDXC_CMDFLAG_BLOCK | NX_SDXC_CMDFLAG_RXDATA;
+	cmd.arg		= (pSDXCBootStatus->bHighCapacity) ? SectorNum : SectorNum*BLOCK_LENGTH;
+
+	status = NX_SDMMC_SendCommand( pSDXCBootStatus, &cmd );
+	if( NX_SDMMC_STATUS_NOERROR != status )
+		goto End;
+
+	//--------------------------------------------------------------------------
+	// Read data
+	if(CTRUE == NX_SDMMC_ReadSectorData(pSDXCBootStatus, 1, tempBuf)) {
+		result = CTRUE;
+	}
+
+End:
+	if( CFALSE == result )
+	{
+		cmd.cmdidx	= STOP_TRANSMISSION;
+		cmd.arg		= 0;
+		cmd.flag	= NX_SDXC_CMDFLAG_STARTCMD | NX_SDXC_CMDFLAG_CHKRSPCRC | NX_SDXC_CMDFLAG_SHORTRSP | NX_SDXC_CMDFLAG_STOPABORT;
+		NX_SDMMC_SendCommandInternal( pSDXCBootStatus, &cmd );
+
+		if( 0 == (pSDXCReg->STATUS & NX_SDXC_STATUS_FIFOEMPTY) )
+		{
+			pSDXCReg->CTRL = NX_SDXC_CTRL_FIFORST;		// Reest the FIFO.
+			while( pSDXCReg->CTRL & NX_SDXC_CTRL_FIFORST ); // Wait until the FIFO reset is completed.
+		}
+	}
+	return result;
+}
+
+struct andr_slot_metadata {
+	u8 priority : 4;
+	u8 tries_remaining : 3;
+	u8 successful_boot : 1;
+	u8 verity_corrupted : 1;
+	u8 reserved : 7;
+} __attribute__ ((packed, aligned(2)));
+//} __packed;
+
+struct andr_bl_control {
+	char slot_suffix[4];
+	u32 magic;
+	u8 version;
+	u8 nb_slot : 3;
+	u8 recovery_tries_remaining : 3;
+	u8 reserved0[2];
+	struct andr_slot_metadata slot_info[4];
+	u8 reserved1[8];
+	u32 crc32_le;
+} __attribute__ ((packed, aligned(4)));
+//} __packed;
+
+static int ab_compare_slots(const struct andr_slot_metadata *a,
+			    const struct andr_slot_metadata *b)
+{
+	if (a->priority != b->priority)
+		return b->priority - a->priority;
+
+	if (a->successful_boot != b->successful_boot)
+		return b->successful_boot - a->successful_boot;
+
+	if (a->tries_remaining != b->tries_remaining)
+		return b->tries_remaining - a->tries_remaining;
+
+	return 0;
+}
+
+static int ab_select_slot(U32 *tempBuf)
+{
+        struct andr_bl_control *abc = (struct andr_bl_control*)tempBuf;
+        int slot = -1;
+        int i = 0;
+
+        if (abc->magic != ANDROID_BOOT_CTRL_MAGIC) {
+                printf("[BL1]ANDROID: Unknown A/B metadata: %.8x\r\n", abc->magic);
+                return -1;
+        }
+#if defined(NX_DEBUG)
+        printf("[bl1][%s] ----- Slot Select INFO -----\r\n", __func__);
+        printf("[bl1][%s] abc->slot_suffix  = %s\r\n",   __func__, abc->slot_suffix );
+        printf("[bl1][%s] abc->magic        = 0x%x\r\n", __func__, abc->magic       );
+        printf("[bl1][%s] abc->nb_slot      = %d\r\n",   __func__, abc->nb_slot     );
+        printf("[bl1][%s] abc->crc32_le     = 0x%x\r\n", __func__, abc->crc32_le    );
+        printf("[bl1][%s] ----------------------------\r\n", __func__);
+#endif
+	for (i = 0; i < abc->nb_slot; ++i) {
+		if (abc->slot_info[i].verity_corrupted ||
+		    !abc->slot_info[i].tries_remaining) {
+			printf("[BL1]ANDROID: unbootable slot %d tries: %d, corrupt: %d\r\n",
+                               i, abc->slot_info[i].tries_remaining,
+                               abc->slot_info[i].verity_corrupted);
+			continue;
+		}
+		printf("[BL1]ANDROID: bootable slot %d pri: %d, tries: %d, corrupt: %d, successful: %d\r\n",
+			i, abc->slot_info[i].priority,
+                        abc->slot_info[i].tries_remaining,
+			abc->slot_info[i].verity_corrupted,
+			abc->slot_info[i].successful_boot);
+
+		if (slot < 0 || ab_compare_slots(&abc->slot_info[i], &abc->slot_info[slot]) < 0) {
+                        slot = i;
+		}
+	}
+
+	if (slot >= 0 && !abc->slot_info[slot].successful_boot) {
+		printf("[BL1]ANDROID: Attempting slot %d, tries remaining %d\r\n",
+		       slot,
+		       abc->slot_info[slot].tries_remaining);
+		abc->slot_info[slot].tries_remaining--;
+	}
+
+        return slot;
+}
+#endif //SUPPORT_OTA_AB_UPDATE
+
 //------------------------------------------------------------------------------
 extern void Decrypt(U32 *SrcAddr, U32 *DestAddr, U32 Size);
 static	int SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
@@ -1058,6 +1201,33 @@ static	int SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 
 		while( pSDXCReg->CTRL & NX_SDXC_CTRL_FIFORST );
 	}
+
+#ifdef SUPPORT_OTA_AB_UPDATE
+        int ab_select = 0;
+        U32 tempBuf[BLOCK_LENGTH+4];
+
+	result = NX_SDMMC_Read1Sector_misc(pSDXCBootStatus,
+                                           (MISC_SDMMC_DEVADDR + MISC_SDMMC_SLOT_OFFSET)/BLOCK_LENGTH,
+                                            tempBuf);
+        ab_select = ab_select_slot(tempBuf);
+
+        if (result) {
+            if (ab_select == OTA_AB_UPDATE_SUFFIX_A) {
+                pSBI->DEVICEADDR = BL1_SDMMCBOOT_BOOTLOADER_A;   // Sector 0x81
+                printf("[bl1] ========== Slot selct A ==========\r\n");
+            }
+            else {  //OTA_AB_UPDATE_SUFFIX_B
+                pSBI->DEVICEADDR = BL1_SDMMCBOOT_BOOTLOADER_B;   // Sector 0x9608;
+                printf("[bl1] ========== Slot selct B ==========\r\n");
+            }
+        }
+        else {
+            pSBI->DEVICEADDR = BL1_SDMMCBOOT_BOOTLOADER_A;   // Sector 0x81
+            printf("[bl1] ====== Misc partition Read Fail!! ======\r\n");
+            printf("[bl1] =======Select Slot selct A ========\r\n");
+        }
+
+#endif //SUPPORT_OTA_AB_UPDATE
 
 	result = NX_SDMMC_ReadSectors(pSDXCBootStatus,
 			pSBI->DEVICEADDR/BLOCK_LENGTH, 2, (U32 *)pTBI );
@@ -1111,6 +1281,16 @@ static	int SDMMCBOOT(SDXCBOOTSTATUS * pSDXCBootStatus,
 			(uint32_t)ptbh->tbbi.loadaddr,
 			(uint32_t)ptbh->tbbi.loadsize,
 			(uint32_t)ptbh->tbbi.startaddr);
+
+#ifdef SUPPORT_OTA_AB_UPDATE
+        //For BL2 notify selected slot A or B
+        if (ab_select == OTA_AB_UPDATE_SUFFIX_A) {
+            ptbh->tbbi.boot_slot_ab = (U32)OTA_AB_UPDATE_BL2_MSG_A;
+        }
+        else {
+            ptbh->tbbi.boot_slot_ab = (U32)OTA_AB_UPDATE_BL2_MSG_B;
+        }
+#endif //SUPPORT_OTA_AB_UPDATE
 
 	result = NX_SDMMC_ReadSectors(pSDXCBootStatus,
 			pSBI->DEVICEADDR / BLOCK_LENGTH + 2,

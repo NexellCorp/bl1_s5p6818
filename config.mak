@@ -42,6 +42,9 @@ PMIC_ON				?= y
 
 CRC_CHECK			?= n
 
+# OTA AB update support
+SUPPORT_OTA_AB_UPDATE           ?= n
+
 # supported (thridboot) boot mode
 SUPPORT_USB_BOOT		?= y
 SUPPORT_SDMMC_BOOT		?= y
@@ -225,4 +228,9 @@ endif
 # quickboot
 ifeq ($(QUICKBOOT), 1)
 CFLAGS += -DQUICKBOOT
+endif
+
+# OTA AB update support
+ifeq ($(SUPPORT_OTA_AB_UPDATE), y)
+CFLAGS                         +=      -DSUPPORT_OTA_AB_UPDATE
 endif
