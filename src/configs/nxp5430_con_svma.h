@@ -134,7 +134,7 @@
 /* DDR3 Driver Strength Configuration */
 #define CONFIG_DRAM_MR1_ODS     0
 #define CONFIG_DRAM_MR1_RTT_Nom 2
-#define CONFIG_DRAM_MR2_RTT_WR  1
+#define CONFIG_DRAM_MR2_RTT_WR  2
 
 #define CONFIG_DPHY_DRVDS_BYTE0 6
 #define CONFIG_DPHY_DRVDS_BYTE1 6
@@ -145,8 +145,8 @@
 #define CONFIG_DPHY_DRVDS_CS    6
 #define CONFIG_DPHY_DRVDS_CA    6
 
-#define CONFIG_DPHY_ZQ_DDS      4
-#define CONFIG_DPHY_ZQ_ODT      1
+#define CONFIG_DPHY_ZQ_DDS      5
+#define CONFIG_DPHY_ZQ_ODT      2
 
 #define CONFIG_DDR3_WRITE_LVL_EN 0
 #define CONFIG_DDR3_READ_DQ_EN   0
