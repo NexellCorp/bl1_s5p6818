@@ -221,12 +221,12 @@ void DUMP_PHY_REG(void)
         temp = mmio_read_32( pAddr + i );
 
         if ( (i & 3) == 0 ) {
-            printf("\r\n0x%08X :", (i<<2));
+            MEMMSG("\r\n0x%08X :", (i<<2));
         }
 
-        printf(" %08x", temp);
+        MEMMSG(" %08x", temp);
     }
-    printf("\r\n");
+    MEMMSG("\r\n");
 }
 #endif
 

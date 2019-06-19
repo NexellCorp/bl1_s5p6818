@@ -482,20 +482,20 @@ CBOOL DDR_CA_Calibration(void)
 				if (find_vmw == 0x1) {
 					vwml = code;
 				}
-				//                printf("+ %d\r\n", code);
+				//                MEMMSG("+ %d\r\n", code);
 			} else {
 				find_vmw = 0x0; //- 첫 번째 PASS로부터 연속 3회
 						//PASS 하지 못하면 연속 3회
 						//PASS가 발생할 때까지 Searching
 						//다시 시작하도록 "find_vmw" =
 						//"0"으로 초기화.
-				//                printf("- %d\r\n", code);
+				//                MEMMSG("- %d\r\n", code);
 			}
 		} else if ((mr41 != RESP_MR41) || (mr48 != RESP_MR48)) {
 			find_vmw = 0x4;
 			vwmr = code - 1;
-			//            printf("-- %d\r\n", code);
-			printf("mr41 = 0x%08X, mr48 = 0x%08X\r\n", mr41, mr48);
+			//            MEMMSG("-- %d\r\n", code);
+			MEMMSG("mr41 = 0x%08X, mr48 = 0x%08X\r\n", mr41, mr48);
 			break;
 		}
 
@@ -557,7 +557,7 @@ ca_error_ret:
 
 #else
 
-	printf("\r\n########## CA Calibration - Start ##########\r\n");
+	MEMMSG("\r\n########## CA Calibration - Start ##########\r\n");
 
 	WriteIO32(&pReg_DDRPHY->PHY_CON[10],
 		  0x37); // Set CA delay time. - Miware value OK
@@ -2038,7 +2038,7 @@ CBOOL init_LPDDR3(U32 isResume)
 
 #if 1
 
-	//    printf("\r\n########## READ/GATE Level ##########\r\n");
+	//    MEMMSG("\r\n########## READ/GATE Level ##########\r\n");
 
 	//======================================================================
 	//======================== Training Preparation ========================
@@ -2340,17 +2340,17 @@ CBOOL init_LPDDR3(U32 isResume)
 		      (0x0 << 1) | // [    1] busif_wr_cg_en
 		      (0x0 << 0)); // [    0] busif_rd_cg_en
 
-	printf("\r\n");
+	MEMMSG("\r\n");
 
-	printf("Lock value  = %d\r\n", g_Lock_Val);
+	MEMMSG("Lock value  = %d\r\n", g_Lock_Val);
 
-	printf("CA CAL CODE = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[10]));
+	MEMMSG("CA CAL CODE = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[10]));
 
-	printf("GATE CYC    = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[3]));
-	printf("GATE CODE   = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[8]));
+	MEMMSG("GATE CYC    = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[3]));
+	MEMMSG("GATE CODE   = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[8]));
 
-	printf("Read  DQ    = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[4]));
-	printf("Write DQ    = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[6]));
+	MEMMSG("Read  DQ    = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[4]));
+	MEMMSG("Write DQ    = 0x%08X\r\n", ReadIO32(&pReg_DDRPHY->PHY_CON[6]));
 
 	return CTRUE;
 }
