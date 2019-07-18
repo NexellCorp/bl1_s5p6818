@@ -1,6 +1,12 @@
 #ifndef __GPIO_H__
 #define __GPIO_H__
 
+#include <type.h>
+
+enum gpio_group {
+	gpio_a,	gpio_b, gpio_c, gpio_d, gpio_e,
+};
+
 struct	s5p6818_gpio_reg {
 	volatile unsigned int out;			///< 0x00 : Output Register
 	volatile unsigned int outenb;			///< 0x04 : Output Enable Register
@@ -32,5 +38,7 @@ struct	s5p6818_gpio_reg {
 
 /* Function Define */
 void gpio_set_alt_function(unsigned int alt_num);
-
+void gpio_set_pad_function(u32 grp, u32 io, u32 padfunc);
+void gpio_set_output_value(u32 grp, u32 io, int value);
+void gpio_set_output_enable(u32 grp, u32 io, int en);
 #endif

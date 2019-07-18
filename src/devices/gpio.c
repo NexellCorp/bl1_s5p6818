@@ -37,3 +37,34 @@ void gpio_set_alt_function(unsigned int alt_num)
 	reg_value |= ((alt_num & 0x3) << alt_clear);
 	mmio_write_32(&gpio_reg->altfn[reg_num], reg_value);
 }
+
+void gpio_set_pad_function(u32 grp, u32 io, u32 padfunc)
+{
+	register struct s5p6818_gpio_reg *gpio_reg =
+		(struct s5p6818_gpio_reg *)(&g_gpio_reg[grp]);
+
+	mmio_clear_32(&gpio_reg->altfn[io >> 4], (3 << ((io & 0xF) << 1)));
+	mmio_set_32  (&gpio_reg->altfn[io >> 4], (padfunc << ((io & 0xF) << 1)));
+}
+
+void gpio_set_output_value(u32 grp, u32 io, int value)
+{
+	register struct s5p6818_gpio_reg *gpio_reg =
+		(struct s5p6818_gpio_reg *)(&g_gpio_reg[grp]);
+
+	if (value)
+		mmio_set_32(&gpio_reg->out,	(1 << io));
+	else
+		mmio_clear_32(&gpio_reg->out, (1 << io));
+}
+
+void gpio_set_output_enable(u32 grp, u32 io, int en)
+{
+	register struct s5p6818_gpio_reg *gpio_reg =
+		(struct s5p6818_gpio_reg *)(&g_gpio_reg[grp]);
+
+	if (en)
+		mmio_set_32(&gpio_reg->outenb,	(1 << io));
+	else
+		mmio_clear_32(&gpio_reg->outenb,	(1 << io));
+}
