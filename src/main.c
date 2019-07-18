@@ -85,21 +85,23 @@ void main(unsigned int cpu_id)
 	/* step 04. serial console(uartX) initialize. */
 	serial_init(serial_ch);
 
-#ifdef QUICKBOOT
-	printf("BL1\r\n");
-#endif
-
 	/* step xx. display the ema(extra margin adjustments) information. */
 	ema_information();
 
+#ifndef QUICKBOOT
 	/* step xx. build information. version, build time and date */
 	build_information();
 
 	/* step xx. display the clock information */
 	clock_information();
+#endif
 
 	/* step 05. (ddr3/lpddr3) sdram memory initialize */
 	memory_initialize(is_resume);
+
+#ifdef QUICKBOOT
+	printf("BL1\r\n");
+#endif
 
 	/* step 07-1. set the system (bus, qos) configuration */
 	system_bus_initalize();
@@ -210,7 +212,9 @@ void main(unsigned int cpu_id)
 		SYSMSG("Launch to 0x%08X\r\n", (PTR)pLaunch);
 		temp = 0x10000000;
 
+#ifndef QUICKBOOT
 		while (!serial_done() && temp--);
+#endif
 		pLaunch(0, 4330);
 	}
 
