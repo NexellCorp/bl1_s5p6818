@@ -77,7 +77,7 @@
 #define tCKE			0x2
 #define tMRD			0x6
 #elif (DDR3_MEMORY_CLOCK == DDR3_MEMCLK_666Mhz)
-#define nCW			7						// CAS Write Latency(CWL).
+#define nCWL			7						// CAS Write Latency(CWL).
 #define nCL			(9 + 0)						// CAS Latency(CL). Sometimes plus is needed.
 
 #define MR0_nWR			0x5
