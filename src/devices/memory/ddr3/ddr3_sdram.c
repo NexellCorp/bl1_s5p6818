@@ -156,7 +156,7 @@ void show_lock_value(void)
 		lock_info[i].count	= 0;
 
 		for (j = 0; j < 5; j++)
-			lock_info[i].lock_count[j = 0;
+			lock_info[i].lock_count[j] = 0;
 	}
 
 	for (i = 0; i < 1000000; i++) {
@@ -1395,11 +1395,11 @@ int ddr3_initialize(unsigned int is_resume)
 
 		MR1.MR1.AL	 = MR1_nAL;
 
-		MR1.MR1.ODS1	 = (CONFIG_DRAM_MR1_ODS & 0x2 >> 1);
-		MR1.MR1.ODS0	 = (CONFIG_DRAM_MR1_ODS & 0x1 >> 0);
-		MR1.MR1.RTT_Nom2 = (CONFIG_DRAM_MR1_RTT_Nom & 0x4 >> 2);
-		MR1.MR1.RTT_Nom1 = (CONFIG_DRAM_MR1_RTT_Nom & 0x2 >> 1);
-		MR1.MR1.RTT_Nom0 = (CONFIG_DRAM_MR1_RTT_Nom & 0x1 >> 0);
+		MR1.MR1.ODS1	 = (CONFIG_DRAM_MR1_ODS >> 1) & 1;
+		MR1.MR1.ODS0	 = (CONFIG_DRAM_MR1_ODS >> 0) & 1;
+		MR1.MR1.RTT_Nom2 = (CONFIG_DRAM_MR1_RTT_Nom >> 2) & 1;
+		MR1.MR1.RTT_Nom1 = (CONFIG_DRAM_MR1_RTT_Nom >> 1) & 1;
+		MR1.MR1.RTT_Nom0 = (CONFIG_DRAM_MR1_RTT_Nom >> 1) & 1;
 		MR1.MR1.QOff	 = 0;
 		MR1.MR1.WL	 = 0;
 
@@ -1753,7 +1753,7 @@ int ddr3_initialize(unsigned int is_resume)
 	temp |= (g_Lock_Val << 7);
 	mmio_write_32(&g_ddrphy_reg->MDLL_CON[0], temp);				// ctrl_force[16:8]
 
-//	mmio_set_32  (&g_ddrphy_reg->RODT_CON, (0x1  << 28));		// ctrl_readduradj [31:28]
+	mmio_set_32  (&g_ddrphy_reg->RODT_CON, (0x1  << 28));		// ctrl_readduradj [31:28]
 
 #if (SKIP_LEVELING_TRAINING == 0)
 	/* Step 32. DDR Controller Calibration*/
