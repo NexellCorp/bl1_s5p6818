@@ -61,7 +61,7 @@
 #define tRP			0x6
 #define tRCD			0x6
 #define tRC			0x14
-#define tRAS			0xE
+#define tRAS			0xF	// t_ras * 2.5ns >= 35ns + 1.25ns
 
 #define tWTR			0x3
 #define tWR			0x6
