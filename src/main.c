@@ -20,6 +20,10 @@
 #include <main.h>
 #include <nx_bootheader.h>
 
+#if defined(VIPTEST)
+void capture_emul(void);
+#endif
+
 #if (SUPPORT_KERNEL_3_4 == 0)
 /* s5p6818 - pwm module reset */
 void s5p6818_pwm_reset(void)
@@ -198,6 +202,10 @@ void main(unsigned int cpu_id)
 #ifdef CRC_CHECK_ON
 	ret = crc_check((void*)pTBI->LOADADDR, (unsigned int)pTBI->LOADSIZE,
 				(unsigned int)pTBI->DBI.SDMMCBI.CRC32);
+#endif
+#if defined(VIPTEST)
+	if ((pReg_ClkPwr->RESETSTATUS & 1 << 2) == 0)   /* check wdt reset */
+		                 capture_emul();
 #endif
 	/* step 11. jump the next bootloader (thirdboot) */
 	if (ret) {
