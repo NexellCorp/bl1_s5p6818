@@ -68,6 +68,11 @@ ifeq ($(MEMTEST),y)
 SYS_OBJS	+=	memtester.o
 endif
 
+ifeq ($(VIP_PRE_TEST),y)
+CFLAGS		+=	-DVIPTEST
+SYS_OBJS	+=	platapi.o nx-vip-primitive.o
+endif
+
 SYS_OBJS_LIST	=	$(addprefix $(DIR_OBJOUTPUT)/,$(SYS_OBJS))
 
 SYS_INCLUDES	=	-I src								\
