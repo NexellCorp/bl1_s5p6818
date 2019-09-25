@@ -1399,7 +1399,7 @@ int ddr3_initialize(unsigned int is_resume)
 		MR1.MR1.ODS0	 = (CONFIG_DRAM_MR1_ODS >> 0) & 1;
 		MR1.MR1.RTT_Nom2 = (CONFIG_DRAM_MR1_RTT_Nom >> 2) & 1;
 		MR1.MR1.RTT_Nom1 = (CONFIG_DRAM_MR1_RTT_Nom >> 1) & 1;
-		MR1.MR1.RTT_Nom0 = (CONFIG_DRAM_MR1_RTT_Nom >> 1) & 1;
+		MR1.MR1.RTT_Nom0 = (CONFIG_DRAM_MR1_RTT_Nom >> 0) & 1;
 		MR1.MR1.QOff	 = 0;
 		MR1.MR1.WL	 = 0;
 
