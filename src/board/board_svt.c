@@ -21,26 +21,26 @@
 #include <nxe2000.h>
 #include <mp8845.h>
 
-#define AUTO_VOLTAGE_CONTROL			1
-#define ARM_VOLTAGE_CONTROL_SKIP		0
+#define AUTO_VOLTAGE_CONTROL		1
+#define ARM_VOLTAGE_CONTROL_SKIP	0
 
-#define NXE2000_I2C_GPIO_GRP 			3				// GPIOD
-#define NXE2000_I2C_SCL 			6				// SCL : GPIOD06
+#define NXE2000_I2C_GPIO_GRP		3				// GPIOD
+#define NXE2000_I2C_SCL 			6				// SCL: GPIOD06
 #define NXE2000_I2C_SDA 			7				// SDA: GPIOD07
-#define NXE2000_I2C_SCL_ALT 			0				// SCL: ALT0
-#define NXE2000_I2C_SDA_ALT			0				// SDA: ALT 0
+#define NXE2000_I2C_SCL_ALT 		0				// SCL: ALT0
+#define NXE2000_I2C_SDA_ALT			0				// SDA: ALT0
 
-#define MP8845_I2C_ARM_GPIO_GRP 		3				// GPIOD
-#define MP8845_I2C_ARM_SCL 			2				// SCL : GPIOD02
-#define MP8845_I2C_ARM_SDA 			3				// SDA: GPIOD03
-#define MP8845_I2C_ARM_SCL_ALT			0				// SCL: ALT0
-#define MP8845_I2C_ARM_SDA_ALT			0				// SDA: ALT 0
+#define MP8845_I2C_ARM_GPIO_GRP		3				// GPIOD
+#define MP8845_I2C_ARM_SCL			2				// SCL: GPIOD02
+#define MP8845_I2C_ARM_SDA			3				// SDA: GPIOD03
+#define MP8845_I2C_ARM_SCL_ALT		0				// SCL: ALT0
+#define MP8845_I2C_ARM_SDA_ALT		0				// SDA: ALT0
 
-#define MP8845_I2C_CORE_GPIO_GRP 		3				// GPIOD
-#define MP8845_I2C_CORE_SCL 			6				// SCL : GPIOD06
-#define MP8845_I2C_CORE_SDA 			7				// SDA: GPIOD07
-#define MP8845_I2C_CORE_SCL_ALT			0				// SCL: ALT0
-#define MP8845_I2C_CORE_SDA_ALT			0				// SDA: ALT 0
+#define MP8845_I2C_CORE_GPIO_GRP 	3				// GPIOD
+#define MP8845_I2C_CORE_SCL 		6				// SCL: GPIOD06
+#define MP8845_I2C_CORE_SDA			7				// SDA: GPIOD07
+#define MP8845_I2C_CORE_SCL_ALT		0				// SCL: ALT0
+#define MP8845_I2C_CORE_SDA_ALT		0				// SDA: ALT0
 
 /************************************************
   * SVT Board (PMIC: NXE2000, MP8845)  - Reference 2016.04.05
@@ -66,9 +66,10 @@ void pmic_board_init(void)
 	data[0] |= 1 << 5;
 	mp8845_write(MP8845C_REG_SYSCNTL2, data, 1);
 
+	data[0] = 98 | 1<<7;							// 98: 1.2556V
 //	data[0] = 90 | 1<<7;							// 90: 1.2V
 //	data[0] = 80 | 1<<7;							// 80: 1.135V
-	data[0] = 75 | 1 << 7;							// 75: 1.1V
+//	data[0] = 75 | 1 << 7;							// 75: 1.1V
 	mp8845_write(MP8845C_REG_VSEL, data, 1);
 
 	/* Set the Core Voltage */
@@ -84,9 +85,9 @@ void pmic_board_init(void)
 	data[0] |= 1 << 5;
 	mp8845_write(MP8845C_REG_SYSCNTL2, data, 1);
 
-//	data[0] = 90 | 1<<7;							// 90: 1.2V
+	data[0] = 90 | 1<<7;							// 90: 1.2V
 //	data[0] = 80 | 1<<7;							// 80: 1.135V
-	data[0] = 75 | 1 << 7;							// 75: 1.1V
+//	data[0] = 75 | 1 << 7;							// 75: 1.1V
 	mp8845_write(MP8845C_REG_VSEL, data, 1);
 
 	/* Set the NXE2000 */

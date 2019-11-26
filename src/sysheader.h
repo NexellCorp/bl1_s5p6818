@@ -62,7 +62,7 @@
 #elif defined(DRONE)
 #include <s5p6818_drone.h>
 #elif defined(SVT)
-#include <s5p6818_svt.h>
+#include <s5p6818_svt_ref.h>
 #elif defined(RAPTOR)
 #include <s5p6818_raptor.h>
 #elif defined(KICK_ST)
