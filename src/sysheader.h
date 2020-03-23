@@ -68,7 +68,7 @@
 #elif defined(KICK_ST)
 #include <s5p6818_kick_st.h>
 #elif defined(CON_SVMA)
-#include <nxp5430_con_svma.h>
+#include <s5p6818_con_svma.h>
 #endif
 
 #if defined(SYSLOG_ON)

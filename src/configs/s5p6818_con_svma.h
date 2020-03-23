@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __NXP5430_CON_SVMA_H__
-#define __NXP5430_CON_SVMA_H__
+#ifndef __S5P6818_CON_SVMA_H__
+#define __S5P6818_CON_SVMA_H__
 
 #include <clock.h>
 #include <freq.h>
@@ -25,15 +25,22 @@
  * Total 4 PLLs
  * See datasheet 4.9
  */
+#ifdef	Q100
+#define CONFIG_S5P_PLL0_FREQ	600  /* clock source for bus, memory, ogl, mpeg */
+#define CONFIG_S5P_PLL1_FREQ	800  /* clock source for cpu */
+#define CONFIG_S5P_PLL2_FREQ	614  /* clock source for i2s 0 */
+#define CONFIG_S5P_PLL3_FREQ	800 /* clock source for i2s 1 */
+#else
 #define CONFIG_S5P_PLL0_FREQ	800  /* clock source for bus, memory, ogl, mpeg */
 #define CONFIG_S5P_PLL1_FREQ	800  /* clock source for cpu */
 #define CONFIG_S5P_PLL2_FREQ	614  /* clock source for i2s 0 */
-#define CONFIG_S5P_PLL3_FREQ	614  /* clock source for i2s 1 */
+#define CONFIG_S5P_PLL3_FREQ	800 /* clock source for i2s 1 */
+#endif	/*Q100*/
 
 #define CPU_CLUSTER0_CLK_SOURCE	CLKSRC_PLL_1
 #define CPU_CLUSTER1_CLK_SOURCE	CLKSRC_PLL_1
 #define BUS_CLK_SOURCE		CLKSRC_PLL_0
-#define MEM_CLK_SOURCE		CLKSRC_PLL_0
+#define MEM_CLK_SOURCE		CLKSRC_PLL_3
 #define OGL_CLK_SOURCE		CLKSRC_PLL_0
 #define MPEG_CLK_SOURCE		CLKSRC_PLL_0
 #define DISP_CLK_SOURCE		CLKSRC_PLL_0
@@ -167,4 +174,4 @@
 #define AUTO_VOLTAGE_CONTROL     1
 #define ARM_VOLTAGE_CONTROL_SKIP 0
 
-#endif /* __NXP5430_CON_SVMA_H__ */
+#endif /* __S5P6818_CON_SVMA_H__ */

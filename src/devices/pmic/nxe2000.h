@@ -27,8 +27,8 @@
 #define NXE2000_DEF_LDOx_VOL_MAX	3500000		/* UINT = 1uV, 3.5V */
 #define NXE2000_DEF_LDOx_VOL_STEP	25000		/* UINT = 1uV, 25mV */
 #ifdef	Q100
-#define NXE2000_DEF_DDC1_VOL            1250000	/* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) = 1.3V */
-#define NXE2000_DEF_DDC2_VOL            1200000	/* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) = 1.2V */
+#define NXE2000_DEF_DDC1_VOL            1100000	/* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) = 1.3V */
+#define NXE2000_DEF_DDC2_VOL            1100000	/* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) = 1.2V */
 #define NXE2000_DEF_DDC3_VOL            3300000	/* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) = 3.3V */
 #define NXE2000_DEF_DDC4_VOL            1500000	/* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) = 1.65V */
 #define NXE2000_DEF_DDC5_VOL            1500000	/* VAL(uV) = 0: 0.60 ~ 3.5V, Step 12.5 mV, default(OTP) = 1.65V */
