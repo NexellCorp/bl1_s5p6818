@@ -234,3 +234,8 @@ endif
 ifeq ($(SUPPORT_OTA_AB_UPDATE), y)
 CFLAGS                         +=      -DSUPPORT_OTA_AB_UPDATE
 endif
+
+# if PRODUCT_CAR=true enable Q100
+ifeq ($(PRODUCT_CAR), true)
+CFLAGS += -DQ100
+endif
