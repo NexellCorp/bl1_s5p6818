@@ -131,7 +131,7 @@ $(DIR_OBJOUTPUT)/%.o: src/test/%.c
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
 
-all: mkobjdir $(SYS_OBJS_LIST) link bin bingen
+all: mkobjdir startup $(SYS_OBJS_LIST) link bin bingen
 
 mkobjdir:
 ifeq ($(OS),Windows_NT)
@@ -150,6 +150,10 @@ else
 		$(MKDIR) $(DIR_TARGETOUTPUT);			\
 	fi;
 endif
+
+startup:
+	@echo [compile....startup.S]
+	$(Q)$(CC) -MMD src/startup_$(OPMODE).S -c -o $@ $(ASFLAG) $(CFLAGS) $(SYS_INCLUDES)
 
 link: $(SYS_OBJS_LIST)
 	@echo [link.... $(DIR_TARGETOUTPUT)/$(TARGET_NAME).elf]
