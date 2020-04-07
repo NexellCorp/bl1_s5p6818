@@ -89,49 +89,49 @@ SYS_INCLUDES	=	-I src								\
 			-I prototype/module
 
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/%.c
+$(DIR_OBJOUTPUT)/%.o: src/%.c mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/%.S
+$(DIR_OBJOUTPUT)/%.o: src/%.S mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(ASFLAG) $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/boot/%.c
+$(DIR_OBJOUTPUT)/%.o: src/boot/%.c mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/devices/%.c
+$(DIR_OBJOUTPUT)/%.o: src/devices/%.c mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/devices/memory/%.c
+$(DIR_OBJOUTPUT)/%.o: src/devices/memory/%.c mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/devices/memory/ddr3/%.c
+$(DIR_OBJOUTPUT)/%.o: src/devices/memory/ddr3/%.c mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/devices/memory/lpddr3/%.c
+$(DIR_OBJOUTPUT)/%.o: src/devices/memory/lpddr3/%.c mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/devices/pmic/%.c
+$(DIR_OBJOUTPUT)/%.o: src/devices/pmic/%.c mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
-$(DIR_OBJOUTPUT)/%.o: src/board/%.c
-	@echo [compile....$<]
-	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
-###################################################################################################
-
-$(DIR_OBJOUTPUT)/%.o: src/test/%.c
+$(DIR_OBJOUTPUT)/%.o: src/board/%.c mkobjdir
 	@echo [compile....$<]
 	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
 ###################################################################################################
 
-all: mkobjdir startup $(SYS_OBJS_LIST) link bin bingen
+$(DIR_OBJOUTPUT)/%.o: src/test/%.c mkobjdir
+	@echo [compile....$<]
+	$(Q)$(CC) -MMD $< -c -o $@ $(CFLAGS) $(SYS_INCLUDES)
+###################################################################################################
+
+all: mkobjdir $(SYS_OBJS_LIST) link bin bingen
 
 mkobjdir:
 ifeq ($(OS),Windows_NT)
@@ -150,10 +150,6 @@ else
 		$(MKDIR) $(DIR_TARGETOUTPUT);			\
 	fi;
 endif
-
-startup:
-	@echo [compile....startup.S first !!!]
-	$(Q)$(CC) -MMD src/startup_$(OPMODE).S -c -o $(DIR_OBJOUTPUT)/startup_$(OPMODE).o $(ASFLAG) $(CFLAGS) $(SYS_INCLUDES)
 
 link: $(SYS_OBJS_LIST)
 	@echo [link.... $(DIR_TARGETOUTPUT)/$(TARGET_NAME).elf]
